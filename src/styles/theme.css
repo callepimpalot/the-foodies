@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+:root {
+  /* Core Colors */
+  --color-bg-mesh: #FAF9F6;
+  /* Organic Linen */
+  --color-glass: rgba(255, 255, 255, 0.75);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+  --color-text-primary: #1C1C1E;
+  /* Onyx */
+  --color-text-secondary: #636366;
+
+  /* Archetype Glows */
+  --glow-training: 20, 184, 166;
+  /* Cyan */
+  --glow-family: 251, 191, 36;
+  --glow-student: 16, 185, 129;
+  --glow-minimalist: 244, 114, 182;
+
+  /* Current Active Glow */
+  --active-glow: var(--glow-training);
+
+  /* 2026 "Organic Utility" Specs */
+  --gutter: 16px;
+  --radius-bento: 20px;
+
+  /* Spring Physics (Damping 20, Stiffness 150) */
+  --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --spring-duration: 0.5s;
+
+  /* Spacing & Layout */
+  --radius-lg: var(--radius-bento);
+  --radius-md: 16px;
+  --radius-sm: 8px;
+
+  --spacing-container: 2rem;
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg-mesh);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient Hub Background - Time based Hues: Amber AM / Forest Green PM */
+.ambient-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(var(--active-glow), 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(var(--active-glow), 0.05), transparent 25%);
+  transition: background 2s ease-in-out;
+  pointer-events: none;
+}
+
+/* Utilities */
+.glass-panel {
+  background: var(--color-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
+}
+
+.btn-primary {
+  background: rgba(var(--active-glow), 0.2);
+  color: rgb(var(--active-glow));
+  border: 1px solid rgba(var(--active-glow), 0.5);
+  font-family: inherit;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s var(--spring-easing);
+  box-shadow: 0 0 15px rgba(var(--active-glow), 0.1);
+}
+
+.btn-primary:hover {
+  background: rgba(var(--active-glow), 0.3);
+  box-shadow: 0 0 25px rgba(var(--active-glow), 0.3);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.title-display {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(to right, var(--color-text-primary), var(--color-text-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 2026 Performance Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+    box-shadow: 0 0 30px rgba(var(--active-glow), 0.4);
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes squish {
+  0% {
+    transform: scale(1.2, 0.8);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s var(--spring-easing) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s var(--spring-easing) infinite;
+}
+
+.animate-squish {
+  animation: squish 0.5s var(--spring-easing) forwards;
+}

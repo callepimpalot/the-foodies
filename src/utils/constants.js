@@ -1,0 +1,11 @@
+export const VIEWS = {
+    DASHBOARD: 'DASHBOARD',
+    PLAN: 'PLAN',
+    RECIPES: 'RECIPES',
+    SHOP: 'SHOP',
+    PANTRY: 'PANTRY',
+    IMPORT: 'IMPORT',
+    ONBOARDING: 'ONBOARDING',
+    PROFILE: 'PROFILE',
+    SETTINGS: 'SETTINGS'
+};
