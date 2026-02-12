@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { User, Bell } from 'lucide-react'
 import { BottomNav } from './components/BottomNav'
 import { useView } from './context/ViewContext'
 import { useArchetype } from './context/ArchetypeContext'
@@ -19,30 +20,6 @@ function AppContent() {
   // const { activeArchetype } = useArchetype();
   const [showProfile, setShowProfile] = useState(false);
 
-  // Top Icons Component
-  const TopIcons = () => (
-    <div style={{
-      position: 'absolute',
-      top: '1.5rem',
-      right: '1.5rem',
-      display: 'flex',
-      gap: '1rem',
-      zIndex: 50
-    }}>
-      <button
-        onClick={() => setShowProfile(!showProfile)}
-        style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--color-text-primary)' }}
-      >
-        👤
-      </button>
-      <button
-        style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--color-text-primary)' }}
-      >
-        ⚙️
-      </button>
-    </div>
-  );
-
   // Render Logic
   const renderView = () => {
     // If Profile Overlay is open, show FamilyProfile
@@ -53,7 +30,7 @@ function AppContent() {
     }
 
     switch (currentView) {
-      case VIEWS.DASHBOARD: return <HomeView />;
+      case VIEWS.DASHBOARD: return <HomeView onOpenProfile={() => setShowProfile(true)} />;
       case VIEWS.PLAN: return <PlanView />;
       case VIEWS.RECIPES: return <RecipeView />;
       case VIEWS.SHOP: return <ShopView />;
@@ -61,29 +38,33 @@ function AppContent() {
       case VIEWS.PROFILE: return (
         <FamilyProfile onClose={() => setShowProfile(false)} />
       );
-      default: return <HomeView />;
+      default: return <HomeView onOpenProfile={() => setShowProfile(true)} />;
     }
   };
 
   return (
-    <>
+    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col bg-zinc-50">
       <div className="ambient-background" />
 
-      <TopIcons />
-
-      <main style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: 'var(--spacing-container)',
-        paddingBottom: '6rem', // Space for bottom nav
-        minHeight: '100vh',
-      }}>
-        {renderView()}
+      {/* Scrollable Content Area */}
+      <main
+        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
+        style={{ paddingBottom: '8rem' }} // Extra safety padding for dock
+      >
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: 'var(--spacing-container)',
+          paddingTop: '0',
+          minHeight: '100%',
+        }}>
+          {renderView()}
+        </div>
       </main>
 
       {!showProfile && <BottomShoppingSheet />}
       {!showProfile && <BottomNav />}
-    </>
+    </div>
   )
 }
 

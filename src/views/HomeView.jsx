@@ -2,320 +2,265 @@ import React, { useState } from 'react';
 import { useArchetype } from '../context/ArchetypeContext';
 import { useInventory } from '../context/InventoryContext';
 import { usePlan } from '../context/PlanContext';
+import { useFamily } from '../context/FamilyContext';
 import { useView } from '../context/ViewContext';
 import { RECIPES } from '../data/recipes';
-import { MealCard } from '../components/MealCard';
 import { MealPreviewModal } from '../components/MealPreviewModal';
 import { AddToPlanModal } from '../components/AddToPlanModal';
 import { VIEWS } from '../utils/constants';
+import { ChevronRight, Clock, Flame, Users, User, Package } from 'lucide-react';
 
-export function HomeView() {
+export function HomeView({ onOpenProfile }) {
     const { activeArchetype } = useArchetype();
+    const { familyData } = useFamily();
     const { items } = useInventory();
-    const { addToPlan } = usePlan();
+    const { addToPlan, weeklyPlan } = usePlan();
     const { setCurrentView } = useView();
 
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
-    // Get current time for greeting
+    // Time-based Greeting
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
 
-    // Featured Meal (First unavailable meal of the day or just a random one)
-    const featuredMeal = RECIPES[0];
+    // Featured Meal & Hero Logic
+    const currentSlot = hour < 10 ? 'breakfast' : hour < 14 ? 'lunch' : 'dinner';
+    const SLOTS = ['breakfast', 'lunch', 'dinner'];
+    const today = new Date().toISOString().split('T')[0];
 
-    const handleMealClick = (meal) => {
-        console.log('Meal clicked:', meal);
-        setSelectedMeal(meal);
-    };
+    // Calculate Next 3 Meals
+    const nextMeals = [];
+    let loopSlotIndex = SLOTS.indexOf(currentSlot);
+    let loopDateObj = new Date(); // Start today
 
-    const handleAddToPlanClick = () => {
-        setShowAddModal(true);
-    };
+    for (let i = 0; i < 3; i++) {
+        const loopDateStr = loopDateObj.toISOString().split('T')[0];
+        const dayPlan = weeklyPlan[loopDateStr] || {};
+        const mealEntry = dayPlan[SLOTS[loopSlotIndex]];
 
-    const handleConfirmAddToPlan = (date, type, recipe) => {
-        if (addToPlan) {
-            addToPlan(date, type, recipe);
-        } else {
-            console.warn("addToPlan not available in context");
+        let resolvedMeal = mealEntry?.recipe || mealEntry;
+        if (resolvedMeal && (!resolvedMeal.image || typeof resolvedMeal !== 'object')) {
+            const idToFind = resolvedMeal.id || resolvedMeal;
+            const foundRecipe = RECIPES.find(r => r.id == idToFind);
+            if (foundRecipe) resolvedMeal = { ...foundRecipe, ...resolvedMeal };
         }
 
+        // Date Badge Logic
+        let badgeLabel = null;
+        if (i > 0) { // Don't show for first item (Today)
+            if (i === 1 && loopSlotIndex === 0) {
+                // Optimization: loop logic is complex, simpler check:
+                // basic check if date is tomorrow
+            }
+
+            // Simplest approach: compare dates
+            const now = new Date();
+            const itemDate = new Date(loopDateObj);
+            const diffTime = itemDate.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 0) {
+                if (diffDays === 1) badgeLabel = 'Tomorrow';
+                else badgeLabel = loopDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+        }
+
+        nextMeals.push({
+            label: SLOTS[loopSlotIndex].charAt(0).toUpperCase() + SLOTS[loopSlotIndex].slice(1),
+            badgeLabel,
+            meal: resolvedMeal,
+            slot: SLOTS[loopSlotIndex]
+        });
+
+        // Advance Loop
+        loopSlotIndex++;
+        if (loopSlotIndex >= SLOTS.length) {
+            loopSlotIndex = 0;
+            loopDateObj.setDate(loopDateObj.getDate() + 1);
+        }
+    }
+
+    const handleMealClick = (meal) => setSelectedMeal(meal);
+    const handleAddToPlanClick = () => setShowAddModal(true);
+    const handleConfirmAddToPlan = (date, type, recipe) => {
+        if (addToPlan) addToPlan(date, type, recipe);
         setShowAddModal(false);
         setSelectedMeal(null);
     };
 
-    // Hero Logic
-    // const currentHour = new Date().getHours(); // Already got hour above
-    let currentSlot = 'dinner';
-    let slotLabel = 'Dinner';
-
-    if (hour < 10) {
-        currentSlot = 'breakfast';
-        slotLabel = 'Breakfast';
-    } else if (hour < 14) {
-        currentSlot = 'lunch';
-        slotLabel = 'Lunch';
-    }
-
-    const { weeklyPlan } = usePlan();
-    const today = new Date().toISOString().split('T')[0];
-    const todaysPlan = weeklyPlan[today] || {};
-    const plannedMealEntry = todaysPlan[currentSlot];
-
-    // Resolve full recipe details
-    let plannedMeal = plannedMealEntry?.recipe || plannedMealEntry;
-
-    // If plannedMeal is just an ID or missing image, try to find it in RECIPES
-    if (plannedMeal && (!plannedMeal.image || typeof plannedMeal === 'string' || typeof plannedMeal === 'number')) {
-        const idToFind = plannedMeal.id || plannedMeal;
-        const foundRecipe = RECIPES.find(r => r.id == idToFind);
-        if (foundRecipe) {
-            plannedMeal = { ...foundRecipe, ...plannedMeal }; // Merge to keep any custom overrides
-        }
-    }
+    const handleScroll = (e) => {
+        const index = Math.round(e.target.scrollLeft / e.target.offsetWidth);
+        setActiveIndex(index);
+    };
 
     return (
-        <div className="animate-fade-in" style={{ paddingBottom: '80px' }}>
-            {/* Header */}
-            <header style={{
-                marginBottom: '24px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
+        <div className="animate-fade-in pb-32 relative">
+            {/* Header - Fixed Frosted Glass with Gradient Mask */}
+            <header
+                className="fixed top-0 left-0 right-0 z-50 flex justify-between items-start px-4 pb-4 backdrop-blur-md bg-white/30 pt-[env(safe-area-inset-top,24px)] transition-all duration-300 pointer-events-auto"
+                style={{ maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' }}
+            >
                 <div>
-                    <h1 className="title-lg">{greeting}</h1>
-                    <p className="text-body">{activeArchetype.label}</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 drop-shadow-sm">{greeting}</h1>
+                    <p className="text-sm text-zinc-800 font-bold opacity-80">
+                        The Foodies Family Orchestrator
+                    </p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button className="icon-btn" style={{ borderRadius: '12px' }}>🔔</button>
-                </div>
+                <button
+                    onClick={onOpenProfile}
+                    className="text-zinc-900 transition-colors hover:text-zinc-700 active:scale-95 mt-1 bg-white/20 backdrop-blur-sm p-2 rounded-full"
+                >
+                    <User size={20} strokeWidth={1.5} />
+                </button>
             </header>
 
-            {/* HERO CARD: Up Next */}
-            <div style={{ marginBottom: '32px' }}>
+            {/* HERO CAROUSEL: Next 24H */}
+            <section className="pt-0 relative z-0 mb-0 mt-3">
+                {/* Spacer for Fixed Header - Reduced for Tuck */}
+                <div className="h-[52px]" />
+
+                {/* Old Up Next Label Removed - Now Inside Card */}
+
                 <div
-                    className="card"
-                    onClick={() => plannedMeal ? handleMealClick(plannedMeal) : setCurrentView(VIEWS.PLAN)}
-                    style={{
-                        height: '320px', // Slightly taller for more presence
-                        backgroundImage: `url(${plannedMeal?.image || 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800'})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        position: 'relative',
-                        cursor: 'pointer',
-                        overflow: 'hidden',
-                        borderRadius: '24px', // Requested rounding
-                        boxShadow: '0 10px 30px -10px rgba(0,0,0,0.3)', // Deep shadow for pop
-                        margin: '0 4px' // Slight inset to see shadow sides
-                    }}
+                    className="mx-4 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-4 pb-4 px-1"
+                    onScroll={handleScroll}
                 >
-                    {/* Gradient Overlay */}
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%)',
-                        zIndex: 1
-                    }} />
+                    {nextMeals.map((slotItem, index) => (
+                        <div
+                            key={`${slotItem.slot}-${index}`}
+                            onClick={() => slotItem.meal ? handleMealClick(slotItem.meal) : setCurrentView(VIEWS.PLAN)}
+                            className="snap-center min-w-full group relative h-[320px] overflow-hidden rounded-[2rem] shadow-xl cursor-pointer active:scale-[0.99] transition-all duration-300"
+                        >
+                            <div
+                                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                                style={{ backgroundImage: `url(${slotItem.meal?.image || 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800'})` }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                    {/* Top Badge */}
-                    <div style={{ position: 'relative', zIndex: 2, padding: '20px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            backdropFilter: 'blur(8px)',
-                            color: '#fff',
-                            padding: '6px 12px',
-                            borderRadius: '100px',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            border: '1px solid rgba(255, 255, 255, 0.3)'
-                        }}>
-                            Up Next: {slotLabel}
-                        </span>
-
-                        {plannedMeal && (
-                            <span style={{
-                                background: 'var(--color-primary)',
-                                color: '#fff',
-                                padding: '6px 12px',
-                                borderRadius: '100px',
-                                fontSize: '0.75rem',
-                                fontWeight: 700
-                            }}>
-                                {plannedMeal.time || '20m'}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Bottom Content */}
-                    <div style={{ position: 'relative', zIndex: 2, padding: '20px' }}>
-                        {plannedMeal ? (
-                            <>
-                                <h2 className="title-xl" style={{ color: '#fff', marginBottom: '12px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                                    {plannedMeal.label || plannedMeal.title}
-                                </h2>
-                                <div style={{ display: 'flex', gap: '12px' }}>
-                                    <button className="btn-primary" style={{ flex: 1 }}>
-                                        Start Cooking
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <div style={{ textAlign: 'center', paddingBottom: '20px' }}>
-                                <h2 className="title-lg" style={{ color: '#fff', marginBottom: '8px' }}>
-                                    Nothing planned for {slotLabel}
-                                </h2>
-                                <button className="btn-primary" style={{ background: '#fff', color: '#000' }}>
-                                    Plan {slotLabel}
-                                </button>
+                            {/* Up Next Overlay Tag */}
+                            <div className="absolute top-6 left-6 z-20">
+                                <span className="bg-zinc-900/60 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                    Up Next
+                                </span>
                             </div>
-                        )}
-                    </div>
-                </div>
-            </div>
 
-            {/* Pantry Access */}
-            <div
-                className="card"
-                onClick={() => setCurrentView(VIEWS.PANTRY)}
-                style={{
-                    padding: '24px',
-                    marginBottom: '32px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-surface-dim)',
-                    cursor: 'pointer'
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{
-                        fontSize: '2rem',
-                        background: 'var(--color-surface-dim)',
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        📦
-                    </div>
-                    <div>
-                        <h3 className="title-md">My Pantry</h3>
-                        <p className="text-body" style={{ marginTop: '4px' }}>
-                            {items.filter(i => i.inPantry).length} items available
-                        </p>
-                    </div>
-                </div>
-                <div className="icon-btn" style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)' }}>
-                    ➔
-                </div>
-            </div>
+                            {/* Top Tags */}
 
-            {/* Discover Section */}
-            <div style={{ marginBottom: '40px' }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '20px',
-                    padding: '0 8px'
-                }}>
-                    <h2 className="title-lg">Discover Meals</h2>
+
+                            {/* Bottom Content */}
+                            <div className="absolute bottom-0 left-0 right-0 p-6">
+                                {slotItem.meal ? (
+                                    <>
+                                        {/* Badges moved to bottom */}
+                                        <div className="flex flex-wrap gap-2 mb-3">
+                                            <span className="bg-white/20 backdrop-blur-md border border-white/10 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                                                {slotItem.label}
+                                            </span>
+                                            {slotItem.badgeLabel && (
+                                                <span className="backdrop-blur-md bg-black/30 text-white text-[10px] font-medium px-2 py-1 rounded-full border border-white/5">
+                                                    {slotItem.badgeLabel}
+                                                </span>
+                                            )}
+                                            <span className="bg-zinc-900/80 backdrop-blur-sm text-white px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1">
+                                                <Clock size={10} /> {slotItem.meal.time || '20m'}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-3xl font-bold text-white mb-2 leading-tight tracking-tight drop-shadow-md">
+                                            {slotItem.meal.label || slotItem.meal.title}
+                                        </h3>
+                                        <div className="flex items-center gap-4 text-white/90 text-[13px] font-medium">
+                                            <span className="flex items-center gap-1.5"><Flame size={14} className="text-orange-400" /> {slotItem.meal.calories || '450'} kcal</span>
+                                            <span className="flex items-center gap-1.5"><Users size={14} /> 2 Servings</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center pb-4">
+                                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Nothing planned</h3>
+                                        <button className="bg-white text-zinc-900 px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform">
+                                            Plan {slotItem.label}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Carousel Indicators */}
+                <div className="flex justify-center gap-2 mt-2">
+                    {nextMeals.map((_, index) => (
+                        <div
+                            key={index}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${index === activeIndex ? 'w-6 bg-zinc-800' : 'w-1.5 bg-zinc-200'}`}
+                        />
+                    ))}
+                </div>
+            </section>
+
+            {/* PANTRY ACCESS */}
+            <section className="mt-5">
+                <div
+                    onClick={() => setCurrentView(VIEWS.PANTRY)}
+                    className="group bg-white border border-zinc-200/50 rounded-3xl p-5 shadow-sm hover:shadow-md active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between"
+                >
+                    <div className="flex items-center gap-5">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-100 to-zinc-200 flex items-center justify-center text-zinc-600 shadow-inner">
+                            <Package size={32} strokeWidth={1.5} />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-zinc-900 tracking-tight">My Pantry</h3>
+                            <p className="text-zinc-500 text-sm font-medium mt-0.5">
+                                {items.filter(i => i.inPantry).length} items available
+                            </p>
+                        </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-zinc-50 group-hover:bg-zinc-100 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 transition-colors">
+                        <ChevronRight size={20} />
+                    </div>
+                </div>
+            </section>
+
+            {/* DISCOVER MEALS */}
+            <section className="mt-5">
+                <div className="flex justify-between items-center mb-4 px-2">
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">Discover</h2>
                     <button
                         onClick={() => setCurrentView(VIEWS.RECIPES)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--color-primary)',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            cursor: 'pointer'
-                        }}
+                        className="text-sm font-semibold text-zinc-900 hover:text-zinc-600 transition-colors"
                     >
                         View All
                     </button>
                 </div>
 
-                <div className="section-scroll" style={{
-                    display: 'flex',
-                    flexWrap: 'nowrap',
-                    overflowX: 'auto',
-                    gap: '16px',
-                    padding: '4px 20px 32px 20px',
-                    margin: '0 -20px',
-                    scrollPaddingLeft: '20px',
-                    WebkitOverflowScrolling: 'touch',
-                    scrollSnapType: 'x mandatory',
-                    scrollbarWidth: 'none', // Firefox
-                    msOverflowStyle: 'none'  // IE/Edge
-                }}>
-                    {/* Hide scrollbar for Chrome/Safari/Opera */}
-                    <style>{`
-                        .section-scroll::-webkit-scrollbar {
-                            display: none;
-                        }
-                    `}</style>
+                <div className="flex gap-4 overflow-x-auto pb-6 -mx-5 pl-5 pr-5 snap-x snap-mandatory scrollbar-hide scroll-pl-5">
                     {RECIPES.map(recipe => (
-                        <div key={recipe.id} style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
-                            <MealCard
-                                recipe={recipe}
-                                onClick={() => handleMealClick(recipe)}
-                            />
+                        <div
+                            key={recipe.id}
+                            onClick={() => handleMealClick(recipe)}
+                            className="snap-start shrink-0 w-[240px] group cursor-pointer active:scale-[0.98] transition-transform"
+                        >
+                            <div className="h-[300px] w-full rounded-[1.5rem] overflow-hidden relative shadow-sm hover:shadow-lg transition-shadow bg-zinc-100 mb-3">
+                                <img
+                                    src={recipe.image}
+                                    alt={recipe.title}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                                <div className="absolute bottom-4 left-4 right-4">
+                                    <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full border border-white/10 mb-2 inline-block">
+                                        {recipe.difficulty || 'Easy'}
+                                    </span>
+                                </div>
+                            </div>
+                            <h3 className="text-lg font-bold text-zinc-900 leading-tight px-1">{recipe.title}</h3>
+                            <p className="text-sm text-zinc-500 px-1 mt-1">{recipe.time} • {recipe.calories} kcal</p>
                         </div>
                     ))}
                 </div>
-            </div>
-
-            {/* Featured / Up Next (Optional, but good for engagement) */}
-            <div style={{ marginBottom: '32px' }}>
-                <h2 className="title-lg" style={{ marginBottom: '16px' }}>Trending Now</h2>
-                <div
-                    className="card"
-                    onClick={() => handleMealClick(featuredMeal)}
-                    style={{
-                        height: '220px',
-                        backgroundImage: `url(${featuredMeal?.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c'})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        position: 'relative',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <div style={{
-                        width: '100%',
-                        padding: '20px',
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
-                        color: 'white'
-                    }}>
-                        <div style={{
-                            background: 'var(--color-primary)',
-                            padding: '4px 12px',
-                            borderRadius: '100px',
-                            display: 'inline-block',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            marginBottom: '8px'
-                        }}>
-                            FEATURED
-                        </div>
-                        <h3 className="title-xl">{featuredMeal?.title || 'Delicious Meal'}</h3>
-                    </div>
-                </div>
-            </div>
+            </section>
 
             {/* Modals */}
             {selectedMeal && !showAddModal && (
@@ -333,7 +278,6 @@ export function HomeView() {
                     onConfirm={handleConfirmAddToPlan}
                 />
             )}
-
         </div>
     );
 }

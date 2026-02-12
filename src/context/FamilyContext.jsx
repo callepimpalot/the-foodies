@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const FamilyContext = createContext();
 
 const DEFAULT_FAMILY = {
-    name: 'The Foodies',
+    name: 'Wulff Jensen',
     livingStyle: 'RURAL', // RURAL, CITY, NORDIC, COASTAL, SUBURBAN
     preferences: {
         cookTime: 30, // minutes

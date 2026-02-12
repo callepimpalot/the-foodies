@@ -1,211 +1,122 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
-:root {
-  /* Modern App Palette */
-  --color-bg: #F5F7FA;
-  --color-surface: #FFFFFF;
-  --color-surface-dim: #F0F2F5;
+@import "@fontsource/geist-sans";
 
-  --color-text-primary: #1A1C1E;
-  --color-text-secondary: #71767C;
-  --color-text-tertiary: #9AA0A6;
+@layer base {
+  :root {
+    /* Mapping legacy vars to new Design System */
+    --color-bg: theme('colors.zinc.50');
+    --color-surface: theme('colors.white');
+    --color-surface-dim: theme('colors.zinc.100');
 
-  /* Brand Colors */
-  --color-primary: #FF4757;
-  /* Vibrant Red/Pink like Snoonu/Food apps */
-  --color-primary-dim: rgba(255, 71, 87, 0.1);
-  --color-accent: #2ED573;
-  /* Success Green */
-  --color-warning: #FFA502;
+    /* Mobile Stability */
+    min-height: 100dvh;
 
-  /* Spacing & Radii */
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
-  --radius-full: 9999px;
+    --color-text-primary: theme('colors.zinc.900');
+    --color-text-secondary: theme('colors.zinc.500');
+    --color-text-tertiary: theme('colors.zinc.400');
 
-  --spacing-container: 20px;
+    /* Brand Colors - Adjusted to Zinc/Neutral for high-end feel, 
+       but keeping some semantic colors if needed or overriding them */
+    --color-primary: theme('colors.zinc.900');
+    --color-primary-dim: theme('colors.zinc.100');
 
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-float: 0 16px 48px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 8px 32px rgba(255, 71, 87, 0.25);
+    /* Spacing & Radii updates */
+    --radius-lg: theme('borderRadius.2xl');
+    /* 1rem per config */
+    --radius-full: theme('borderRadius.full');
 
-  /* Animation */
-  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-smooth: theme('transitionTimingFunction.out');
 
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  -webkit-font-smoothing: antialiased;
+    /* Legacy Variables - Migrated from theme.css */
+    --glow-training: 20, 184, 166;
+    --glow-family: 251, 191, 36;
+    --glow-student: 16, 185, 129;
+    --glow-minimalist: 244, 114, 182;
+    --active-glow: var(--glow-training);
+
+    --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /* Prevent window scroll */
+    @apply bg-zinc-50 text-zinc-900 font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight text-zinc-900;
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-color: var(--color-bg);
+@layer components {
+  /* Refactoring Legacy Components to Strict Design System */
+
+  .btn-primary {
+    @apply bg-zinc-900 text-white rounded-full px-6 py-3 font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.98];
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-zinc-200/50 shadow-sm overflow-hidden transition-all duration-200 hover:scale-[1.005];
+  }
+
+  /* Utilities */
+  .section-scroll {
+    @apply flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide;
+  }
+
+  .icon-btn {
+    @apply w-11 h-11 rounded-full flex items-center justify-center bg-white border border-zinc-200/50 text-zinc-700 transition-all duration-200 hover:bg-zinc-50 hover:scale-[1.05] hover:border-zinc-300;
+  }
+
+  /* Typography Utilities */
+  .title-xl {
+    @apply text-3xl tracking-tight font-bold text-zinc-900;
+  }
+
+  .title-lg {
+    @apply text-2xl tracking-tight font-bold text-zinc-900;
+  }
+
+  .text-body {
+    @apply text-base text-zinc-500 leading-relaxed;
+  }
 }
 
-/* Typography */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.title-xl {
-  font-size: 2rem;
-  letter-spacing: -0.02em;
-}
-
-.title-lg {
-  font-size: 1.5rem;
-  letter-spacing: -0.01em;
-}
-
-.title-md {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.text-body {
-  font-size: 0.9375rem;
-  color: var(--color-text-secondary);
-}
-
-.text-caption {
-  font-size: 0.8125rem;
-  color: var(--color-text-tertiary);
-}
-
-/* Buttons */
-.btn-primary {
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-full);
-  padding: 12px 24px;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  transition: transform 0.2s var(--ease-elastic), box-shadow 0.2s ease;
-  box-shadow: var(--shadow-glow);
-}
-
-.btn-primary:active {
-  transform: scale(0.96);
-}
-
-/* Icons */
-.icon-btn {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-dim);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--color-text-primary);
-}
-
-.icon-btn:hover {
-  background: var(--color-surface-dim);
-  transform: translateY(-2px);
-}
-
-/* Layout Utilities */
-.section-scroll {
-  display: flex;
-  flex-wrap: nowrap;
-  /* Explicitly prevent wrapping */
-  gap: 16px;
-  overflow-x: auto;
-  padding: 4px 20px 32px 20px !important;
-  /* Force padding for shadows */
-  margin: 0 -20px;
-  scroll-padding-left: 20px;
-  scrollbar-width: none;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-}
-
-.section-scroll::-webkit-scrollbar {
+/* Custom Scrollbar hide */
+.scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-.card {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  overflow: hidden;
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.card:active {
-  transform: scale(0.98);
-}
-
-/* Animations */
 @keyframes slideUp {
   from {
+    transform: translateY(100%);
     opacity: 0;
-    transform: translateY(20px);
   }
 
   to {
-    opacity: 1;
     transform: translateY(0);
+    opacity: 1;
   }
 }
 
 .animate-slide-up {
-  animation: slideUp 0.6s var(--ease-smooth) forwards;
-}
-
-.animate-delay-1 {
-  animation-delay: 0.1s;
-}
-
-.animate-delay-2 {
-  animation-delay: 0.2s;
-}
-
-.animate-delay-3 {
-  animation-delay: 0.3s;
-}
-
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-end;
-  /* Bottom sheet on mobile */
-  justify-content: center;
-}
-
-@media (min-width: 640px) {
-  .modal-overlay {
-    align-items: center;
-  }
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
