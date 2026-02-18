@@ -6,7 +6,7 @@ if (!API_KEY) {
     console.error("Missing VITE_GEMINI_API_KEY in environment variables.");
 }
 
-const genAI = new GoogleGenerativeAI(API_KEY || "");
+const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
 // Schema matching Supabase 'recipes' table
 export interface Recipe {
@@ -28,7 +28,7 @@ export async function generateRecipeFromImage(
     imageFile: File | Blob,
     additionalContext?: string
 ): Promise<Recipe | null> {
-    if (!API_KEY) {
+    if (!API_KEY || !genAI) {
         throw new Error("Gemini API Key not configured.");
     }
 
