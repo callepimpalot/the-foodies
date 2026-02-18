@@ -13,6 +13,7 @@ import { PlanView } from './views/PlanView'
 import { RecipeView } from './views/RecipeView'
 import { ShopView } from './views/ShopView'
 import { PantryView } from './views/PantryView'
+import { CookModeView } from './views/CookModeView'
 import { BottomShoppingSheet } from './components/BottomShoppingSheet'
 
 function AppContent() {
@@ -34,7 +35,9 @@ function AppContent() {
       case VIEWS.PLAN: return <PlanView />;
       case VIEWS.RECIPES: return <RecipeView />;
       case VIEWS.SHOP: return <ShopView />;
+      case VIEWS.SHOP: return <ShopView />;
       case VIEWS.PANTRY: return <PantryView />;
+      case VIEWS.COOK_MODE: return <CookModeView />;
       case VIEWS.PROFILE: return (
         <FamilyProfile onClose={() => setShowProfile(false)} />
       );
@@ -43,7 +46,7 @@ function AppContent() {
   };
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col bg-zinc-50">
+    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
       <div className="ambient-background" />
 
       {/* Scrollable Content Area */}

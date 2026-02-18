@@ -3,6 +3,7 @@ import { useInventory } from '../context/InventoryContext';
 import { useArchetype } from '../context/ArchetypeContext';
 import { generateJackpot } from '../utils/jackpotLogic';
 import { usePlan } from '../context/PlanContext';
+import { useRecipes } from '../hooks/useRecipes';
 
 const REEL_ICONS = ['🥦', '🥩', '🍝', '🥘', '🥗', '🍔', '🍕', '🍱', '🌮', '🍜'];
 
@@ -10,6 +11,7 @@ export function JackpotModal({ isOpen, onClose, targetSlot }) {
     const { items } = useInventory();
     const { activeArchetype } = useArchetype();
     const { addToPlan } = usePlan();
+    const { recipes } = useRecipes();
 
     const [result, setResult] = useState(null);
     const [isSpinning, setIsSpinning] = useState(false);
@@ -37,12 +39,17 @@ export function JackpotModal({ isOpen, onClose, targetSlot }) {
     }, [isSpinning]);
 
     const handleSpin = () => {
+        if (!recipes || recipes.length === 0) {
+            alert("No recipes available for jackpot.");
+            return;
+        }
+
         setIsSpinning(true);
         setResult(null);
 
         // Spin duration 2 seconds
         setTimeout(() => {
-            const winner = generateJackpot(activeArchetype.id, items, pantryOnly);
+            const winner = generateJackpot(recipes, activeArchetype.id, items, pantryOnly);
 
             if (!winner && pantryOnly) {
                 setResult({

@@ -4,7 +4,7 @@ import { useInventory } from '../context/InventoryContext';
 import { usePlan } from '../context/PlanContext';
 import { useFamily } from '../context/FamilyContext';
 import { useView } from '../context/ViewContext';
-import { RECIPES } from '../data/recipes';
+import { useRecipes } from '../hooks/useRecipes';
 import { MealPreviewModal } from '../components/MealPreviewModal';
 import { AddToPlanModal } from '../components/AddToPlanModal';
 import { VIEWS } from '../utils/constants';
@@ -16,8 +16,10 @@ export function HomeView({ onOpenProfile }) {
     const { items } = useInventory();
     const { addToPlan, weeklyPlan } = usePlan();
     const { setCurrentView } = useView();
+    const { recipes } = useRecipes();
 
     const [selectedMeal, setSelectedMeal] = useState(null);
+    const [selectedSource, setSelectedSource] = useState('library'); // Track source
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -41,11 +43,56 @@ export function HomeView({ onOpenProfile }) {
         const mealEntry = dayPlan[SLOTS[loopSlotIndex]];
 
         let resolvedMeal = mealEntry?.recipe || mealEntry;
-        if (resolvedMeal && (!resolvedMeal.image || typeof resolvedMeal !== 'object')) {
-            const idToFind = resolvedMeal.id || resolvedMeal;
-            const foundRecipe = RECIPES.find(r => r.id == idToFind);
-            if (foundRecipe) resolvedMeal = { ...foundRecipe, ...resolvedMeal };
+
+        // Comprehensive Mapping Logic
+        // Comprehensive Mapping Logic
+        if (resolvedMeal) {
+            let foundRecipe = null;
+
+            // 1. Try key lookup
+            const idToFind = resolvedMeal.id || resolvedMeal.recipeId || (typeof resolvedMeal === 'string' ? resolvedMeal : null);
+
+            if (idToFind) {
+                // FORCE STRING COMPARISON
+                foundRecipe = recipes.find(r => String(r.id) === String(idToFind));
+            }
+
+            // 2. Fallback: Title Match (Vital for Legacy/Migration)
+            if (!foundRecipe && resolvedMeal.title) {
+                foundRecipe = recipes.find(r => r.title.toLowerCase() === resolvedMeal.title.toLowerCase());
+                if (foundRecipe) {
+                    console.log(`🔧 Auto-Repaired Link for "${resolvedMeal.title}": Legacy ID ${idToFind} -> UUID ${foundRecipe.id}`);
+                }
+            }
+
+            if (foundRecipe) {
+                // 3. FORCE MERGE - Prefer generic library data for structural things like IMAGE
+                resolvedMeal = {
+                    ...foundRecipe, // Base library data (images, title)
+                    ...((typeof resolvedMeal === 'object') ? resolvedMeal : {}), // Instance overrides
+                    // EXPLICIT HYDRATION: Force core data from library to ensure Cook Mode works
+                    id: foundRecipe.id, // Keep the real ID (Auto-Repair)
+                    instructions: foundRecipe.instructions || resolvedMeal.instructions,
+                    ingredients: foundRecipe.ingredients || resolvedMeal.ingredients,
+                    description: foundRecipe.description || resolvedMeal.description,
+                    calories: foundRecipe.calories || resolvedMeal.calories,
+                    time: foundRecipe.time || resolvedMeal.time,
+                    title: foundRecipe.title || resolvedMeal.title,
+                    image_url: foundRecipe.image_url || ((typeof resolvedMeal === 'object') ? resolvedMeal.image_url : null)
+                };
+            } else {
+                console.warn(`Hero Mapping: Could not find recipe with ID ${idToFind} or Title "${resolvedMeal.title}" in library.`);
+            }
+        } else {
+            // Case: No meal logic
         }
+
+        // Console Debugging
+        console.log(`Hero Logic [${SLOTS[loopSlotIndex]}]:`, {
+            idSearched: resolvedMeal?.id,
+            found: !!resolvedMeal?.image_url,
+            finalImage: resolvedMeal?.image_url
+        });
 
         // Date Badge Logic
         let badgeLabel = null;
@@ -82,7 +129,10 @@ export function HomeView({ onOpenProfile }) {
         }
     }
 
-    const handleMealClick = (meal) => setSelectedMeal(meal);
+    const handleMealClick = (meal, source = 'library') => {
+        setSelectedMeal(meal);
+        setSelectedSource(source);
+    };
     const handleAddToPlanClick = () => setShowAddModal(true);
     const handleConfirmAddToPlan = (date, type, recipe) => {
         if (addToPlan) addToPlan(date, type, recipe);
@@ -94,6 +144,8 @@ export function HomeView({ onOpenProfile }) {
         const index = Math.round(e.target.scrollLeft / e.target.offsetWidth);
         setActiveIndex(index);
     };
+
+    const displayRecipes = recipes || [];
 
     return (
         <div className="animate-fade-in pb-32 relative">
@@ -130,13 +182,34 @@ export function HomeView({ onOpenProfile }) {
                     {nextMeals.map((slotItem, index) => (
                         <div
                             key={`${slotItem.slot}-${index}`}
-                            onClick={() => slotItem.meal ? handleMealClick(slotItem.meal) : setCurrentView(VIEWS.PLAN)}
+                            onClick={() => slotItem.meal ? handleMealClick(slotItem.meal, 'hero') : setCurrentView(VIEWS.PLAN)}
                             className="snap-center min-w-full group relative h-[320px] overflow-hidden rounded-[2rem] shadow-xl cursor-pointer active:scale-[0.99] transition-all duration-300"
                         >
                             <div
-                                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                                style={{ backgroundImage: `url(${slotItem.meal?.image || 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800'})` }}
-                            />
+                                className="absolute inset-0 transition-transform duration-700 group-hover:scale-105"
+                            >
+                                {/* Universal Image Mapping: Strictly use image_url */}
+                                {slotItem.meal?.image_url ? (
+                                    <img
+                                        src={slotItem.meal.image_url}
+                                        alt={slotItem.meal.title}
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        onError={(e) => {
+                                            // Fallback to FOODIES gradient only on actual error
+                                            e.target.style.display = 'none';
+                                            e.currentTarget.nextElementSibling.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+
+                                {/* Fallback Container - Shown if no image_url OR on Error */}
+                                <div
+                                    className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 flex items-center justify-center"
+                                    style={{ display: slotItem.meal?.image_url ? 'none' : 'flex' }}
+                                >
+                                    <span className="text-zinc-700 font-black text-4xl tracking-tighter opacity-50">FOODIES</span>
+                                </div>
+                            </div>
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                             {/* Up Next Overlay Tag */}
@@ -236,18 +309,27 @@ export function HomeView({ onOpenProfile }) {
                 </div>
 
                 <div className="flex gap-4 overflow-x-auto pb-6 -mx-5 pl-5 pr-5 snap-x snap-mandatory scrollbar-hide scroll-pl-5">
-                    {RECIPES.map(recipe => (
+                    {displayRecipes.map(recipe => (
                         <div
                             key={recipe.id}
-                            onClick={() => handleMealClick(recipe)}
+                            onClick={() => handleMealClick(recipe, 'library')}
                             className="snap-start shrink-0 w-[240px] group cursor-pointer active:scale-[0.98] transition-transform"
                         >
                             <div className="h-[300px] w-full rounded-[1.5rem] overflow-hidden relative shadow-sm hover:shadow-lg transition-shadow bg-zinc-100 mb-3">
-                                <img
-                                    src={recipe.image}
-                                    alt={recipe.title}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                />
+                                {recipe.image_url ? (
+                                    <img
+                                        src={recipe.image_url}
+                                        alt={recipe.title || recipe.name}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex'; // Show fallback
+                                        }}
+                                    />
+                                ) : null}
+                                <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 flex items-center justify-center" style={{ display: recipe.image_url ? 'none' : 'flex' }}>
+                                    <span className="text-zinc-700 font-black text-2xl tracking-tighter opacity-50">FOODIES</span>
+                                </div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
                                 <div className="absolute bottom-4 left-4 right-4">
                                     <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full border border-white/10 mb-2 inline-block">
@@ -255,7 +337,7 @@ export function HomeView({ onOpenProfile }) {
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="text-lg font-bold text-zinc-900 leading-tight px-1">{recipe.title}</h3>
+                            <h3 className="text-lg font-bold text-zinc-900 leading-tight px-1 tracking-tight">{recipe.title}</h3>
                             <p className="text-sm text-zinc-500 px-1 mt-1">{recipe.time} • {recipe.calories} kcal</p>
                         </div>
                     ))}
@@ -266,8 +348,35 @@ export function HomeView({ onOpenProfile }) {
             {selectedMeal && !showAddModal && (
                 <MealPreviewModal
                     recipe={selectedMeal}
+                    source={selectedSource}
                     onClose={() => setSelectedMeal(null)}
                     onAddToPlan={handleAddToPlanClick}
+                    onCookNow={() => {
+                        // JIT (Just-in-Time) Hydration Bridge
+                        // Don't trust the 'selectedMeal' to have everything.
+                        // Go to the Source of Truth (recipes array) one last time.
+                        const truthId = selectedMeal.id || selectedMeal.recipeId || (typeof selectedMeal.recipe === 'object' ? selectedMeal.recipe.id : selectedMeal.recipe);
+
+                        let fullPayload = recipes.find(r => String(r.id) === String(truthId));
+
+                        // Fallback: Title Match (if ID failed)
+                        if (!fullPayload && selectedMeal.title) {
+                            fullPayload = recipes.find(r => r.title.toLowerCase() === selectedMeal.title.toLowerCase());
+                            if (fullPayload) {
+                                console.log(`👨‍🍳 JIT Repair: Matched by title "${selectedMeal.title}"`);
+                            }
+                        }
+
+                        // Final Fallback: Use what we have (better than crashing)
+                        fullPayload = fullPayload || selectedMeal;
+
+                        // CRITICAL: Verify Instructions
+                        if (!fullPayload.instructions || fullPayload.instructions.length === 0) {
+                            console.error("❌ CRITICAL: No instructions found in payload!", fullPayload);
+                        }
+
+                        setCurrentView(VIEWS.COOK_MODE, fullPayload);
+                    }}
                 />
             )}
 

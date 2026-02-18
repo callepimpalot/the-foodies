@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useArchetype } from '../context/ArchetypeContext';
 import { usePlan } from '../context/PlanContext';
 import { useInventory } from '../context/InventoryContext';
-import { RECIPES } from '../data/recipes';
+import { useRecipes } from '../hooks/useRecipes';
 
 export function AutoPopulateModal({ onClose }) {
     const { activeArchetype } = useArchetype();
     const { bulkUpdatePlan, weeklyPlan } = usePlan();
-    const { items: pantryItems } = useInventory(); // Assuming items is an array of strings or objects with name
+    const { items: pantryItems } = useInventory();
+    const { recipes } = useRecipes();
     const [isGenerating, setIsGenerating] = useState(false);
 
     // Preferences
@@ -16,6 +17,11 @@ export function AutoPopulateModal({ onClose }) {
     const [keepExisting, setKeepExisting] = useState(true);
 
     const handleGenerate = () => {
+        if (!recipes || recipes.length === 0) {
+            alert("No recipes available.");
+            return;
+        }
+
         setIsGenerating(true);
 
         setTimeout(() => {
@@ -27,12 +33,12 @@ export function AutoPopulateModal({ onClose }) {
             });
 
             // Filter recipes
-            let availableRecipes = RECIPES.filter(r => {
+            let availableRecipes = recipes.filter(r => {
                 // 1. Archetype filter (loose)
                 const matchArchetype = r.archetypes.includes(activeArchetype.id);
 
                 // 2. Time filter
-                const timeStr = r.time.replace('m', '');
+                const timeStr = r.time ? r.time.replace('m', '') : '999';
                 const time = parseInt(timeStr) || 999;
                 const matchTime = time <= maxTime;
 
@@ -41,15 +47,15 @@ export function AutoPopulateModal({ onClose }) {
 
             // If too strict, fallback to all matching time
             if (availableRecipes.length === 0) {
-                availableRecipes = RECIPES.filter(r => {
-                    const timeStr = r.time.replace('m', '');
+                availableRecipes = recipes.filter(r => {
+                    const timeStr = r.time ? r.time.replace('m', '') : '999';
                     const time = parseInt(timeStr) || 999;
                     return time <= maxTime;
                 });
             }
 
             // If still none, fallback to all
-            if (availableRecipes.length === 0) availableRecipes = RECIPES;
+            if (availableRecipes.length === 0) availableRecipes = recipes;
 
             // Sort by pantry match if requested
             if (prioritizePantry) {
@@ -107,7 +113,9 @@ export function AutoPopulateModal({ onClose }) {
                 style={{
                     width: '100%',
                     maxWidth: '600px',
-                    background: '#1a1b1e',
+                    background: 'rgba(9, 9, 11, 0.95)',
+                    backdropFilter: 'blur(24px)',
+                    color: '#fff',
                     borderTopLeftRadius: '24px',
                     borderTopRightRadius: '24px',
                     border: '1px solid rgba(255,255,255,0.1)',

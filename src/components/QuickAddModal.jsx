@@ -42,7 +42,9 @@ export function QuickAddModal({ onClose, onAdd }) {
                     width: '100%',
                     maxWidth: '800px', // Match main container
                     height: '85vh',
-                    background: 'white',
+                    background: 'rgba(9, 9, 11, 0.95)',
+                    backdropFilter: 'blur(24px)',
+                    color: '#fff',
                     borderRadius: '24px 24px 0 0',
                     display: 'flex',
                     flexDirection: 'column',

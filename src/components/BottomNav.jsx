@@ -14,7 +14,7 @@ export function BottomNav() {
 
     return (
         <div
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-[400px] pointer-events-none"
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[40] w-[90%] max-w-[400px] pointer-events-none"
             style={{
                 transform: 'translate3d(-50%, 0, 0)',
                 WebkitBackfaceVisibility: 'hidden',

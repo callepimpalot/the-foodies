@@ -30,7 +30,7 @@ export function WeeklyCalendar({ onSlotClick, highlightMode = false }) {
     return (
         <div className="glass-panel" style={{ padding: '1.5rem', height: '100%', overflowX: 'auto', opacity: isPlanConfirmed ? 0.8 : 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.5rem' }}>Weekly Plan</h3>
+                <h3 className="tracking-tight font-bold" style={{ margin: 0, fontSize: '1.5rem' }}>Weekly Plan</h3>
                 {isPlanConfirmed && (
                     <span style={{ fontSize: '0.9rem', background: 'rgba(52, 211, 153, 0.2)', color: '#10b981', padding: '6px 16px', borderRadius: '50px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
                         ✓ Plan Confirmed

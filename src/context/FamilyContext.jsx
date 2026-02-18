@@ -20,8 +20,13 @@ const DEFAULT_FAMILY = {
 
 export function FamilyProvider({ children }) {
     const [familyData, setFamilyData] = useState(() => {
-        const saved = localStorage.getItem('meal_buddy_family');
-        return saved ? JSON.parse(saved) : DEFAULT_FAMILY;
+        try {
+            const saved = localStorage.getItem('meal_buddy_family');
+            return saved ? JSON.parse(saved) : DEFAULT_FAMILY;
+        } catch (e) {
+            console.error('Failed to parse family data:', e);
+            return DEFAULT_FAMILY;
+        }
     });
 
     useEffect(() => {

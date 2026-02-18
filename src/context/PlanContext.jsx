@@ -5,8 +5,13 @@ const PlanContext = createContext();
 export function PlanProvider({ children }) {
     // Structure: { 'YYYY-MM-DD': { breakfast: { recipe, servings }, ... } }
     const [weeklyPlan, setWeeklyPlan] = useState(() => {
-        const saved = localStorage.getItem('meal_buddy_plan');
-        return saved ? JSON.parse(saved) : {};
+        try {
+            const saved = localStorage.getItem('meal_buddy_plan');
+            return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            console.error('Failed to parse weekly plan:', e);
+            return {};
+        }
     });
 
     const [isPlanConfirmed, setIsPlanConfirmed] = useState(() => {

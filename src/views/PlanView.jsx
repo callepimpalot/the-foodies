@@ -4,11 +4,14 @@ import { WeeklyCalendar } from '../components/WeeklyCalendar';
 import { AutoPopulateModal } from '../components/AutoPopulateModal';
 import { useArchetype } from '../context/ArchetypeContext';
 import { usePlan } from '../context/PlanContext';
+import { useRecipes } from '../hooks/useRecipes';
 import { RecipeSelector } from '../components/RecipeSelector';
+import { Sparkles, Dices, Check, Lock, Unlock } from 'lucide-react';
 
 export function PlanView() {
     const { activeArchetype } = useArchetype();
-    const { isPlanConfirmed, toggleConfirmation, weeklyPlan, addToPlan } = usePlan();
+    const { isPlanConfirmed, toggleConfirmation, startPlan, weeklyPlan, addToPlan } = usePlan();
+    const { recipes } = useRecipes();
 
     // UI State
     const [viewMode, setViewMode] = useState('DEFAULT'); // DEFAULT, JACKPOT_SELECT
@@ -16,7 +19,6 @@ export function PlanView() {
     const [jackpotTarget, setJackpotTarget] = useState(null); // { date, slot }
     const [manualSelect, setManualSelect] = useState(null); // { date, slot }
 
-    const glowVar = activeArchetype.glow;
     const hasItemsInPlan = Object.keys(weeklyPlan).length > 0;
 
     const handleSlotClick = (dateStr, slot) => {
@@ -30,128 +32,72 @@ export function PlanView() {
     };
 
     return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-                <h2 className="title-display" style={{ fontSize: '2rem', margin: 0 }}>
-                    {viewMode === 'JACKPOT_SELECT' ? 'Select a Meal to Spin!' : 'Planning HQ'}
+        <div className="flex flex-col h-full relative">
+            {/* Minimal Header */}
+            <div className="mb-4 pl-1 animate-fade-in-down">
+                <h2 className="text-3xl font-bold tracking-tight text-zinc-900 leading-none mb-1">
+                    {viewMode === 'JACKPOT_SELECT' ? 'Select Slot' : 'Planning HQ'}
                 </h2>
+                <p className="text-sm text-zinc-500 font-bold tracking-tight">
+                    {viewMode === 'JACKPOT_SELECT' ? 'Tap a meal card to spin for a new recipe' : 'Curate your culinary week'}
+                </p>
             </div>
 
-            {/* Main Calendar Area - Always Visible */}
-            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <WeeklyCalendar
-                    onSlotClick={handleSlotClick}
-                    highlightMode={viewMode === 'JACKPOT_SELECT'}
-                />
+            {/* Calendar Area - Full Width/Height with Vertical Rhythm */}
+            <div className="flex-1 overflow-hidden relative -mx-4 px-4 pb-24">
+                <div className="h-full">
+                    <WeeklyCalendar
+                        onSlotClick={handleSlotClick}
+                        highlightMode={viewMode === 'JACKPOT_SELECT'}
+                        className="h-full"
+                    />
+                </div>
             </div>
 
-            {/* Control Panel (Bottom) */}
-            <div style={{
-                marginTop: '1rem',
-                background: 'rgba(0,0,0,0.2)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '24px 24px 0 0',
-                padding: '1.5rem',
-                borderTop: '1px solid rgba(255,255,255,0.05)'
-            }}>
+            {/* Floating Editorial Toolbar */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-zinc-900/95 backdrop-blur-2xl rounded-full shadow-2xl border border-white/10 z-30 animate-slide-up hover:scale-105 transition-transform duration-300">
                 {isPlanConfirmed ? (
-                    <div style={{ textAlign: 'center' }}>
-                        <p style={{ margin: 0, marginBottom: '1rem', color: '#10b981' }}>
-                            Your plan is locked and ready for shopping!
-                        </p>
-                        <button
-                            className="btn-primary"
-                            onClick={toggleConfirmation}
-                            style={{ width: '100%', background: 'rgba(255,255,255,0.1)' }}
-                        >
-                            Unlock Plan to Edit
-                        </button>
-                    </div>
+                    <button
+                        onClick={toggleConfirmation}
+                        className="flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-sm border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                    >
+                        <Lock size={16} strokeWidth={2.5} />
+                        <span>Plan Locked</span>
+                    </button>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                        {/* Auto Button */}
-                        <div
-                            className="glass-panel"
+                    <>
+                        {/* Auto-Fill */}
+                        <button
                             onClick={() => setShowAutoModal(true)}
-                            style={{
-                                padding: '1rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem',
-                                cursor: 'pointer',
-                                textAlign: 'center',
-                                border: '1px solid rgba(255,255,255,0.05)'
-                            }}
+                            className="p-3.5 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-all active:scale-90"
+                            title="Auto-Fill"
                         >
-                            <span style={{ fontSize: '1.5rem' }}>✨</span>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Auto Fill</span>
-                        </div>
+                            <Sparkles size={20} strokeWidth={2} />
+                        </button>
 
-                        {/* Jackpot Button */}
-                        <div
-                            className="glass-panel"
+                        <div className="w-px h-6 bg-white/10" />
+
+                        {/* Jackpot Toggle */}
+                        <button
                             onClick={() => setViewMode(viewMode === 'JACKPOT_SELECT' ? 'DEFAULT' : 'JACKPOT_SELECT')}
-                            style={{
-                                padding: '1rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem',
-                                cursor: 'pointer',
-                                textAlign: 'center',
-                                border: viewMode === 'JACKPOT_SELECT' ? `1px solid rgb(${glowVar})` : '1px solid rgba(255,255,255,0.05)',
-                                background: viewMode === 'JACKPOT_SELECT' ? `rgba(${glowVar}, 0.1)` : undefined,
-                                transform: viewMode === 'JACKPOT_SELECT' ? 'scale(1.05)' : 'none',
-                                transition: 'all 0.2s'
-                            }}
+                            className={`p-3.5 rounded-full transition-all active:scale-90 ${viewMode === 'JACKPOT_SELECT' ? 'bg-amber-500 text-zinc-900 shadow-lg shadow-amber-500/20' : 'hover:bg-white/10 text-zinc-400 hover:text-white'}`}
+                            title="Jackpot Mode"
                         >
-                            <span style={{ fontSize: '1.5rem' }}>🎰</span>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{viewMode === 'JACKPOT_SELECT' ? 'Cancel' : 'Jackpot'}</span>
-                        </div>
+                            <Dices size={20} strokeWidth={2} />
+                        </button>
 
-                        {/* Clear/Confirm Button */}
-                        {hasItemsInPlan ? (
-                            <div
-                                className="glass-panel"
-                                onClick={toggleConfirmation}
-                                style={{
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    cursor: 'pointer',
-                                    textAlign: 'center',
-                                    background: `rgba(${glowVar}, 0.2)`,
-                                    border: `1px solid rgba(${glowVar}, 0.3)`
-                                }}
-                            >
-                                <span style={{ fontSize: '1.5rem' }}>✅</span>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Confirm</span>
-                            </div>
-                        ) : (
-                            <div
-                                className="glass-panel"
-                                style={{
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    opacity: 0.5
-                                }}
-                            >
-                                <span style={{ fontSize: '1.5rem' }}>Start</span>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Planning</span>
-                            </div>
-                        )}
-                    </div>
+                        <div className="w-px h-6 bg-white/10" />
+
+                        {/* Confirm/Lock */}
+                        <button
+                            disabled={!hasItemsInPlan}
+                            onClick={toggleConfirmation}
+                            className={`p-3.5 rounded-full transition-all active:scale-90 flex items-center gap-2 ${hasItemsInPlan ? 'hover:bg-emerald-500/20 text-zinc-400 hover:text-emerald-400' : 'opacity-30 cursor-not-allowed text-zinc-600'}`}
+                            title="Confirm Plan"
+                        >
+                            <Check size={20} strokeWidth={2} />
+                        </button>
+                    </>
                 )}
             </div>
 

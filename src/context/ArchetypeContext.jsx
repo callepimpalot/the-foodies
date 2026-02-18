@@ -35,8 +35,13 @@ export const ARCHETYPES = {
 
 export function ArchetypeProvider({ children }) {
     const [activeArchetype, setActiveArchetype] = useState(() => {
-        const saved = localStorage.getItem('meal_buddy_archetype');
-        return saved ? JSON.parse(saved) : ARCHETYPES.TRAINING;
+        try {
+            const saved = localStorage.getItem('meal_buddy_archetype');
+            return saved ? JSON.parse(saved) : ARCHETYPES.TRAINING;
+        } catch (e) {
+            console.error('Failed to parse archetype:', e);
+            return ARCHETYPES.TRAINING;
+        }
     });
 
     // Effect to sync CSS variable with state

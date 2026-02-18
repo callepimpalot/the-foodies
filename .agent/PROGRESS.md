@@ -1,11 +1,14 @@
-# 🍏 Project Roadmap: The Foodies Family Orchestrator
+# 🍏 Project Roadmap: Meal Buddy
 
 ## 🚨 Critical Bugs & Repairs (High Priority)
+- [x] **Fix React Child Object Error in Detail Popups and Home View Mapping.** (Patched Feb 13)
 - [ ] **Recipe Library Restoration:** Investigate why the Recipes tab is currently empty and restore the connection to the existing recipe data.
 - [ ] **Planning Tab Overhaul:** Complete redesign required to fix alignment, scaling, and visual "chaos".
 
 
 ## 🏃 Current Sprint (Active Polish)
+- [/] **PWA App-ification:** Enable installability and offline capabilities.
+- [ ] **Task C: Design System 2.0 Overhaul:** Complete aesthetic refresh and documentation.
 
 ## 🛠 Product Backlog (Open Tasks)
 
@@ -38,12 +41,21 @@
 - [ ] "Empty State" design for the Pantry (Notion-style minimalism).
 - [ ] Hardware-accelerated transitions for "Pantry Detail" slide-up views.
 
-## ✅ The Hall of Fame
-- [x] **Mobile Stability:** Fixed "jumping dock" using 100dvh and GPU transform. (Feb 10)
-- [x] **Hero Carousel:** Refactored static image into a 3-meal swipeable carousel. (Feb 10)
-- [x] **Design System:** Successfully migrated from theme.css to Tailwind Zinc palette. (Feb 10)
-- [x] **Task Automation:** AG assigned as Autonomous Project Lead for PROGRESS.md management. (Feb 10)
-- [x] **Reorganize PROGRESS.md:** Initial structure setup (Self-verified). (Feb 10)
+## 🔮 Future Sprint
+- [ ] **Implementation of Archetype Filter Pills:** Filter recipes by archetype (Family, Training, etc.).
+- [ ] **Development of the AI Meal Negotiator Logic:** Conversational AI to suggest meals based on inventory and vibe.
+
+## 🏆 HALL OF FAME
+- [x] **Street Taco Logic:** Implemented successfully.
+- [x] **Hero Data Hydration:** Fixed JIT bridge in HomeView to ensure full recipe data reaches Cook Mode. (Feb 14)
+- [x] **Cook Mode Logic:** Implemented step-by-step instruction rendering and calorie parsing. (Feb 14)
+- [x] **Cook Mode & Hero Data Bridge:** Fixed "Cook Now" data hydration, resolved ID mismatches, and enabled step-by-step instructions. (Feb 14)
+- [x] **Emergency Crash Rescue:** Resolved critical syntax error in HomeView loop logic. (Feb 14)
+- [x] **Professional Dual-Agent Infrastructure:** Deployed "Elite Dual-Specialist" model (@creator & @engineer). (Feb 14)
+- [x] **Orchestration Layer Implementation:** Established SQUAD.md, SQUAD_ORCHESTRATION.md, and updated CTO_PERSONA.md. (Feb 14)
+- [x] **Full Recipe Master Array Generation (38 Recipes):** Restored and consolidated all recipe data. (Feb 13)
+- [x] **Supabase Database Migration:** Successfully migrated legacy and new recipes to Supabase. (Feb 13)
+- [x] **Recipe Grid UI Optimization (2-Column Compact):** Implemented magazine-style compact cards with 2-column grid. (Feb 13)
 - [x] **Strategic Audit:** Completed comprehensive audit and roadmap session. (Feb 12)
 - [x] **Header & Hero Refinements:** Tightened vertical spacing, anchored dock, and refined optical alignment. (Feb 12)
 - [x] **Premium Polish:** Replaced Pantry emoji with custom Lucide icon, softened dock shadow, and cinematic Hero badge placement. (Feb 12)
@@ -55,8 +67,13 @@
 - [x] **Icon Purge:** Removed Bell icon, moved User icon to Header (size 20, stroke 1.5). (Feb 12)
 - [x] **Family Subtitle Layout:** Updated to "The Foodies Family Orchestrator" with proper styling. (Feb 12)
 - [x] **Bell Icon Audit:** Removed Home screen bell as it had no purpose. (Feb 12)
-- [x] **Home Screen Design:** LOCKED. Completed final "Premium Polish" and Fixed Header architecture. (Feb 12)
 - [x] **Repository Setup:** initialized git, configured .gitignore, and pushed to GitHub. (Feb 12)
-- [x] **Supabase Integration:** Connected app to Supabase via environment variables and client setup. (Feb 12)
-- [x] **Netlify Deployment:** Configured environment variables and successfully deployed site. (Feb 12)
 - [x] **Production Launch:** Site successfully deployed to Netlify via GitHub. (Feb 12)
+- [x] **Mobile Stability:** Fixed "jumping dock" using 100dvh and GPU transform. (Feb 10)
+- [x] **Hero Carousel:** Refactored static image into a 3-meal swipeable carousel. (Feb 10)
+- [x] **Design System:** Successfully migrated from theme.css to Tailwind Zinc palette. (Feb 10)
+- [x] **Task Automation:** AG assigned as Autonomous Project Lead for PROGRESS.md management. (Feb 10)
+- [x] **Reorganize PROGRESS.md:** Initial structure setup (Self-verified). (Feb 10)
+
+## 📝 NEXT AGENT INSTRUCTIONS
+> * Start by resolving the "Objects are not valid as a React child" error in MealPreviewModal.jsx and RecipeView.jsx to restore the UI visibility. (NOTE: This was addressed in the previous session, please VERIFY the fix remains stable).

@@ -28,7 +28,11 @@ export function AddToPlanModal({ recipe, onClose, onConfirm }) {
                     width: '100%',
                     maxWidth: '400px',
                     padding: '24px',
-                    margin: '16px'
+                    margin: '16px',
+                    background: 'rgba(9, 9, 11, 0.95)',
+                    backdropFilter: 'blur(24px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: '#fff'
                 }}
             >
                 <h2 className="title-lg" style={{ marginBottom: '24px', textAlign: 'center' }}>

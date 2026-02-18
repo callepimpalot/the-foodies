@@ -1,0 +1,1676 @@
+[
+    {
+        "title": "High-Protein Chicken & Broccoli",
+        "image_url": "https://images.unsplash.com/photo-1588710929895-6250965acc92?auto=format&fit=crop&w=800&q=80",
+        "description": "Lean protein and clean carbs for sustained energy.",
+        "difficulty": "Easy",
+        "cooking_time": "20m",
+        "base_servings": 2,
+        "calories": 450,
+        "ingredients": [
+            {
+                "item": "Chicken Breast",
+                "amount": "400g",
+                "unit": "g"
+            },
+            {
+                "item": "Broccoli",
+                "amount": "1",
+                "unit": "head"
+            },
+            {
+                "item": "Brown Rice",
+                "amount": "200g",
+                "unit": "g"
+            }
+        ],
+        "instructions": [
+            "Slice chicken breast into strips.",
+            "Steam broccoli until tender-crisp.",
+            "Sauté chicken in a non-stick pan until golden.",
+            "Serve with brown rice."
+        ],
+        "tags": [
+            "High Protein",
+            "Clean Eating"
+        ],
+        "archetypes": [
+            "TRAINING",
+            "MINIMALIST"
+        ]
+    },
+    {
+        "title": "Family Pasta Night",
+        "image_url": "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?auto=format&fit=crop&w=800&q=80",
+        "description": "Crowd-pleaser that scales easily for the whole team.",
+        "difficulty": "Easy",
+        "cooking_time": "30m",
+        "base_servings": 2,
+        "calories": 600,
+        "ingredients": [
+            {
+                "item": "Pasta",
+                "amount": "250g",
+                "unit": "g"
+            },
+            {
+                "item": "Tomato Sauce",
+                "amount": "1",
+                "unit": "jar"
+            },
+            {
+                "item": "Cheese",
+                "amount": "100g",
+                "unit": "g"
+            }
+        ],
+        "instructions": [
+            "Boil salted water and cook pasta al dente.",
+            "Simmer tomato sauce in a separate pan.",
+            "Drain pasta and toss with sauce.",
+            "Top generously with cheese."
+        ],
+        "tags": [
+            "Comfort Food",
+            "Kid Friendly"
+        ],
+        "archetypes": [
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Thai Green Curry",
+        "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80",
+        "description": "A vibrant balance of aromatic Thai flavors and textures.",
+        "difficulty": "Easy",
+        "cooking_time": "45m",
+        "base_servings": 2,
+        "calories": 550,
+        "ingredients": [
+            {
+                "item": "Chicken",
+                "amount": "300g",
+                "unit": "g"
+            },
+            {
+                "item": "Coconut Milk",
+                "amount": "400ml",
+                "unit": "ml"
+            },
+            {
+                "item": "Green Curry Paste",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Bamboo Shoots",
+                "amount": "1",
+                "unit": "can"
+            }
+        ],
+        "instructions": [
+            "Fry curry paste until fragrant.",
+            "Add chicken and brown lightly.",
+            "Pour in coconut milk and simmer.",
+            "Add bamboo shoots and cook until chicken is done."
+        ],
+        "tags": [
+            "Spicy",
+            "Asian"
+        ],
+        "archetypes": [
+            "STUDENT",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Veggie Stir-Fry",
+        "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
+        "description": "Quick, zero-waste kitchen staple using fresh seasonal produce.",
+        "difficulty": "Easy",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 350,
+        "ingredients": [
+            {
+                "item": "Broccoli",
+                "amount": "1",
+                "unit": "head"
+            },
+            {
+                "item": "Carrots",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Soy Sauce",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Rice",
+                "amount": "200g",
+                "unit": "g"
+            }
+        ],
+        "instructions": [
+            "Chop all vegetables into bite-sized pieces.",
+            "Stir-fry in hot oil for 3-5 minutes.",
+            "Add soy sauce and toss.",
+            "Serve over steamed rice."
+        ],
+        "tags": [
+            "Vegetarian",
+            "Quick"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Post-Workout Omelet",
+        "image_url": "https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=800&q=80",
+        "description": "Nutrient-dense recovery fuel for active lifestyles.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 2,
+        "calories": 400,
+        "ingredients": [
+            {
+                "item": "Eggs",
+                "amount": "4",
+                "unit": "large"
+            },
+            {
+                "item": "Spinach",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Cheese",
+                "amount": "50g",
+                "unit": "g"
+            }
+        ],
+        "instructions": [
+            "Whisk eggs with a pinch of salt.",
+            "Pour into hot non-stick pan.",
+            "Add spinach and cheese when set.",
+            "Fold and serve immediately."
+        ],
+        "tags": [
+            "Keto",
+            "Breakfast"
+        ],
+        "archetypes": [
+            "TRAINING"
+        ]
+    },
+    {
+        "title": "Overnight Oats",
+        "image_url": "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=800&q=80",
+        "description": "Prepare once, eat all week. The ultimate time-saver.",
+        "difficulty": "Easy",
+        "cooking_time": "5m",
+        "base_servings": 2,
+        "calories": 300,
+        "ingredients": [
+            {
+                "item": "Oats",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Milk",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Peanut Butter",
+                "amount": "1",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Banana",
+                "amount": "1",
+                "unit": "pc"
+            }
+        ],
+        "instructions": [
+            "Mix oats and milk in a jar.",
+            "Stir in peanut butter.",
+            "Refrigerate overnight.",
+            "Top with banana slices before eating."
+        ],
+        "tags": [
+            "Meal Prep",
+            "Breakfast"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Budget Beef Burritos",
+        "image_url": "https://images.unsplash.com/photo-1566740933430-b5e70b06d2d5?auto=format&fit=crop&w=800&q=80",
+        "description": "Hearty, affordable, and packed with traditional flavors.",
+        "difficulty": "Easy",
+        "cooking_time": "25m",
+        "base_servings": 2,
+        "calories": 700,
+        "ingredients": [
+            {
+                "item": "Ground Beef\t",
+                "amount": "300g",
+                "unit": "g"
+            },
+            {
+                "item": "Tortillas",
+                "amount": "4",
+                "unit": "pcs"
+            },
+            {
+                "item": "Beans",
+                "amount": "1",
+                "unit": "can"
+            },
+            {
+                "item": "Rice",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Cheese",
+                "amount": "100g",
+                "unit": "g"
+            }
+        ],
+        "instructions": [
+            "Brown beef with taco seasoning.",
+            "Warm tortillas in a pan.",
+            "Layer rice, beans, beef, and cheese.",
+            "Roll tightly and serve."
+        ],
+        "tags": [
+            "Mexican",
+            "Cheap Eats"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Salmon & Asparagus",
+        "image_url": "https://images.unsplash.com/photo-1467003909585-2f8a7270028d?auto=format&fit=crop&w=800&q=80",
+        "description": "Elegant, nutrient-rich dinner that pairs with anything.",
+        "difficulty": "Easy",
+        "cooking_time": "20m",
+        "base_servings": 2,
+        "calories": 450,
+        "ingredients": [
+            {
+                "item": "Salmon Fillet",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Asparagus",
+                "amount": "1",
+                "unit": "bunch"
+            },
+            {
+                "item": "Lemon",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Olive Oil",
+                "amount": "1",
+                "unit": "tbsp"
+            }
+        ],
+        "instructions": [
+            "Place salmon and asparagus on baking sheet.",
+            "Drizzle with oil and lemon juice.",
+            "Bake at 200°C for 12-15 minutes.",
+            "Serve hot."
+        ],
+        "tags": [
+            "Healthy",
+            "Seafood"
+        ],
+        "archetypes": [
+            "TRAINING",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Classic Margherita Pizza",
+        "image_url": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80",
+        "description": "Thin-crust artisan pizza with simple, fresh ingredients.",
+        "difficulty": "Medium",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 800,
+        "ingredients": [
+            {
+                "item": "Pizza Dough",
+                "amount": "1",
+                "unit": "ball"
+            },
+            {
+                "item": "Tomato Sauce",
+                "amount": "1/2",
+                "unit": "cup"
+            },
+            {
+                "item": "Mozzarella",
+                "amount": "125g",
+                "unit": "ball"
+            },
+            {
+                "item": "Basil",
+                "amount": "1",
+                "unit": "handful"
+            }
+        ],
+        "instructions": [
+            "Stretch dough into a circle.",
+            "Spread sauce thinly.",
+            "Top with torn mozzarella.",
+            "Bake at max temp for 8-10 mins. Top with basil."
+        ],
+        "tags": [
+            "Italian",
+            "Vegetarian"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Quinoa Salad Bowl",
+        "image_url": "https://images.unsplash.com/photo-1511690656952-34342d5c2895?auto=format&fit=crop&w=800&q=80",
+        "description": "Refreshing Mediterranean-inspired plant-based power bowl.",
+        "difficulty": "Easy",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 400,
+        "ingredients": [
+            {
+                "item": "Quinoa",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Cucumber",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Chickpeas",
+                "amount": "1",
+                "unit": "can"
+            },
+            {
+                "item": "Lemon",
+                "amount": "1",
+                "unit": "pc"
+            }
+        ],
+        "instructions": [
+            "Cook quinoa according to package.",
+            "Chop cucumber.",
+            "Rinse chickpeas.",
+            "Toss everything with lemon juice and olive oil."
+        ],
+        "tags": [
+            "Vegan",
+            "Healthy"
+        ],
+        "archetypes": [
+            "TRAINING",
+            "MINIMALIST"
+        ]
+    },
+    {
+        "title": "Sheet Pan Sausage & Peppers",
+        "image_url": "https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=800&q=80",
+        "description": "Minimal cleanup, maximum efficiency for busy nights.",
+        "difficulty": "Easy",
+        "cooking_time": "35m",
+        "base_servings": 2,
+        "calories": 600,
+        "ingredients": [
+            {
+                "item": "Sausage",
+                "amount": "4",
+                "unit": "pcs"
+            },
+            {
+                "item": "Bell Peppers",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Onion",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Olive Oil",
+                "amount": "1",
+                "unit": "tbsp"
+            }
+        ],
+        "instructions": [
+            "Slice sausage and vegetables.",
+            "Toss with oil on a baking sheet.",
+            "Roast at 200°C for 25-30 mins.",
+            "Serve hot."
+        ],
+        "tags": [
+            "One Pan",
+            "Easy Cleanup"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Lentil Soup",
+        "image_url": "https://images.unsplash.com/photo-1547592166-23acbe346499?auto=format&fit=crop&w=800&q=80",
+        "description": "Cozy, shelf-stable nutrition for cold evenings.",
+        "difficulty": "Easy",
+        "cooking_time": "40m",
+        "base_servings": 2,
+        "calories": 350,
+        "ingredients": [
+            {
+                "item": "Lentils",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Carrots",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Onion",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Spinach",
+                "amount": "1",
+                "unit": "handful"
+            }
+        ],
+        "instructions": [
+            "Sauté chopped onions and carrots.",
+            "Add lentils and 4 cups of water/broth.",
+            "Simmer for 30 mins until lentils are soft.",
+            "Stir in spinach until wilted."
+        ],
+        "tags": [
+            "Vegan",
+            "Soup"
+        ],
+        "archetypes": [
+            "STUDENT",
+            "MINIMALIST"
+        ]
+    },
+    {
+        "title": "Avocado Toast with Egg",
+        "image_url": "https://images.unsplash.com/photo-1525351484163-7529414395d8?auto=format&fit=crop&w=800&q=80",
+        "description": "A modern staple, balanced for texture and taste.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 2,
+        "calories": 450,
+        "ingredients": [
+            {
+                "item": "Bread",
+                "amount": "2",
+                "unit": "slices"
+            },
+            {
+                "item": "Avocado",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Eggs",
+                "amount": "2",
+                "unit": "large"
+            }
+        ],
+        "instructions": [
+            "Toast the bread.",
+            "Mash avocado with salt and pepper.",
+            "Fry or poach eggs.",
+            "Spread avocado on toast and top with egg."
+        ],
+        "tags": [
+            "Breakfast",
+            "Brunch"
+        ],
+        "archetypes": [
+            "STUDENT",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Tuna Salad Sandwich",
+        "image_url": "https://images.unsplash.com/photo-1550507992-eb63qe084725?auto=format&fit=crop&w=800&q=80",
+        "description": "Quick express protein for on-the-go lifestyles.",
+        "difficulty": "Easy",
+        "cooking_time": "5m",
+        "base_servings": 2,
+        "calories": 400,
+        "ingredients": [
+            {
+                "item": "Canned Tuna",
+                "amount": "1",
+                "unit": "can"
+            },
+            {
+                "item": "Bread",
+                "amount": "4",
+                "unit": "slices"
+            },
+            {
+                "item": "Mayonnaise",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Cucumber",
+                "amount": "1/2",
+                "unit": "pc"
+            }
+        ],
+        "instructions": [
+            "Drain tuna and mix with mayo.",
+            "Slice cucumber thinly.",
+            "Spread tuna mix on bread.",
+            "Add cucumber and assemble sandwich."
+        ],
+        "tags": [
+            "Lunch",
+            "Quick"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Steak & Sweet Potato",
+        "image_url": "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=800&q=80",
+        "description": "High-performance fuel for strength and recovery.",
+        "difficulty": "Medium",
+        "cooking_time": "25m",
+        "base_servings": 2,
+        "calories": 650,
+        "ingredients": [
+            {
+                "item": "Steak",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Sweet Potato",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Broccoli",
+                "amount": "1",
+                "unit": "head"
+            }
+        ],
+        "instructions": [
+            "Preheat oven to 200°C.",
+            "Roast sweet potato wedges for 20 mins.",
+            "Sear steak in hot pan for 3-4 mins per side.",
+            "Steam broccoli and serve."
+        ],
+        "tags": [
+            "High Protein",
+            "Dinner"
+        ],
+        "archetypes": [
+            "TRAINING",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Street Tacos",
+        "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=800&q=80",
+        "description": "Bold street-style flavors in under 20 minutes.",
+        "difficulty": "Medium",
+        "cooking_time": "20m",
+        "base_servings": 2,
+        "calories": 500,
+        "ingredients": [
+            {
+                "item": "Beef Steak",
+                "amount": "300g",
+                "unit": "g"
+            },
+            {
+                "item": "Corn Tortillas",
+                "amount": "6",
+                "unit": "pcs"
+            },
+            {
+                "item": "Onion",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Cilantro",
+                "amount": "1",
+                "unit": "bunch"
+            }
+        ],
+        "instructions": [
+            "Dice beef into small cubes and sear.",
+            "Warm tortillas in a dry pan.",
+            "Finely chop onion and cilantro.",
+            "Assemble tacos and serve with lime."
+        ],
+        "tags": [
+            "Mexican",
+            "Street Food"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Classic Cheeseburger",
+        "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
+        "description": "The definitive comfort classic, built for satisfaction.",
+        "difficulty": "Medium",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 750,
+        "ingredients": [
+            {
+                "item": "Ground Beef",
+                "amount": "300g",
+                "unit": "g"
+            },
+            {
+                "item": "Burger Buns",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Cheddar Cheese",
+                "amount": "2",
+                "unit": "slices"
+            },
+            {
+                "item": "Lettuce",
+                "amount": "2",
+                "unit": "leaves"
+            }
+        ],
+        "instructions": [
+            "Form beef into patties and season.",
+            "Sear in hot pan for 3-4 mins pers side.",
+            "Add cheese in last minute to melt.",
+            "Assemble burger with buns and lettuce."
+        ],
+        "tags": [
+            "American",
+            "Classic"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Greek Salad",
+        "image_url": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=800&q=80",
+        "description": "Hydrating, fresh, and perfectly balanced nutrition.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 2,
+        "calories": 300,
+        "ingredients": [
+            {
+                "item": "Cucumber",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Tomato",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Feta Cheese",
+                "amount": "100g",
+                "unit": "g"
+            },
+            {
+                "item": "Kalamata Olives",
+                "amount": "1/2",
+                "unit": "cup"
+            }
+        ],
+        "instructions": [
+            "Chop cucumber and tomatoes roughly.",
+            "Combine in a bowl with olives.",
+            "Top with block of feta.",
+            "Drizzle generally with olive oil and oregano."
+        ],
+        "tags": [
+            "Salad",
+            "Mediterranean"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "TRAINING"
+        ]
+    },
+    {
+        "title": "Nordic Smoked Salmon Tartine",
+        "image_url": "https://images.unsplash.com/photo-1511690656952-34342d5c2895?auto=format&fit=crop&w=800&q=80",
+        "description": "Open-faced rye sandwich with dill cream cheese.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 2,
+        "calories": 320,
+        "ingredients": [
+            {
+                "item": "Rye Bread",
+                "amount": "2",
+                "unit": "slices"
+            },
+            {
+                "item": "Smoked Salmon",
+                "amount": "100g",
+                "unit": "g"
+            },
+            {
+                "item": "Cream Cheese",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Dill",
+                "amount": "1",
+                "unit": "sprig"
+            }
+        ],
+        "instructions": [
+            "Toast rye bread lightly.",
+            "Spread cream cheese evenly.",
+            "Layer smoked salmon on top.",
+            "Garnish with fresh dill and lemon zest."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Nordic"
+        ],
+        "archetypes": [
+            "FOODIE",
+            "MINIMALIST"
+        ]
+    },
+    {
+        "title": "Danish Meatballs (Frikadeller)",
+        "image_url": "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=800&q=80",
+        "description": "Traditional pork meatballs served with potatoes.",
+        "difficulty": "Medium",
+        "cooking_time": "40m",
+        "base_servings": 4,
+        "calories": 550,
+        "ingredients": [
+            {
+                "item": "Minced Pork",
+                "amount": "500g",
+                "unit": "g"
+            },
+            {
+                "item": "Onion",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Egg",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Milk",
+                "amount": "1/2",
+                "unit": "cup"
+            }
+        ],
+        "instructions": [
+            "Mix pork, grated onion, egg, milk, and flour.",
+            "Let mixture rest for 15 mins.",
+            "Form into oval balls.",
+            "Fry in butter until golden brown."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Comfort"
+        ],
+        "archetypes": [
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Rye Bread Porridge (Øllebrød)",
+        "image_url": "https://images.unsplash.com/photo-1533230643695-17fd924375b4?auto=format&fit=crop&w=800&q=80",
+        "description": "Rich, malty porridge made from rye bread and dark beer.",
+        "difficulty": "Easy",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 300,
+        "ingredients": [
+            {
+                "item": "Rye Bread",
+                "amount": "200g",
+                "unit": "g"
+            },
+            {
+                "item": "Dark Beer (Sweet)",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Sugar",
+                "amount": "1",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Cream",
+                "amount": "2",
+                "unit": "tbsp"
+            }
+        ],
+        "instructions": [
+            "Soak bread in water/beer overnight.",
+            "Simmer until smooth porridge forms.",
+            "Add sugar to taste.",
+            "Serve with a dollop of whipped cream."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Breakfast"
+        ],
+        "archetypes": [
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Roast Pork with Crackling",
+        "image_url": "https://images.unsplash.com/photo-1606728035253-49e8a23146de?auto=format&fit=crop&w=800&q=80",
+        "description": "Crispy skin roast pork, a Sunday classic.",
+        "difficulty": "Hard",
+        "cooking_time": "2h",
+        "base_servings": 6,
+        "calories": 700,
+        "ingredients": [
+            {
+                "item": "Pork Roast (Skin on)",
+                "amount": "1.5kg",
+                "unit": "kg"
+            },
+            {
+                "item": "Salt",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Bay Leaves",
+                "amount": "5",
+                "unit": "pcs"
+            }
+        ],
+        "instructions": [
+            "Score the skin deeply.",
+            "Rub salt into cuts.",
+            "Insert bay leaves.",
+            "Roast at 200°C until crackling is crisp."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Sunday Roast"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Pickled Herring Salad",
+        "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80",
+        "description": "Tangy curry herring salad on rye.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 2,
+        "calories": 350,
+        "ingredients": [
+            {
+                "item": "Pickled Herring",
+                "amount": "1",
+                "unit": "jar"
+            },
+            {
+                "item": "Curry Powder",
+                "amount": "1",
+                "unit": "tsp"
+            },
+            {
+                "item": "Mayonnaise",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Apple",
+                "amount": "1/2",
+                "unit": "pc"
+            }
+        ],
+        "instructions": [
+            "Mix mayo, curry powder, and chopped apple.",
+            "Cut herring into bite-sized pieces.",
+            "Fold herring into sauce.",
+            "Serve on buttered rye bread."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Lunch"
+        ],
+        "archetypes": [
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Dream Cake (Drømmekage)",
+        "image_url": "https://images.unsplash.com/photo-1576618148400-f54bed99fcf8?auto=format&fit=crop&w=800&q=80",
+        "description": "Sponge cake topped with caramelized coconut.",
+        "difficulty": "Medium",
+        "cooking_time": "45m",
+        "base_servings": 8,
+        "calories": 400,
+        "ingredients": [
+            {
+                "item": "Flour",
+                "amount": "250g",
+                "unit": "g"
+            },
+            {
+                "item": "Sugar",
+                "amount": "200g",
+                "unit": "g"
+            },
+            {
+                "item": "Coconut Flakes",
+                "amount": "100g",
+                "unit": "g"
+            },
+            {
+                "item": "Brown Sugar",
+                "amount": "150g",
+                "unit": "g"
+            }
+        ],
+        "instructions": [
+            "Bake vanilla sponge cake.",
+            "Simmer butter, brown sugar, and coconut.",
+            "Spread topping on cake.",
+            "Bake again for 5 mins at high heat."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Dessert"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Parsley Sauce with Potatoes",
+        "image_url": "https://images.unsplash.com/photo-1623428187969-5da2dcea5ebf?auto=format&fit=crop&w=800&q=80",
+        "description": "Creamy parsley sauce traditionally served with fried pork.",
+        "difficulty": "Medium",
+        "cooking_time": "20m",
+        "base_servings": 4,
+        "calories": 250,
+        "ingredients": [
+            {
+                "item": "Butter",
+                "amount": "50g",
+                "unit": "g"
+            },
+            {
+                "item": "Milk",
+                "amount": "500ml",
+                "unit": "ml"
+            },
+            {
+                "item": "Parsley",
+                "amount": "1",
+                "unit": "bunch"
+            },
+            {
+                "item": "Potatoes",
+                "amount": "8",
+                "unit": "pcs"
+            }
+        ],
+        "instructions": [
+            "Boil new potatoes.",
+            "Make roux with butter and flour.",
+            "Whisk in milk slowly.",
+            "Stir in chopped fresh parsley."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Side Dish"
+        ],
+        "archetypes": [
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Warm Potato Salad",
+        "image_url": "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=800&q=80",
+        "description": "Vinaigrette-based potato salad with red onions.",
+        "difficulty": "Easy",
+        "cooking_time": "20m",
+        "base_servings": 4,
+        "calories": 200,
+        "ingredients": [
+            {
+                "item": "Potatoes",
+                "amount": "1kg",
+                "unit": "kg"
+            },
+            {
+                "item": "Red Onion",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Vinegar",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Mustard",
+                "amount": "1",
+                "unit": "tsp"
+            }
+        ],
+        "instructions": [
+            "Boil potatoes and slice while warm.",
+            "Whisk vinegar, oil, mustard.",
+            "Toss potatoes with dressing and onions.",
+            "Serve warm."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Side Dish"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Open-Faced Roast Beef",
+        "image_url": "https://images.unsplash.com/photo-1513254922116-24e030b7c768?auto=format&fit=crop&w=800&q=80",
+        "description": "Rye bread topped with roast beef and remoulade.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 1,
+        "calories": 400,
+        "ingredients": [
+            {
+                "item": "Rye Bread",
+                "amount": "1",
+                "unit": "slice"
+            },
+            {
+                "item": "Roast Beef",
+                "amount": "3",
+                "unit": "slices"
+            },
+            {
+                "item": "Remoulade",
+                "amount": "1",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Crispy Onions",
+                "amount": "1",
+                "unit": "tbsp"
+            }
+        ],
+        "instructions": [
+            "Butter the rye bread.",
+            "Fold roast beef slices on top.",
+            "Top with remoulade, horseradish, and onions.",
+            "Garnish with pickles."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Lunch"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Shrimp Cocktail (Rejecocktail)",
+        "image_url": "https://images.unsplash.com/photo-1559737558-2f5a3b956875?auto=format&fit=crop&w=800&q=80",
+        "description": "Classic starter with shrimp and dressing.",
+        "difficulty": "Easy",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 250,
+        "ingredients": [
+            {
+                "item": "Shrimp",
+                "amount": "200g",
+                "unit": "g"
+            },
+            {
+                "item": "Lettuce",
+                "amount": "1",
+                "unit": "head"
+            },
+            {
+                "item": "Dressing",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Lemon",
+                "amount": "1",
+                "unit": "pc"
+            }
+        ],
+        "instructions": [
+            "Shred lettuce into glasses.",
+            "Top with shrimp.",
+            "Drizzle with Thousand Island style dressing.",
+            "Serve with lemon wedge."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Starter"
+        ],
+        "archetypes": [
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Elderflower Cordial Pudding",
+        "image_url": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=800&q=80",
+        "description": "Light summer dessert made with elderflower.",
+        "difficulty": "Medium",
+        "cooking_time": "30m",
+        "base_servings": 4,
+        "calories": 200,
+        "ingredients": [
+            {
+                "item": "Elderflower Cordial",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Gelatin",
+                "amount": "3",
+                "unit": "sheets"
+            },
+            {
+                "item": "Strawberries",
+                "amount": "100g",
+                "unit": "g"
+            },
+            {
+                "item": "Cream",
+                "amount": "1/2",
+                "unit": "cup"
+            }
+        ],
+        "instructions": [
+            "Soak gelatin in cold water.",
+            "Heat cordial slightly and dissolve gelatin.",
+            "Pour into molds and set in fridge.",
+            "Serve with cream and berries."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Dessert"
+        ],
+        "archetypes": [
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Chicken Asparagus Tartlets",
+        "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+        "description": "Traditional tart shells filled with creamy chicken.",
+        "difficulty": "Medium",
+        "cooking_time": "30m",
+        "base_servings": 4,
+        "calories": 400,
+        "ingredients": [
+            {
+                "item": "Tart Shells",
+                "amount": "8",
+                "unit": "pcs"
+            },
+            {
+                "item": "Chicken",
+                "amount": "300g",
+                "unit": "g"
+            },
+            {
+                "item": "White Asparagus",
+                "amount": "1",
+                "unit": "jar"
+            },
+            {
+                "item": "Cream Sauce",
+                "amount": "300ml",
+                "unit": "ml"
+            }
+        ],
+        "instructions": [
+            "Cook chicken and dice.",
+            "Heat white sauce and add asparagus.",
+            "Stir in chicken.",
+            "Fill warm tart shells immediately."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Classic"
+        ],
+        "archetypes": [
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Beetroot & Barley Risotto",
+        "image_url": "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?auto=format&fit=crop&w=800&q=80",
+        "description": "Nordic twist on risotto using pearl barley.",
+        "difficulty": "Medium",
+        "cooking_time": "40m",
+        "base_servings": 2,
+        "calories": 450,
+        "ingredients": [
+            {
+                "item": "Pearl Barley",
+                "amount": "200g",
+                "unit": "g"
+            },
+            {
+                "item": "Beetroot",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Goat Cheese",
+                "amount": "50g",
+                "unit": "g"
+            },
+            {
+                "item": "Thyme",
+                "amount": "1",
+                "unit": "sprig"
+            }
+        ],
+        "instructions": [
+            "Roast beetroot cubes.",
+            "Cook barley like risotto adding broth slowly.",
+            "Stir in roasted beets.",
+            "Top with crumbled goat cheese."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Vegetarian"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Cod with Mustard Sauce",
+        "image_url": "https://images.unsplash.com/photo-1532597311687-5c2dc87f5259?auto=format&fit=crop&w=800&q=80",
+        "description": "Poached cod in a gentle mustard cream.",
+        "difficulty": "Medium",
+        "cooking_time": "20m",
+        "base_servings": 2,
+        "calories": 350,
+        "ingredients": [
+            {
+                "item": "Cod Fillet",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Dijon Mustard",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Cream",
+                "amount": "100ml",
+                "unit": "ml"
+            },
+            {
+                "item": "Dill",
+                "amount": "1",
+                "unit": "bunch"
+            }
+        ],
+        "instructions": [
+            "Poach cod gently in water.",
+            "Heat cream and whisk in mustard.",
+            "Season sauce with salt and dill.",
+            "Pour over fish and serve with potatoes."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Seafood"
+        ],
+        "archetypes": [
+            "FOODIE"
+        ]
+    },
+    {
+        "title": "Rye Bread Chips & Dip",
+        "image_url": "https://images.unsplash.com/photo-1576021182211-9ea8dced3690?auto=format&fit=crop&w=800&q=80",
+        "description": "Crispy thin rye snacks with herb dip.",
+        "difficulty": "Easy",
+        "cooking_time": "15m",
+        "base_servings": 4,
+        "calories": 150,
+        "ingredients": [
+            {
+                "item": "Stale Rye Bread",
+                "amount": "4",
+                "unit": "slices"
+            },
+            {
+                "item": "Oil",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Sour Cream",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Chives",
+                "amount": "1",
+                "unit": "bunch"
+            }
+        ],
+        "instructions": [
+            "Slice bread extremely thin.",
+            "Brush with oil and bake until crisp.",
+            "Mix sour cream with chopped herbs.",
+            "Serve as a snack."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Snack"
+        ],
+        "archetypes": [
+            "MINIMALIST",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Apple Pork (Æbleflæsk)",
+        "image_url": "https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=800&q=80",
+        "description": "Savory mix of cured pork belly and tart apples.",
+        "difficulty": "Easy",
+        "cooking_time": "25m",
+        "base_servings": 4,
+        "calories": 500,
+        "ingredients": [
+            {
+                "item": "Pork Belly",
+                "amount": "300g",
+                "unit": "g"
+            },
+            {
+                "item": "Apples",
+                "amount": "4",
+                "unit": "pcs"
+            },
+            {
+                "item": "Onion",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Sugar",
+                "amount": "1",
+                "unit": "tbsp"
+            }
+        ],
+        "instructions": [
+            "Fry pork belly until crisp.",
+            "Remove meat but keep fat.",
+            "Fry apple wedges and onions in fat.",
+            "Mix meat back in and serve on rye."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Lunch"
+        ],
+        "archetypes": [
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Burning Love (Brændende Kærlighed)",
+        "image_url": "https://images.unsplash.com/photo-1549419163-e380e21c81ca?auto=format&fit=crop&w=800&q=80",
+        "description": "Mashed potatoes topped with bacon and onions.",
+        "difficulty": "Easy",
+        "cooking_time": "30m",
+        "base_servings": 4,
+        "calories": 600,
+        "ingredients": [
+            {
+                "item": "Potatoes",
+                "amount": "1kg",
+                "unit": "kg"
+            },
+            {
+                "item": "Bacon",
+                "amount": "200g",
+                "unit": "g"
+            },
+            {
+                "item": "Onion",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Parsley",
+                "amount": "1",
+                "unit": "handful"
+            }
+        ],
+        "instructions": [
+            "Boil and mash potatoes.",
+            "Fry diced bacon and onions until crisp.",
+            "Make a well in the mash.",
+            "Fill with bacon mix and sprinkle parsley."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Comfort"
+        ],
+        "archetypes": [
+            "FAMILY",
+            "STUDENT"
+        ]
+    },
+    {
+        "title": "Kale Salad with Apples",
+        "image_url": "https://images.unsplash.com/photo-1550414777-695027581b7e?auto=format&fit=crop&w=800&q=80",
+        "description": "Crunchy winter salad with nuts and cranberries.",
+        "difficulty": "Easy",
+        "cooking_time": "15m",
+        "base_servings": 2,
+        "calories": 250,
+        "ingredients": [
+            {
+                "item": "Kale",
+                "amount": "1",
+                "unit": "bunch"
+            },
+            {
+                "item": "Apple",
+                "amount": "1",
+                "unit": "pc"
+            },
+            {
+                "item": "Walnuts",
+                "amount": "50g",
+                "unit": "g"
+            },
+            {
+                "item": "Honey Vinaigrette",
+                "amount": "2",
+                "unit": "tbsp"
+            }
+        ],
+        "instructions": [
+            "Massage kale with oil.",
+            "Slice apples thinly.",
+            "Toast walnuts.",
+            "Toss everything together."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Healthy"
+        ],
+        "archetypes": [
+            "TRAINING",
+            "MINIMALIST"
+        ]
+    },
+    {
+        "title": "Danish Pastry (Wienerbrød)",
+        "image_url": "https://images.unsplash.com/photo-1509365465985-25d11c17e812?auto=format&fit=crop&w=800&q=80",
+        "description": "Flaky butter pastry with custard center.",
+        "difficulty": "Hard",
+        "cooking_time": "1h",
+        "base_servings": 6,
+        "calories": 450,
+        "ingredients": [
+            {
+                "item": "Pastry Dough",
+                "amount": "1",
+                "unit": "sheet"
+            },
+            {
+                "item": "Custard",
+                "amount": "1",
+                "unit": "cup"
+            },
+            {
+                "item": "Jam",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Icing Sugar",
+                "amount": "1",
+                "unit": "cup"
+            }
+        ],
+        "instructions": [
+            "Cut dough into squares/shapes.",
+            "Add custard dollop in center.",
+            "Fold corners in.",
+            "Bake until puffed and golden."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Treat"
+        ],
+        "archetypes": [
+            "FOODIE",
+            "FAMILY"
+        ]
+    },
+    {
+        "title": "Hot Dog (Pølsevogn Style)",
+        "image_url": "https://images.unsplash.com/photo-1612392062631-94dd858cba88?auto=format&fit=crop&w=800&q=80",
+        "description": "Red sausage with remoulade, onions, and pickles.",
+        "difficulty": "Easy",
+        "cooking_time": "10m",
+        "base_servings": 2,
+        "calories": 500,
+        "ingredients": [
+            {
+                "item": "Red Sausage",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Bun",
+                "amount": "2",
+                "unit": "pcs"
+            },
+            {
+                "item": "Remoulade",
+                "amount": "2",
+                "unit": "tbsp"
+            },
+            {
+                "item": "Pickles",
+                "amount": "4",
+                "unit": "slices"
+            }
+        ],
+        "instructions": [
+            "Boil or grill sausages.",
+            "Warm the buns.",
+            "Place sausage in bun.",
+            "Top with remoulade, mustard, ketchup, onions, pickles."
+        ],
+        "tags": [
+            "Modern Danish",
+            "Street Food"
+        ],
+        "archetypes": [
+            "STUDENT",
+            "FAMILY"
+        ]
+    }
+]

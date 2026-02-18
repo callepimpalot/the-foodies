@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { RECIPES } from '../data/recipes';
+import { useRecipes } from '../hooks/useRecipes';
 
 export function RecipeSelector({ onSelect, onClose, slot, date }) {
     const [search, setSearch] = useState('');
+    const { recipes } = useRecipes();
 
-    const filteredRecipes = RECIPES.filter(r =>
+    const filteredRecipes = recipes.filter(r =>
         r.title.toLowerCase().includes(search.toLowerCase()) ||
         r.archetypes.some(a => a.toLowerCase().includes(search.toLowerCase()))
     );

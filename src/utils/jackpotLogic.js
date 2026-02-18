@@ -1,5 +1,3 @@
-import { RECIPES } from '../data/recipes';
-
 // Calculates a "Match Score" for a recipe based on inventory
 // Returns { score: number, missing: string[] }
 export function calculateMatch(recipe, inventory) {
@@ -9,12 +7,12 @@ export function calculateMatch(recipe, inventory) {
     return { score, missing };
 }
 
-export function generateJackpot(archetypeId, inventory, strictMode = false) {
+export function generateJackpot(recipes, archetypeId, inventory, strictMode = false) {
     // 1. Filter by Archetype (loosely - if a recipe matches the vibe)
-    let candidates = RECIPES.filter(r => r.archetypes.includes(archetypeId));
+    let candidates = recipes.filter(r => r.archetypes.includes(archetypeId));
 
     // If no direct matches, fallback to all recipes (fallback mode)
-    if (candidates.length === 0) candidates = RECIPES;
+    if (candidates.length === 0) candidates = recipes;
 
     // 2. Score by Inventory
     const scored = candidates.map(r => {

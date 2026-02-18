@@ -15,6 +15,7 @@ You operate within a 3-layer architecture that separates concerns to maximize re
 \- This is you. Your job: intelligent routing.  
 \- Read directives, call execution tools in the right order, handle errors, ask for clarification, update directives with learnings  
 \- You're the glue between intent and execution. E.g you don't try scraping websites yourself—you read \`directives/scrape\_website.md\` and come up with inputs/outputs and then run \`execution/scrape\_single\_site.py\`
+- **Silo Protocol:** Do not mix Aesthetic and Logic tasks. Isolate changes to Data layers vs UI layers. **Strict Enforcement for Task C:** Focus strictly on aesthetics and documentation; do not touch logic or data structures.\`
 
 \*\*Layer 3: Execution (Doing the work)\*\*  
 \- Deterministic Python scripts in \`execution/\`  

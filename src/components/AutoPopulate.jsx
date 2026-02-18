@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { useArchetype } from '../context/ArchetypeContext';
 import { usePlan } from '../context/PlanContext';
-import { RECIPES } from '../data/recipes';
+import { useRecipes } from '../hooks/useRecipes';
 
 export function AutoPopulate() {
     const { activeArchetype } = useArchetype();
     const { bulkUpdatePlan, clearPlan } = usePlan();
+    const { recipes } = useRecipes();
     const [isGenerating, setIsGenerating] = useState(false);
 
     const handleGenerate = () => {
+        if (!recipes || recipes.length === 0) {
+            alert("No recipes available to generate plan.");
+            return;
+        }
+
         setIsGenerating(true);
 
         // Simulate a brief "magic" delay
@@ -21,12 +27,12 @@ export function AutoPopulate() {
             });
 
             // Filter recipes for this archetype
-            const archetypeRecipes = RECIPES.filter(r =>
+            const archetypeRecipes = recipes.filter(r =>
                 r.archetypes.includes(activeArchetype.id)
             );
 
             // Fallback to all recipes if none match (shouldn't happen with our new set)
-            const pool = archetypeRecipes.length > 0 ? archetypeRecipes : RECIPES;
+            const pool = archetypeRecipes.length > 0 ? archetypeRecipes : recipes;
 
             days.forEach(date => {
                 newPlan[date] = {

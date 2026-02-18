@@ -5,14 +5,18 @@ const ViewContext = createContext();
 
 export function ViewProvider({ children }) {
     // Default to HOME, but could logic check for first-time user later
-    const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD);
+    const [currentView, setCurrentViewState] = useState(VIEWS.DASHBOARD);
+    const [viewData, setViewData] = useState(null);
 
-    // Helper to go back to home? Or just set view directly.
-    // We can add history stack later if needed.
+    const setCurrentView = (view, data = null) => {
+        setCurrentViewState(view);
+        setViewData(data);
+    };
 
     const value = {
         currentView,
         setCurrentView,
+        viewData,
         VIEWS
     };
 
