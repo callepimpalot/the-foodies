@@ -93,7 +93,6 @@ export function MealPreviewModal({ recipe, onClose, onAddToPlan, onCookNow, sour
                     marginTop: '-24px', // Restore Overlap
                     position: 'relative', // Needed for z-index overlapping
                     paddingBottom: '10rem', // pb-40 Safe Guard
-                    borderTop: '1px solid #27272a', // border-zinc-800 subtle separator
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '24px', // gap-y-6 (24px)

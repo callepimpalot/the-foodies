@@ -6,8 +6,8 @@
 - [ ] **Planning Tab Overhaul:** Complete redesign required to fix alignment, scaling, and visual "chaos".
 
 
-## 🏃 Current Sprint (Active Polish)
-- [/] **PWA App-ification:** Enable installability and offline capabilities.
+### 🏃 Current Sprint (Active Polish)
+- [x] **PWA App-ification:** Live & Installable (v1.0).
 - [ ] **Task C: Design System 2.0 Overhaul:** Complete aesthetic refresh and documentation.
 
 ## 🛠 Product Backlog (Open Tasks)

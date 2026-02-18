@@ -35,7 +35,6 @@ function AppContent() {
       case VIEWS.PLAN: return <PlanView />;
       case VIEWS.RECIPES: return <RecipeView />;
       case VIEWS.SHOP: return <ShopView />;
-      case VIEWS.SHOP: return <ShopView />;
       case VIEWS.PANTRY: return <PantryView />;
       case VIEWS.COOK_MODE: return <CookModeView />;
       case VIEWS.PROFILE: return (
