@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import localRecipes from '../../final_recipes.json';
 
 export function useRecipes() {
     const [recipes, setRecipes] = useState([]);
@@ -33,14 +34,23 @@ export function useRecipes() {
                     'https://images.unsplash.com/photo-1493770348161-369560ae357d?auto=format&fit=crop&w=800'
                 ];
 
+                // HOTFIX: Supabase RLS blocks updating image_url via the anon key.
+                // We map the newly generated AI assets statically from final_recipes.json
+                const localOverride = localRecipes || [];
+
                 const mappedRecipes = data.map((r, idx) => {
                     const fallback = FALLBACKS[idx % FALLBACKS.length];
+
+                    // Match by exact title string or fallback
+                    const localMatch = localOverride.find(local => local.title === r.title);
+                    const syncedImageUrl = (localMatch && localMatch.image_url) ? localMatch.image_url : r.image_url;
+
                     return {
                         ...r,
                         // Manual Patch: Backfill image_url if missing so standard components work
-                        image_url: r.image_url || fallback,
+                        image_url: syncedImageUrl || fallback,
                         // Also set 'image' for legacy support, but 'image_url' is the new standard
-                        image: r.image_url || r.image || fallback
+                        image: syncedImageUrl || r.image || fallback
                     };
                 });
 

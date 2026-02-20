@@ -1,7 +1,7 @@
 [
     {
         "title": "High-Protein Chicken & Broccoli",
-        "image_url": "/assets/recipe-refresh/chicken_broccoli.png",
+        "image_url": "/assets/recipe-refresh/high-protein-chicken-and-broccoli.png",
         "description": "Lean protein and clean carbs for sustained energy.",
         "difficulty": "Easy",
         "cooking_time": "20m",
@@ -304,7 +304,7 @@
     },
     {
         "title": "Salmon & Asparagus",
-        "image_url": "/assets/recipe-refresh/salmon_asparagus.png",
+        "image_url": "/assets/recipe-refresh/salmon-and-asparagus.png",
         "description": "Elegant, nutrient-rich dinner that pairs with anything.",
         "difficulty": "Easy",
         "cooking_time": "20m",
@@ -394,7 +394,7 @@
     },
     {
         "title": "Quinoa Salad Bowl",
-        "image_url": "/assets/recipe-refresh/quinoa_salad.png",
+        "image_url": "/assets/recipe-refresh/quinoa-salad-bowl.png",
         "description": "Refreshing Mediterranean-inspired plant-based power bowl.",
         "difficulty": "Easy",
         "cooking_time": "15m",
@@ -484,7 +484,7 @@
     },
     {
         "title": "Lentil Soup",
-        "image_url": "/assets/recipe-refresh/lentil_soup.png",
+        "image_url": "/assets/recipe-refresh/lentil-soup.png",
         "description": "Cozy, shelf-stable nutrition for cold evenings.",
         "difficulty": "Easy",
         "cooking_time": "40m",
@@ -529,7 +529,7 @@
     },
     {
         "title": "Avocado Toast with Egg",
-        "image_url": "/assets/recipe-refresh/avocado_toast.png",
+        "image_url": "/assets/recipe-refresh/avocado-toast-with-egg.png",
         "description": "A modern staple, balanced for texture and taste.",
         "difficulty": "Easy",
         "cooking_time": "10m",
@@ -569,7 +569,7 @@
     },
     {
         "title": "Tuna Salad Sandwich",
-        "image_url": "/assets/recipe-refresh/tuna_sandwich.png",
+        "image_url": "/assets/recipe-refresh/tuna-salad-sandwich.png",
         "description": "Quick express protein for on-the-go lifestyles.",
         "difficulty": "Easy",
         "cooking_time": "5m",
@@ -789,7 +789,7 @@
     },
     {
         "title": "Nordic Smoked Salmon Tartine",
-        "image_url": "/assets/recipe-refresh/salmon_tartine.png",
+        "image_url": "/assets/recipe-refresh/nordic-smoked-salmon-tartine.png",
         "description": "Open-faced rye sandwich with dill cream cheese.",
         "difficulty": "Easy",
         "cooking_time": "10m",
@@ -878,7 +878,7 @@
     },
     {
         "title": "Rye Bread Porridge (Øllebrød)",
-        "image_url": "/assets/recipe-refresh/rye_porridge.png",
+        "image_url": "/assets/recipe-refresh/rye-bread-porridge.png",
         "description": "Rich, malty porridge made from rye bread and dark beer.",
         "difficulty": "Easy",
         "cooking_time": "15m",
@@ -1006,7 +1006,7 @@
     },
     {
         "title": "Dream Cake (Drømmekage)",
-        "image_url": "/assets/recipe-refresh/dream_cake.png",
+        "image_url": "/assets/recipe-refresh/dream-cake.png",
         "description": "Sponge cake topped with caramelized coconut.",
         "difficulty": "Medium",
         "cooking_time": "45m",
@@ -1140,7 +1140,7 @@
     },
     {
         "title": "Open-Faced Roast Beef",
-        "image_url": "/assets/recipe-refresh/roast_beef_open.png",
+        "image_url": "/assets/recipe-refresh/open-faced-roast-beef.png",
         "description": "Rye bread topped with roast beef and remoulade.",
         "difficulty": "Easy",
         "cooking_time": "10m",
@@ -1185,7 +1185,7 @@
     },
     {
         "title": "Shrimp Cocktail (Rejecocktail)",
-        "image_url": "/assets/recipe-refresh/shrimp_cocktail.png",
+        "image_url": "/assets/recipe-refresh/shrimp-cocktail.png",
         "description": "Classic starter with shrimp and dressing.",
         "difficulty": "Easy",
         "cooking_time": "15m",
@@ -1362,7 +1362,7 @@
     },
     {
         "title": "Cod with Mustard Sauce",
-        "image_url": "/assets/recipe-refresh/cod_mustard.png",
+        "image_url": "/assets/recipe-refresh/cod-with-mustard-sauce.png",
         "description": "Poached cod in a gentle mustard cream.",
         "difficulty": "Medium",
         "cooking_time": "20m",
@@ -1495,7 +1495,7 @@
     },
     {
         "title": "Burning Love (Brændende Kærlighed)",
-        "image_url": "/assets/recipe-refresh/burning_love.png",
+        "image_url": "/assets/recipe-refresh/burning-love.png",
         "description": "Mashed potatoes topped with bacon and onions.",
         "difficulty": "Easy",
         "cooking_time": "30m",
@@ -1540,7 +1540,7 @@
     },
     {
         "title": "Kale Salad with Apples",
-        "image_url": "/assets/recipe-refresh/kale_apple_salad.png",
+        "image_url": "/assets/recipe-refresh/kale-salad-with-apples.png",
         "description": "Crunchy winter salad with nuts and cranberries.",
         "difficulty": "Easy",
         "cooking_time": "15m",
