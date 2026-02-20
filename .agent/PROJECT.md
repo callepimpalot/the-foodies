@@ -11,15 +11,15 @@
 
 ## 📂 Agent Log (Status)
 **Current Phase:** Transitioning to Hierarchical Orchestration.  
-**Active Focus:** Home Screen UI refinement.  
-**Status:** Awaiting CEO Sprint Planning.
+**Active Focus:** Design System 2.0 & Recipe Library Restoration.  
+**Status:** v1.0 Live & Installable. Awaiting Phase 2: Visual Polish.
 
 ---
 
 ## 🍏 Roadmap & Backlog
 
 ### 🏃 Current Sprint (Active Polish)
-- [/] **PWA App-ification:** Enable installability and offline capabilities.
+- [ ] **Task C: Design System 2.0 Overhaul:** Complete aesthetic refresh and documentation.
 
 ### 🚨 Critical Bugs & Repairs (High Priority)
 - [x] **Fix React Child Object Error in Detail Popups.** (Patched Feb 13)
@@ -58,7 +58,9 @@
 ---
 
 ## 🏆 HALL OF FAME (Completed)
+- [x] **v1.0 Launch:** Full PWA integration, Supabase production sync, and mobile install verified. (Feb 18)
 - [x] **Street Taco Logic:** Implemented successfully.
+- [x] **Hero ID Sync:** Fixed JIT bridge in HomeView to ensure full recipe data reaches Cook Mode. (Feb 14)
 - [x] **Professional Dual-Agent Infrastructure:** Deployed "Elite Dual-Specialist" model. (Feb 14)
 - [x] **Orchestration Layer Implementation:** Established AGENTS.md and PROJECT.md. (Feb 14)
 - [x] **Full Recipe Master Array Generation (38 Recipes):** Restored and consolidated. (Feb 13)

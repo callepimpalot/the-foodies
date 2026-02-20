@@ -1,7 +1,7 @@
 [
     {
         "title": "High-Protein Chicken & Broccoli",
-        "image_url": "https://images.unsplash.com/photo-1588710929895-6250965acc92?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/chicken_broccoli.png",
         "description": "Lean protein and clean carbs for sustained energy.",
         "difficulty": "Easy",
         "cooking_time": "20m",
@@ -304,7 +304,7 @@
     },
     {
         "title": "Salmon & Asparagus",
-        "image_url": "https://images.unsplash.com/photo-1467003909585-2f8a7270028d?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/salmon_asparagus.png",
         "description": "Elegant, nutrient-rich dinner that pairs with anything.",
         "difficulty": "Easy",
         "cooking_time": "20m",
@@ -394,7 +394,7 @@
     },
     {
         "title": "Quinoa Salad Bowl",
-        "image_url": "https://images.unsplash.com/photo-1511690656952-34342d5c2895?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/quinoa_salad.png",
         "description": "Refreshing Mediterranean-inspired plant-based power bowl.",
         "difficulty": "Easy",
         "cooking_time": "15m",
@@ -484,7 +484,7 @@
     },
     {
         "title": "Lentil Soup",
-        "image_url": "https://images.unsplash.com/photo-1547592166-23acbe346499?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/lentil_soup.png",
         "description": "Cozy, shelf-stable nutrition for cold evenings.",
         "difficulty": "Easy",
         "cooking_time": "40m",
@@ -529,7 +529,7 @@
     },
     {
         "title": "Avocado Toast with Egg",
-        "image_url": "https://images.unsplash.com/photo-1525351484163-7529414395d8?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/avocado_toast.png",
         "description": "A modern staple, balanced for texture and taste.",
         "difficulty": "Easy",
         "cooking_time": "10m",
@@ -569,7 +569,7 @@
     },
     {
         "title": "Tuna Salad Sandwich",
-        "image_url": "https://images.unsplash.com/photo-1550507992-eb63qe084725?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/tuna_sandwich.png",
         "description": "Quick express protein for on-the-go lifestyles.",
         "difficulty": "Easy",
         "cooking_time": "5m",
@@ -789,7 +789,7 @@
     },
     {
         "title": "Nordic Smoked Salmon Tartine",
-        "image_url": "https://images.unsplash.com/photo-1511690656952-34342d5c2895?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/salmon_tartine.png",
         "description": "Open-faced rye sandwich with dill cream cheese.",
         "difficulty": "Easy",
         "cooking_time": "10m",
@@ -878,7 +878,7 @@
     },
     {
         "title": "Rye Bread Porridge (Øllebrød)",
-        "image_url": "https://images.unsplash.com/photo-1533230643695-17fd924375b4?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/rye_porridge.png",
         "description": "Rich, malty porridge made from rye bread and dark beer.",
         "difficulty": "Easy",
         "cooking_time": "15m",
@@ -1006,7 +1006,7 @@
     },
     {
         "title": "Dream Cake (Drømmekage)",
-        "image_url": "https://images.unsplash.com/photo-1576618148400-f54bed99fcf8?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/dream_cake.png",
         "description": "Sponge cake topped with caramelized coconut.",
         "difficulty": "Medium",
         "cooking_time": "45m",
@@ -1140,7 +1140,7 @@
     },
     {
         "title": "Open-Faced Roast Beef",
-        "image_url": "https://images.unsplash.com/photo-1513254922116-24e030b7c768?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/roast_beef_open.png",
         "description": "Rye bread topped with roast beef and remoulade.",
         "difficulty": "Easy",
         "cooking_time": "10m",
@@ -1185,7 +1185,7 @@
     },
     {
         "title": "Shrimp Cocktail (Rejecocktail)",
-        "image_url": "https://images.unsplash.com/photo-1559737558-2f5a3b956875?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/shrimp_cocktail.png",
         "description": "Classic starter with shrimp and dressing.",
         "difficulty": "Easy",
         "cooking_time": "15m",
@@ -1362,7 +1362,7 @@
     },
     {
         "title": "Cod with Mustard Sauce",
-        "image_url": "https://images.unsplash.com/photo-1532597311687-5c2dc87f5259?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/cod_mustard.png",
         "description": "Poached cod in a gentle mustard cream.",
         "difficulty": "Medium",
         "cooking_time": "20m",
@@ -1495,7 +1495,7 @@
     },
     {
         "title": "Burning Love (Brændende Kærlighed)",
-        "image_url": "https://images.unsplash.com/photo-1549419163-e380e21c81ca?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/burning_love.png",
         "description": "Mashed potatoes topped with bacon and onions.",
         "difficulty": "Easy",
         "cooking_time": "30m",
@@ -1540,7 +1540,7 @@
     },
     {
         "title": "Kale Salad with Apples",
-        "image_url": "https://images.unsplash.com/photo-1550414777-695027581b7e?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/assets/recipe-refresh/kale_apple_salad.png",
         "description": "Crunchy winter salad with nuts and cranberries.",
         "difficulty": "Easy",
         "cooking_time": "15m",

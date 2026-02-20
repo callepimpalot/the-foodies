@@ -28,10 +28,13 @@ export function RecipeCard({ recipe, onClick, index }) {
         >
             {/* Background Layer */}
             {showFallback ? (
-                // Fallback Zinc Gradient with Logo
-                <div className="absolute inset-0 z-[-1] flex flex-col items-center justify-center text-zinc-700 bg-gradient-to-br from-zinc-900 to-zinc-950">
-                    <Utensils size={24} />
-                    <span className="mt-2 text-[0.6rem] font-bold tracking-[0.2em] uppercase">Foodies</span>
+                // Playfair Fallback Zinc Gradient with Logo
+                <div className="absolute inset-0 z-[-1] flex flex-col items-center justify-center text-zinc-300 bg-gradient-to-br from-zinc-900 to-zinc-950 px-4 text-center">
+                    <h3 className="font-serif italic text-2xl mb-2 text-zinc-100">{title}</h3>
+                    <div className="flex items-center gap-1 opacity-50">
+                        <Utensils size={14} />
+                        <span className="text-[0.6rem] font-bold tracking-[0.2em] uppercase">Foodies</span>
+                    </div>
                 </div>
             ) : (
                 // Image Layer
@@ -40,8 +43,6 @@ export function RecipeCard({ recipe, onClick, index }) {
                         src={image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800'}
                         alt={title}
                         onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800';
                             setImageError(true);
                         }}
                         className="absolute inset-0 w-full h-full object-cover z-[-2] transition-transform duration-500 ease-[var(--spring-easing)]"

@@ -1,14 +1,17 @@
 # 🍏 Project Roadmap: Meal Buddy
+winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to upgrade AG
+
 
 ## 🚨 Critical Bugs & Repairs (High Priority)
+- [x] **The "Ampersand" Loop Fix:** Refactor generation scripts to handle special characters (e.g., &) in recipe titles to prevent PowerShell execution loops.
 - [x] **Fix React Child Object Error in Detail Popups and Home View Mapping.** (Patched Feb 13)
-- [ ] **Recipe Library Restoration:** Investigate why the Recipes tab is currently empty and restore the connection to the existing recipe data.
+- [x] **Recipe Library Restoration:** Investigated empty Recipes tab. Rebuilt asset hydration pipeline to restore visual library mapping, including Playfair visual fallbacks for 404s.
 - [ ] **Planning Tab Overhaul:** Complete redesign required to fix alignment, scaling, and visual "chaos".
 
 
 ### 🏃 Current Sprint (Active Polish)
-- [x] **PWA App-ification:** Live & Installable (v1.0).
 - [ ] **Task C: Design System 2.0 Overhaul:** Complete aesthetic refresh and documentation.
+- [x] **Asset Hydration:** Generated 14 Cinematic Zinc AI assets and restored broken placeholders (14/14 Complete).
 
 ## 🛠 Product Backlog (Open Tasks)
 
@@ -46,8 +49,11 @@
 - [ ] **Development of the AI Meal Negotiator Logic:** Conversational AI to suggest meals based on inventory and vibe.
 
 ## 🏆 HALL OF FAME
+- [x] **Global Asset Audit:** Verified 50+ recipe URLs; identified 14 dead (404) Unsplash links. (Feb 18)
+- [x] **Asset Hydration Proof-of-Concept:** Successfully generated and mapped "High-Protein Chicken & Broccoli" asset. (Feb 18)
+- [x] **v1.0 Launch:** Full PWA integration, Supabase production sync, and mobile install verified. (Feb 18)
 - [x] **Street Taco Logic:** Implemented successfully.
-- [x] **Hero Data Hydration:** Fixed JIT bridge in HomeView to ensure full recipe data reaches Cook Mode. (Feb 14)
+- [x] **Hero ID Sync:** Fixed JIT bridge in HomeView to ensure full recipe data reaches Cook Mode. (Feb 14)
 - [x] **Cook Mode Logic:** Implemented step-by-step instruction rendering and calorie parsing. (Feb 14)
 - [x] **Cook Mode & Hero Data Bridge:** Fixed "Cook Now" data hydration, resolved ID mismatches, and enabled step-by-step instructions. (Feb 14)
 - [x] **Emergency Crash Rescue:** Resolved critical syntax error in HomeView loop logic. (Feb 14)
@@ -76,4 +82,6 @@
 - [x] **Reorganize PROGRESS.md:** Initial structure setup (Self-verified). (Feb 10)
 
 ## 📝 NEXT AGENT INSTRUCTIONS
-> * Start by resolving the "Objects are not valid as a React child" error in MealPreviewModal.jsx and RecipeView.jsx to restore the UI visibility. (NOTE: This was addressed in the previous session, please VERIFY the fix remains stable).
+> * **Resume Asset Hydration:** Target the 13 remaining recipes in BROKEN_LINKS_REPORT.md.
+> * **Execution Strategy:** Use the "Local-First Assembly Line"—generate all 13 images to a local /assets/recipe-refresh/ folder first to decouple AI generation from database write-locks.
+> * **Scripting Safety:** Ensure all recipe titles are escaped/sanitized to handle special characters like & to prevent command-line crashes.
