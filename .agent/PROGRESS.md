@@ -12,7 +12,7 @@
 
 
 ### 🏃 Current Sprint (The Data Seed)
-- [🟡] **Task D: Epicurious Local Ingestion:** Building `scripts/local_import.ts` (Local-Only mode).
+- [x] **Task D: Epicurious Local Ingestion** — COMPLETE. Full 4-stage pipeline built and run. 400 recipes in Supabase.
 - [x] **Task E: Planning HQ Redesign:** Complete visual overhaul (LOCKED).
 - [ ] **Task F: Auth Infrastructure:** (Next Up) Supabase Auth integration.
 
@@ -52,6 +52,10 @@
 - [ ] **Development of the AI Meal Negotiator Logic:** Conversational AI to suggest meals based on inventory and vibe.
 
 ## 🏆 HALL OF FAME
+- [x] **Recipe Import Pipeline — Full 4-Stage Build:** 20,130 raw Epicurious recipes → 400 AI-curated family recipes in Supabase. Stages: structural validation (15,600 passed), rules filter + dedup (2,000 candidates), Gemini AI scoring (400 selected), Supabase import (400 inserted, 0 failed). (Feb 26)
+- [x] **Supabase Schema Redesign:** Dropped legacy dummy-data schema. Rebuilt recipes table with correct types — integers as integers, TEXT[] arrays, JSONB ingredients. Aligned with DATA_MODELS.md. (Feb 26)
+- [x] **Gemini SDK Migration:** Switched from raw fetch to @google/genai SDK with structured output (responseMimeType + responseSchema). Eliminated all JSON parsing failures. (Feb 26)
+- [x] **Model Switch — Gemini 3 Flash → 2.5 Flash:** Removed 12s thinking overhead per request. Stage 3 runtime dropped from ~3.5 hours to ~30 minutes. (Feb 26)
 - [x] **The "Ampersand" Loop Fix:** Refactor generation scripts to handle special characters (e.g., &) in recipe titles to prevent PowerShell execution loops. (Feb 22)
 - [x] **Fix React Child Object Error in Detail Popups and Home View Mapping.** (Feb 22)
 - [x] **Recipe Library Restoration:** Investigated empty Recipes tab. Rebuilt asset hydration pipeline to restore visual library mapping, including Playfair visual fallbacks for 404s. (Feb 22)
