@@ -39,3 +39,404 @@
 
 ### Excluded Recipe Titles (for dedup on future imports)
 — Auto-generate from stage3-final.json titles —
+
+- Grilled Chicken Tacos
+- White Chicken Chili
+- Cherry and Coconut Granola with Yogurt
+- Quick Sweet Potato, Mushroom, and Black Bean Burrito
+- Burgers with Mozzarella and Spinach-Arugula Pesto
+- Porchetta-Style Roast Turkey Breast
+- Honey-Mustard Chicken-Sausage Kebabs
+- Pasta With 15-Minute Burst Cherry Tomato Sauce
+- Parmesan Chicken Cutlets
+- Pan-Roasted Chicken with Carrots and Almonds
+- Crispy Salt-and-Vinegar Potatoes
+- Big Breakfast Burrito
+- Steak Tacos with Cilantro-Radish Salsa
+- Sweet Potato Wedges with Lime Mayo
+- Sheet-Pan Cumin Chicken Thighs With Squash, Fennel, and Grapes
+- Roasted Chicken Thighs with White Beans, Lemon, and Capers
+- Barbecued Cheddar Burgers
+- Beef and Broccoli Stir-Fry
+- Easy-Does-It Granola
+- Angel-Hair Pasta with Fresh Tomato Sauce
+- Couscous with Dried Apricots and Pistachios
+- Chicken Gyros with Yogurt-Dill Sauce
+- Tomatoes Stuffed with Fresh Mozzarella and Basil
+- Cod en Cocotte with Tomatoes, Olives & Chorizo
+- Layered Nacho Salad
+- Rigatoni with Cheese and Italian Sausage
+- Chicken and Cashew Stir-Fry
+- Parmesan Chicken with Mixed Baby Greens
+- Grilled Corn on the Cob with Garlic Butter, Fresh Lime, and Queso Fresco
+- Black and Orange Halloween Pasta
+- Herb-Roasted Sausages and Butternut Squash
+- Zucchini, Corn, and Basil Fusilli with Bacon
+- Sweet-Onion Quesadillas
+- Orzo with Tomatoes, Feta, and Green Onions
+- Udon Noodles with Shrimp, Snow Peas, and Peanuts
+- Pepper Chicken with Hummus
+- Fettucine with Chicken and Bell Pepper Cream Sauce
+- Penne with Pancetta and Tomato-Cream Sauce
+- Beef and Snow Peas with Panfried Noodles
+- Orecchiette with Sausage and Red Pepper Sauce
+- Mashed Potatoes with Prosciutto and Parmesan Cheese
+- Greens and Grains Scramble
+- Egg Noodles with Brown Butter and Feta
+- Golden Pan-Fried Fish
+- Dominican Chimichurri Burgers
+- Cavatappi with Tomatoes, Arugula, and Ricotta
+- Potato-and-Cheese Purée
+- Diner-Style French Toast
+- Roasted Potato Wedges with Cilantro-Lime Mayonnaise
+- Toasted Walnut Buttermilk Pancakes with Cranberry Maple Syrup
+- Pasta With Swordfish and Cherry Tomato Sauce
+- Macaroni and Cheese
+- Baked Oatmeal
+- Vanilla-Scented Granola
+- Quick Baked Chicken Parmesan
+- Slow-Cooker Cuban Pulled-Pork Panini Sandwiches
+- Chicken, Rice, and Mango in Lettuce Wraps
+- Sour Cream Mashed Potatoes
+- Pita Toasts
+- Greek Salad Pita Sandwiches
+- Israeli Couscous Tabbouleh
+- French Bread Pizzas With Ricotta, Roasted Tomatoes, and Pesto
+- Lemon and Parsley Skillet-Roasted Fingerling Potatoes
+- Microwave Egg Sandwich With Cheddar and Avocado
+- Honey-Roasted Carrots
+- Lemony Chicken and Orzo Soup
+- Spiced Coconut Chicken and Rice
+- Quick Pork Ramen With Carrots, Zucchini, and Bok Choy
+- Chicken Parmesan
+- Trenton Tomato Pie Pizza
+- Sausage and Pepper Bake
+- Chorizo Hash Browns
+- Turkey Meat Loaf with Sun-Dried Tomatoes
+- Italian Sausage and Tortellini Soup
+- Pork Tenderloin with Balsamic-Cranberry Sauce
+- Melissa Hotek's Granola
+- Lemon-Tarragon Chicken Salad Sandwiches
+- Mashed Potatoes with Lemon and Chives
+- Roasted Potatoes with Sour Cream and Bacon
+- Ham and Bell Pepper Frittata
+- Warm Potato Salad with Watercress
+- Tortelloni with Mushroom-Sage Sauce
+- Yukon Gold Potato and Chive Soup
+- Coconut Rice
+- Croissant Egg Sandwiches
+- Garlic Mashed Potatoes with Chives
+- Tarragon Shallot Egg Salad Sandwiches
+- Spiced Pork Tenderloin
+- Garlic Mashed Potatoes
+- Angel Hair Pasta with Broccoli and Herb Butter
+- Ginger-Soy Grilled Steak
+- Grilled Lemon-Oregano Chicken Drumsticks
+- Chicken with Sun-Dried Tomato Cream Sauce
+- Lebanese Garlic-Marinated Chicken on the Grill
+- Chicken with Creamy Mushroom Sauce
+- Grilled Cheddar Cheese and Ham Sandwiches
+- Garden Vegetable Enchiladas
+- Tortilla Pie
+- Red Beans and Rice
+- Roasted Potatoes with Garlic, Lemon, and Oregano
+- Chipotle-Black Bean Burritos
+- Chicken Burritos with Poblano Chiles and Corn
+- Herbed Hamburgers with Arugula
+- Gemelli with Zucchini, Tomatoes, and Bacon
+- Spaghetti Squash with Sausage Filling
+- Chicken Sandwiches with Chive Butter
+- Whole-Wheat Pancakes with Blackberry Syrup
+- Basil Pesto
+- Penne with Almond Pesto and Green Beans
+- Poached Fish with Spinach in Chili-Tomato Sauce
+- Grilled Steak with Parsley-Parmesan Salad
+- Sesame-Crusted Salmon
+- Tequila and Lime Chicken Tacos
+- Peppers with Almond-Garlic Bread Crumbs
+- Garden Greens and Goat Cheese Pasta
+- Broiled Salmon With Scallions and Sesame
+- Lime-Spiked Seafood with Roasted Sweet Potatoes
+- Lemon-Roasted Salmon With Escarole, Asparagus, and Potatoes
+- Grilled Garlic-Marinated Baby Zucchini
+- Cauliflower With Pumpkin Seeds, Brown Butter, and Lime
+- Corn and Zucchini Salad with Feta
+- Vietnamese-Style Pork Chops With Fresh Herb Salad
+- Roasted Winter Vegetables
+- Avocado Salad with Bell Pepper and Tomatoes
+- Apple Bok Choy Salad
+- Salt-As-You-Go Pasta
+- Tagliatelle with Asparagus and Parmesan Fonduta
+- Edamame Fried Rice
+- Pan-Roasted Chicken with Harissa Chickpeas
+- Puffed Rice and Coconut Crunchies
+- Baked Parsnip Fries with Rosemary
+- Edamame Guacamole
+- Skillet Roast Chicken with Fennel, Parsnips, and Scallions
+- Lime Cilantro Sweet Potatoes
+- Black Bean Soup with Cumin and Jalapeño
+- Steak Salad Murphy
+- Herbed Balsamic Chicken with Blue Cheese
+- Rainbow Slaw
+- Thai Coconut, Broccoli and Coriander Soup
+- Lemon Pasta Salad with Tomatoes and Feta
+- Black Bean and Vegetable Wraps
+- Roasted Pacific Cod with Spring Vegetables and Mint
+- Pasta with Spring Vegetables and Prosciutto
+- Broiled Salmon with Onion, Tomato and Lemon
+- Crème Fraîche-Roasted Salmon
+- Goddess Guacamole
+- Broiled Chicken with Mango, Ginger and Cilantro
+- Pan-Baked Lemon Sole with Spinach, Olives, and Tomatoes
+- Couscous Salad with Corn and Red Bell Pepper
+- Five-Spice Pork and Green Bean Stir-Fry
+- Spinach Shakshuka
+- Super Slaw
+- Asian Turkey Lettuce Wraps
+- Grilled Pita with Greek Salad
+- Pan-Grilled Salmon on Toast with Scallion Mayonnaise
+- Spicy Pork and Cashew Stir-Fry with Snow Peas and Red Pepper
+- Minted Lamb Burgers
+- Eggplant, Red Pepper, and Fontina Panini with Spinach Salad
+- Creamy Fettuccine with Prosciutto, Asparagus, Mushrooms, and Peas
+- Salmon with Breadcrumb, Olive and Sun-Dried Tomato Crust
+- Mustard-Roasted Salmon with Lingonberry Sauce
+- Lemon Gnocchi with Spinach and Peas
+- Orecchiette with Garbanzos, Tomatoes, Feta, and Mint
+- Lentil Stew with Spinach and Potatoes
+- Fettuccine With Sausage and Kale
+- Pasta with Tomatoes and Goat Cheese
+- Pappardelle in Lemon Cream Sauce with Asparagus and Smoked Salmon
+- Yogurt with Granola, Tropical Fruit, and Crystallized Ginger
+- Garlicky Eggplant, Tomato and Basil Bobolis
+- Pasta, Sausage and Bean Soup
+- Creamed Corn with Bacon
+- Shrimp With Mustard-Lime Dipping Sauce
+- Rosemary Pork Chops
+- Hamburger Soup
+- Chunky Red Chili
+- Champ
+- Ribollita with Italian Sausage
+- Chipotle Chicken Tacos with Potatoes and Guacamole
+- Curry-and-Coconut-Milk-Grilled Pork Skewers
+- Egg-in-a-Hole Sandwich with Bacon and Cheddar
+- Spiced Cranberry-Pear Sundaes
+- Salt-Roasted Chicken
+- Chicken & Squash Cacciatore, Mushrooms, Tomatoes, Olives, Bread
+- Herbed Faux-tisserie Chicken and Potatoes
+- Grilled Pizza with Yellow Squash, Mozzarella, and Lemon Thyme
+- Pizza 6: Pan-fried Hawaiian Pizza
+- Zucchini, Bacon, and Gruyère Quiche
+- Creamy Southwestern Potato Salad
+- Beef Stew in the Crock Pot
+- Mashed Potatoes with Sage and White Cheddar Cheese
+- Yangzhou Fried Rice
+- Baked Yams with Ginger-Molasses Butter
+- Blade Steaks with Mushrooms
+- Grilled Ham and Swiss Sandwiches
+- Roasted Garlic Mashed Potatoes
+- Cranberry-Cheese Danish
+- Dutch Farmer's Cheese Soup
+- Sour-Cream Pancakes with Sour-Cream Maple Syrup
+- Cheddar Garlic Stuffed Potatoes
+- Chicken Roasted with Onions and Soy Sauce
+- Grilled Marinated Sirloin Flap Steaks
+- Chinese Chicken Noodle Soup with Sesame and Green Onions
+- Mushroom-Herb Meat Loaf Eich
+- Roasted Vegetable Meatloaf with Mustard Mashed Potatoes
+- Golden Fish Sticks
+- Lo Mein with Beef
+- Turkey Burritos with Salsa and Cilantro
+- Penne in Cream Sauce with Sausage
+- Apple Turnovers
+- Cheddar, Turkey and Cranberry on Sourdough
+- Meatballs: The Spuntino Way
+- New Chicken Parmesan
+- Fried Rice with Bacon, Scallions, and Water Chestnuts
+- Feta Burgers with Grilled Red Onions
+- Big Apple Pancake
+- Creamy Chia Coconut Ginger-Carrot Soup
+- Beans with Kale and Portuguese Sausage
+- Chile-Crusted Tuna Tacos
+- Chilled Corn Soup with Lobster Salad
+- Strawberry, Almond, and Pea Salad
+- Braised Rotisserie Chicken With Bacon, Tomatoes, and Kale
+- Grilled Moroccan Spiced Pork Tenderloin
+- Grilled Fish with Orange-Fennel Salsa
+- Turkey Shawarma with Tomato Relish and Tahini Sauce
+- Agnolotti with Sweet Peas and Goat Cheese
+- Ginger-Marinated Hanger Steak
+- Curried Ground Shrimp and Noodles
+- Spelt Spaghetti, Vine Tomatoes & Baked Ricotta
+- Pan Bagnat
+- Grilled Shrimp and Vegetables with Pearl Couscous
+- Spiced Middle Eastern Lamb Patties with Pita and Yogurt
+- Frittata with Fennel-Spiced Pork and Asparagus
+- Linguine with Tomatoes, Olives, Feta, and Parsley
+- Mixed Beans with Peanuts, Ginger, and Lime
+- Roasted Carrots and Parsnips with Citrus Butter
+- Moroccan Vegetable Salad
+- Cowboy Frittata
+- Kabocha Squash and Pork Stir-Fry
+- Lemon Caesar Salad
+- Cuban Avocado, Watercress, and Pineapple Salad (Ensalada de Aguacate, Berro, y Piña)
+- Chicken Cacciatore with Harissa, Bacon, and Rosemary
+- Grilled Chicken and Hot Cherry Pepper Panino
+- Cod with Chorizo and Breadcrumbs
+- Lamb Sausage Patties with Fresh Mint, Feta, and Garlic
+- Roasted Pork Tenderloin with Apples
+- Brown Rice and Beans with Ginger Chile Salsa
+- Roasted Corn with Manchego & Lime
+- Grilled Oregano Chicken
+- Tuna Salad with Olives, Orange and Bell Pepper
+- Grilled Asian Flank Steak with Sweet Slaw
+- Seared Sweet Potatoes with Sausage and Radicchio
+- Grilled Fish Tacos
+- Muffuletta Hot Dogs
+- Roasted Apricot Chicken with Mint and Sage Butternut Squash
+- Crispy Salt and Pepper Chicken with Caramelized Fennel and Shallots
+- Tofu Yum-Yum Rice Bowl
+- Mango Salad with Grilled Shrimp
+- Lamb Chops and Potatoes with Olives, Tomatoes and Feta Cheese
+- Sweet-Potato Soup with Nutmeg and Maple Syrup
+- Yucatan-Style Chicken, Lime, and Orzo Soup
+- Black Bean and Rice Salad
+- Sweet-Potato Hash with Bacon
+- Grilled Salmon with Tomato, Cucumber and Caper Salsa
+- Lentil and Rice Salad
+- Sunday Frittata with Frizzled Leeks
+- Potato Salad with Garlic Mayonnaise and Chives
+- Mashed Potatoes with Celery Root and Mascarpone
+- Mustard Mashed Potatoes
+- Slow-Roasted Romano Beans
+- Asparagus with Wasabi-Mayonnaise Dip
+- Greek-Italian Chopped Salad
+- Teriyaki Pork Chops
+- Indian Spiced Cauliflower and Potatoes
+- Mexican Lime Soup
+- Carrot Soup with Thyme and Fennel
+- Creamy Corn Soup with Red Bell Pepper
+- Dilled Seafood en Papillote
+- Asian-Style Flank Steak
+- Farfalle with Tomatoes and Feta Cheese
+- Mashed Potatoes with Crimini Mushrooms
+- Bulgur, Pine Nut, and Red Pepper Pilaf
+- Mediterranean Chicken
+- Spicy Beef with Peppers
+- Penne, Spinach, Asparagus and Cashew Salad
+- Summer Garden Tortelloni
+- Pasta with Roasted Vegetables, Tomatoes, and Basil
+- Salmon with Sesame and Orange-Ginger Relish
+- Chicken, Green Bean, Corn, and Farro Salad with Goat Cheese
+- Grilled Shrimp Greek Salad
+- Salmon Teriyaki with Carrots and Onions
+- Salmon Paillards with Lettuce and Pea Salad
+- Roasted Yellow Pepper Bruschetta
+- Orzo Salad with Feta, Olives and Bell Peppers
+- Turkey Cutlets with Cilantro-Almond Sauce
+- Peanut Soup with Rice and Scallions
+- Sausage and Egg Casserole with Sun-Dried Tomatoes and Mozzarella
+- Italian Sausage with Fennel, Peppers, and Onions
+- Sweet Potato Soup with Fried Pancetta and Rosemary Croutons
+- Mustard Aioli-Grilled Potatoes with Fines Herbes
+- Roasted Sweet Potatoes and Onions with Rosemary and Parmesan
+- Chipotle Turkey Cutlets with Charred Corn Salsa
+- Trout with Cucumber and Sour Cream
+- Chicken with Olives and Feta Cheese
+- Grilled Salmon with Lime Butter Sauce
+- Butternut Squash and Sage Orzo
+- Salmon "Bulgogi" with Bok Choy and Mushrooms
+- Crunchy Wasabi-Crusted Fish with Red-Cabbage Slaw
+- Grilled Asian Pork Chops and Baby Bok Choy
+- Seafood Stew
+- Steak and Boursin Sandwiches
+- Grilled Strip Steaks with Olive-Oregano Relish
+- Salmon Fillets in Dill-Peperoncini Cream Sauce
+- Baked Mustard-Crusted Salmon With Asparagus and Tarragon
+- Asian Bow-Tie Pasta Salad with Shrimp and Vegetables
+- Curried Chicken Salad
+- Lemony Chicken Milanese with Arugula Salad
+- Soft Polenta with Leeks
+- Crustless Quiche
+- Strozzapreti with Mushrooms and Ricotta
+- Stir-Fried Noodles with Singapore Lamb Curry
+- Creamy Tomato Mint Soup
+- Mashed Sweet Potato with Citrus
+- Curried Lamb Burgers with Grilled Vegetables and Mint Raita
+- Sauteed Chicken with Tomatoes, Olives, and Feta
+- Lamb Burgers in Pita with Yogurt Sauce
+- Cheeseburgers with Charred Green Chiles and Onions
+- Lemon-Oregano Chicken
+- Cheese Tortellini Soup with Cannellini, Kielbasa, and Kale
+- Chicken with Tarragon-Caper Sauce with Mixed Greens
+- Springtime Pasta Primavera
+- Spiced Lamb Burger
+- Pasta with Shrimp and Artichokes
+- Creamy Garlic Pasta with Mushrooms and Prosciutto
+- Green Curry Chicken
+- Torta de Calabacitas
+- Creamy Pappardelle with Leeks and Bacon
+- Roast Chicken Breasts with Garbanzo Beans, Tomatoes, and Paprika
+- Asparagus Lemon Pasta
+- Roast Beef with Rosemary Mayonnaise
+- Sea Bass with Coconut-Curry Sauce
+- Curried Chicken-Coconut Soup
+- Baked Halibut with Orzo, Spinach, and Cherry Tomatoes
+- Asparagus, Ham, and Cheese Melts
+- Salted Coconut Granola
+- Spaghetti with Parsley Pesto
+- Fusilli with Chère, Tomatoes and Basil
+- Hummus & Curried Cauliflower Tartine
+- Croque-Monsieur
+- Spiced Marinated Lamb Chops with Garlicky Yogurt
+- Chile-and-Olive-Oil-Fried Egg with Avocado and Sprouts
+- Corn on the Cob with Shallot-Thyme Butter
+- Salted Caramel Ice Cream
+- Herby Corn Salad
+- Kung Pao Brussels Sprouts
+- Mahi-Mahi in Tomato Olive Sauce
+- Corn Salad With Hazelnuts, Pecorino, and Mint
+- Grilled Rosemary Chicken
+- Buttermilk Pancakes with Maple Syrup Apples
+- Avocado-Mango Salsa
+- Sausage, Fontina, and Bell Pepper Strata
+- Egg, Kale, and Tomato Breakfast Wraps with Hummus
+- Watermelon Gazpacho with Feta Crema
+- Pancetta Roast Chicken with Walnut Stuffing
+- Porterhouse Steaks with Arugula and Parmesan Cheese
+- Quinoa with Mango and Curried Yogurt
+- Trio of Salads
+- Scalloped Potatoes
+- Grilled Corn with Roasted Garlic Butter
+- Lemon-Tahini Sauce
+- Potato and Parmesan Gratin
+- Summer Rice Salad with Feta, Citrus, and Mint
+- Potato Gratin with Bacon and Thyme
+- Shrimp with Tomatoes, Fennel and Oregano
+- Tomato-Watermelon Salad with Feta and Toasted Almonds
+- Chopped Salad with Feta, Olives, and Pita Croutons
+- Chili Lime Shrimp with Avocado and Coriander
+- Joe's Roasted Garlic Mashed Potatoes
+- Sauteed Shrimp with Lemon-Garlic Butter
+- Jeweled Rice with Dried Fruit
+- Mexican Meatball Soup with Rice and Cilantro
+- Sausage and Potato Breakfast Casserole
+- Quinoa Salad with Kale, Pine Nuts, and Parmesan
+- Kale and White Bean Stew
+- Minted Mediterranean Couscous Salad
+- Chicken Piccata
+- Baked Beans with Bacon Breadcrumbs
+- Soft Beef Tacos with Salsa
+- Fried-Egg Caesar with Sun-Dried Tomatoes and Prosciutto Breadsticks
+- Hungarian-Style Beef with Bell Peppers and Caraway
+- Turkey Hash
+- Baked French Toast with Cardamom and Marmalade
+- Curried Peanut Soup
+- Tomatoey Spiced Chickpeas
+- Potatoes and Sausage with Parsley
+- Tacos al Pastor
+- Carroty Mac and Cheese
+- Chicken Enchiladas
+- Grilled Pizza with Tomatoes, Corn and Cheese
+- Ricotta and Spinach Tortelloni in Tomato Sauce
+- Chicory Salad with Bacon, Crispy Potatoes, and Fried Egg
