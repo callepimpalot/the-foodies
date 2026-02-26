@@ -1,0 +1,25 @@
+STAGE 1 — STRUCTURAL VALIDATION REPORT
+=======================================
+Total recipes processed : 20130
+Passed                  : 15600
+Failed                  : 4530
+Pass rate               : 77.50%
+
+FAILURE BREAKDOWN (by reason category):
+  [ 4150]  directions has fewer than 2 items (found N)
+  [  340]  ingredients has fewer than 3 items (found N)
+  [   19]  title is missing, null, or empty
+  [   11]  direction at index N is empty or shorter than 10 characters
+  [   10]  rating is missing, null, or not a number
+
+SAMPLE FAILURES (first 10):
+  - "Spinach Noodle Casserole": directions has fewer than 2 items (found 1)
+  - "Spicy-Sweet Kumquats": directions has fewer than 2 items (found 1)
+  - "Yams Braised with Cream, Rosemary and Nutmeg": directions has fewer than 2 items (found 1)
+  - "Beef Tenderloin with Garlic and Brandy": directions has fewer than 2 items (found 1)
+  - ""Fried" Chicken": directions has fewer than 2 items (found 1)
+  - "Garlic Baguette Crumbs": directions has fewer than 2 items (found 1)
+  - "Dried Pear Crisps": directions has fewer than 2 items (found 1)
+  - "Green Bean, Red Onion, and Roast Potato Salad with Rosemary Vinaigrette": directions has fewer than 2 items (found 1)
+  - "Deviled Ham": directions has fewer than 2 items (found 1)
+  - "Fontina Mac with Squash and Sage": directions has fewer than 2 items (found 1)

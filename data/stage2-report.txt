@@ -1,0 +1,51 @@
+STAGE 2 — QUALITY & RELEVANCE FILTER REPORT (v2)
+=================================================
+Total input (from stage1-passed)   : 15600
+Passed filters                     : 6604
+Rejected                           : 8996
+Duplicates removed                 : 490
+After dedup                        : 6114
+Trimmed by top-2000 cap            : 4114
+Final candidate pool               : 2000
+
+REJECTION BREAKDOWN (by rule, first-fail):
+  [ 3897]  excluded category tag
+  [ 2782]  rating < 3.5
+  [ 1183]  calories < 150 (non-null)
+  [  627]  excluded title keyword
+  [  502]  ingredients > 18
+  [    5]  date year < 2000
+
+TOP 20 PASSING RECIPES (rating ↓ → meal-cal range ↓ → calories ↑):
+   1. [5.0 ★ | 301 kcal] Red Potatoes with Olives, Feta and Mint
+   2. [5.0 ★ | 303 kcal] Dried Fruit Stuffing
+   3. [5.0 ★ | 303 kcal] Grilled Chicken Tacos
+   4. [5.0 ★ | 304 kcal] Frisée and Endive Salad with Warm Brussels Sprouts and Toasted Pecans
+   5. [5.0 ★ | 304 kcal] Creamy Chia Coconut Ginger-Carrot Soup
+   6. [5.0 ★ | 305 kcal] Sweet-and-Spicy Mixed Nuts
+   7. [5.0 ★ | 310 kcal] Spiced Lamb Hand Pies
+   8. [5.0 ★ | 311 kcal] Baked Breaded Cauliflower
+   9. [5.0 ★ | 311 kcal] Potato Latkes
+  10. [5.0 ★ | 311 kcal] Cranberry-Tangerine Scones
+  11. [5.0 ★ | 312 kcal] Warm Berry Preserves
+  12. [5.0 ★ | 313 kcal] Chicory, Fried Ham, and Pear Salad
+  13. [5.0 ★ | 315 kcal] Corn and Tasso Maque Choux
+  14. [5.0 ★ | 316 kcal] Beans with Kale and Portuguese Sausage
+  15. [5.0 ★ | 317 kcal] Grape and Walnut Sweet Focaccia
+  16. [5.0 ★ | 318 kcal] Michael Romano's Secret-Ingredient Soup
+  17. [5.0 ★ | 319 kcal] Carrot and Beet Slaw with Pistachios and Raisins
+  18. [5.0 ★ | 320 kcal] Sweet Potato Bread with Caramel and Aleppo-Spiced Pecans
+  19. [5.0 ★ | 320 kcal] Poached Fish with Spinach in Chili-Tomato Sauce
+  20. [5.0 ★ | 321 kcal] Chile-Crusted Tuna Tacos
+
+BOTTOM 10 PASSING RECIPES (lowest ranked that still made the cut):
+  1991. [4.4 ★ | 649 kcal] Sliced Steak with Roasted-Corn Salsa
+  1992. [4.4 ★ | 649 kcal] Hoppin' John Risotto
+  1993. [4.4 ★ | 650 kcal] Asparagus Risotto
+  1994. [4.4 ★ | 650 kcal] Rosemary-Roasted Buffalo Tenderloin with Gorgonzola Butter
+  1995. [4.4 ★ | 651 kcal] Gruyère and Parmesan Cheese Soufflé
+  1996. [4.4 ★ | 651 kcal] Tortillas in Black Bean Sauce
+  1997. [4.4 ★ | 651 kcal] Iceberg with Tomatoes, Blue Cheese, and Bacon
+  1998. [4.4 ★ | 651 kcal] Lemon-Rhubarb Chicken
+  1999. [4.4 ★ | 654 kcal] Sauté of Fresh Fava Beans, Onions, and Fennel
+  2000. [4.4 ★ | 655 kcal] Pear and Vanilla Upside-Down Pancake

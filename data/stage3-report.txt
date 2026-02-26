@@ -1,0 +1,25 @@
+STAGE 3 — GEMINI AI SCORING REPORT
+====================================
+Total candidates in              : 2000
+Total batches                    : 100
+Batches skipped (errors)         : 100
+Recipes scored successfully      : 0 (passed ≥3.8 threshold)
+Final pool (top 400)             : 0
+Total elapsed time               : 2153.9s
+
+SCORE DISTRIBUTION (of all that passed threshold):
+  ≥ 4.5  (excellent)  : 0
+  4.0–4.49 (strong)   : 0
+  3.8–3.99 (borderline): 0
+
+AVERAGE DIMENSION SCORES (all scored recipes):
+  Practicality  : N/A / 5
+  Modernity     : N/A / 5
+  Family        : N/A / 5
+  Combined      : N/A / 5
+
+TOP 20 RECIPES BY COMBINED SCORE:
+  (CS=combined | P=practicality M=modernity F=family)
+  (none)
+
+→ 0 recipes written to stage3-final.json for Supabase import.
