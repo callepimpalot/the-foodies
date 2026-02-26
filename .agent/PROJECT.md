@@ -1,5 +1,5 @@
 🚀 PROJECT: The Foodies / Meal Buddy (Master Record)
-Last updated: Feb 22, 2026 — Major planning and infrastructure session
+Last updated: Feb 26, 2026 — Recipe import pipeline complete, 400 recipes in Supabase
 
 🏛️ Manifest & Vision
 Vision: The premier culinary orchestrator for modern life.
@@ -37,6 +37,11 @@ Post-Cook Share Card — social share asset, Strava for Food
 Creator Subscriptions UI
 Recipe Publishing — users publish forked recipes
 AI Meal Negotiator — conversational meal suggestion based on inventory
+
+
+🌱 Data
+Recipe database: 400 family recipes from Epicurious pipeline — live in Supabase (Feb 26, 2026)
+Recipe import history and exclusion list: see data/import-manifest.md
 
 
 🚨 Critical Bugs & Repairs
