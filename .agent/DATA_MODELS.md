@@ -332,6 +332,13 @@ These apply across all models:
 
 ---
 
+## IMPORT STANDARDS (Local-Only Mode)
+- **Primary Gate:** `rating >= 4.0` AND `calories != null` AND `protein != null`.
+- **Exclusion List:** Auto-reject if `categories` includes "Drink", "Cocktail", "Condiment", "Sauce", or "Dessert".
+- **Sanitization:** Apply Regex to fix `&amp;` and `&quot;`. Normalize `½`, `¼`, `¾` to decimal strings.
+
+---
+
 ## 6. CHANGELOG
 
 | Date | Change |

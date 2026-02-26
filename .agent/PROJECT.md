@@ -1,72 +1,74 @@
-# 🚀 PROJECT: The Foodies (Master Record)
+🚀 PROJECT: The Foodies / Meal Buddy (Master Record)
+Last updated: Feb 22, 2026 — Major planning and infrastructure session
 
-## 🏛️ Manifest & Vision
-**Vision:** The premier culinary orchestrator for modern life.  
-**Core Value:** Transforming food management through high-fidelity, frictionless orchestration.  
-**Strategic Pillars:**
-1.  **AI Kitchen Intelligence:** "The Dynamic Assistant" (Meal Negotiator, Universal Recipe Import with Multi-image reconstruction).
-2.  **Strava for Food:** "Culinary Proof of Work" (Performance Overlays, Family Kudos, Streaks).
-3.  **Creator Substack Model:** Subscription Collections & Grocery Affiliate Revenue.
-4.  **Physical Ecosystem:** Interactive E-Cookbooks & Print-on-Demand (POD).
+🏛️ Manifest & Vision
+Vision: The premier culinary orchestrator for modern life.
+Core Value: Transforming food management through high-fidelity, frictionless orchestration. An app people look forward to opening — not a utility, a product.
+Soul: A digital culinary magazine that happens to be interactive. Every screen should feel like flipping through a premium coffee-table cookbook in a dark room.
+Strategic Pillars:
 
-## 📂 Agent Log (Status)
-**Current Phase:** Transitioning to Hierarchical Orchestration.  
-**Active Focus:** Design System 2.0 & Recipe Library Restoration.  
-**Status:** v1.0 Live & Installable. Awaiting Phase 2: Visual Polish.
+AI Kitchen Intelligence: Meal Negotiator, Recipe Import from photos, AI Recipe Customisation (fork and personalise any recipe)
+Strava for Food: "Culinary Proof of Work" — Performance Overlays, Family Kudos, Streaks
+Creator Substack Model: Subscription Collections & Grocery Affiliate Revenue
+Physical Ecosystem: Interactive E-Cookbooks & Print-on-Demand (POD)
 
----
 
-## 🍏 Roadmap & Backlog
+📂 Agent Log (Status)
+Current Phase: Phase 2 — Feature Build Sprint
+Active Focus: Bulk Recipe Import → Auth → Profile & Family → Planning Overhaul
+Status: v1.1 — Planning HQ Rebuilt. Pivoting Recipe Sourcing for TOS Compliance.
+Agent System: CTO Gem v3.1 (file-driven, dynamic squad). AG squad: @engineer + @creator.
+Source of Truth Files: DESIGN_SYSTEM.md v2.0 · DATA_MODELS.md v1.0 · FEATURES.md v1.0 · AGENTS.md v2.0
 
-### 🏃 Current Sprint (Active Polish)
-- [ ] **Task C: Design System 2.0 Overhaul:** Complete aesthetic refresh and documentation.
+🗂️ Feature Registry
+All features have detailed build briefs in /.agent/features/
+Reference FEATURES.md for the full index and recommended build order.
+🚨 Infrastructure (Build First)
+FeatureBriefPriorityBulk Recipe Database ImportFEATURE_bulk_recipe_import.md🚨 UrgentAuthentication & Account SystemFEATURE_auth_accounts.md🚨 Urgent
+🏃 Core Feature Sprint
+FeatureBriefPriorityProfile & Family SettingsFEATURE_profile_family_settings.md🚨 HighPlanning Tab OverhaulFEATURE_planning_tab_overhaul.md🚨 HighShopping Consolidation EngineFEATURE_shopping_consolidation.md🚨 HighHousehold Essentials GridFEATURE_essentials_grid.md� HighRecipe Discovery SwipeFEATURE_swipe_discovery.mdHighRecipe Photo ImportFEATURE_recipe_photo_import.mdHighAI Recipe Customisation (Fork)FEATURE_recipe_customisation.mdHigh
+❄️ Icebox (No brief yet — do not build without one)
 
-### 🚨 Critical Bugs & Repairs (High Priority)
-- [x] **Fix React Child Object Error in Detail Popups.** (Patched Feb 13)
-- [ ] **Recipe Library Restoration:** Restore connection to existing recipe data.
-- [ ] **Planning Tab Overhaul:** Redesign for alignment and visual calmness.
+Cook Now Mode — full-screen recipe view, large text, screen wake lock
+Leftover Management — tag meals as generating leftovers
+Smart Pantry Categories — group by type (Produce, Dairy etc)
+AI Smart Planner — auto-populate week based on constraints
+Post-Cook Share Card — social share asset, Strava for Food
+Creator Subscriptions UI
+Recipe Publishing — users publish forked recipes
+AI Meal Negotiator — conversational meal suggestion based on inventory
 
-### 🛠 Product Backlog (Open Tasks)
 
-#### Mobile Ideation & Core Features
-- [ ] **Cook Now Mode:** Dedicated full-screen recipe view with large text and **Screen Wake Lock**.
-- [ ] **Multi-Shot Ingestion:** Gemini API integration to reconstruct recipes from fragmented screenshots/captions.
-- [ ] **Shopping Consolidation Engine:** workflow to "Lock" planned meals and generate a list.
+🚨 Critical Bugs & Repairs
 
-#### 🎨 Visual & UI Upgrades
-- [ ] **Pantry Card Icon:** Professional Zinc-style icon.
-- [ ] **Global Style Alignment:** Match Recipes tab aesthetic app-wide.
-- [ ] **Thumb-Friendly Targets:** Optimize for one-handed use.
-- [ ] **Typography Polish:** `tracking-tight` and `font-bold` for Hero titles.
-- [ ] **Carousel Indicators:** Navigation dots and smart date badges.
+ Planning Tab Visual Chaos: Complete redesign required. AG prompt ready in AG_prompt_planning_ui_fix.md
+ Recipe Library Restoration: Recipes tab currently empty — restore connection to Supabase data
+ Ampersand Bug: Sanitize special characters in all recipe titles to prevent PowerShell/script crashes
+ Teal Accent Removal: Replace all teal/cyan accent colors with --gold (#c9a96e) throughout app
+ App Background: Switch to --zinc-950 (#09090b) globally — currently light grey in places
+ Typography Implementation: Apply Playfair Display + DM Sans throughout (import already added to CSS)
+ Fix React Child Object Error in Detail Popups. (Patched Feb 13)
 
-#### 🧠 Logic & Personalization
-- [ ] **Profile Depth:** Editable background configurations.
-- [ ] **Recipe Personalization:** "Fork" recipes for customization.
-- [ ] **Leftover Management:** "Generating Leftovers" tag logic.
-- [ ] **Family Settings:** Input to save `familyName`.
-- [ ] **Smart Pantry Categories:** Group by type (Produce, Dairy, etc.).
 
-### ❄️ Icebox (Utility & Next Level)
-- [ ] Creator Subscriptions UI.
-- [ ] POD API Research.
-- [ ] Post-Cook Share Card.
-- [ ] AI Recipe Doctor (Chat API).
-- [ ] AI Smart Planner (Constraint-based).
-- [ ] Recipe Publishing.
+🏆 HALL OF FAME (Completed)
 
----
-
-## 🏆 HALL OF FAME (Completed)
-- [x] **v1.0 Launch:** Full PWA integration, Supabase production sync, and mobile install verified. (Feb 18)
-- [x] **Street Taco Logic:** Implemented successfully.
-- [x] **Hero ID Sync:** Fixed JIT bridge in HomeView to ensure full recipe data reaches Cook Mode. (Feb 14)
-- [x] **Professional Dual-Agent Infrastructure:** Deployed "Elite Dual-Specialist" model. (Feb 14)
-- [x] **Orchestration Layer Implementation:** Established AGENTS.md and PROJECT.md. (Feb 14)
-- [x] **Full Recipe Master Array Generation (38 Recipes):** Restored and consolidated. (Feb 13)
-- [x] **Supabase Database Migration:** Migrated legacy/new recipes. (Feb 13)
-- [x] **Recipe Grid UI Optimization:** Magazine-style compact cards. (Feb 13)
-- [x] **Home Screen Design:** LOCKED. (Feb 12)
-- [x] **Production Launch:** Deployed to Netlify. (Feb 12)
-- [x] **Mobile Stability:** Fixed "jumping dock" (100dvh). (Feb 10)
-- [x] **Design System:** Migrated to Tailwind Zinc. (Feb 10)
+ Design System v2.0 — Full Documentation: Complete Zinc palette, typography system, component patterns, spacing scale, animation rules all documented in DESIGN_SYSTEM.md. (Feb 22)
+ DATA_MODELS.md v1.0 — Created: All TypeScript interfaces documented: Recipe, EssentialItem, EssentialCheckSession, SwipeSession, WeeklyPlan, PlanSlot, ShoppingListItem. (Feb 22)
+ FEATURES.md — Created: Full feature index with 9 complete build briefs and recommended build order. (Feb 22)
+ CTO Gem v3.1 — Rebuilt: File-driven, dynamic squad, zero hardcoded values, solo founder optimised. (Feb 22)
+ AGENTS.md v2.0 — Rebuilt: Full lifecycle protocol, evaluation triggers, creation/retirement process, changelog. (Feb 22)
+ mealbuddy-design-system.css — Created: Complete CSS custom properties file ready to import. (Feb 22)
+ 9 Feature Briefs — Written: Full design + data + build specs for all core features. (Feb 22)
+ Google Stitch Prompts — Created: Open-ended and full creative direction versions for UI exploration. (Feb 22)
+ Global Asset Audit: Verified 50+ recipe URLs; identified 14 dead (404) Unsplash links. (Feb 18)
+ Asset Hydration: 14/14 Cinematic Zinc recipe images generated and mapped. (Feb 18)
+ v1.0 Launch: Full PWA integration, Supabase production sync, and mobile install verified. (Feb 18)
+ Cook Mode Logic: Step-by-step instruction rendering and calorie parsing. (Feb 14)
+ Professional Dual-Agent Infrastructure: Deployed @creator and @engineer specialist model. (Feb 14)
+ Full Recipe Master Array (38 Recipes): Restored and consolidated. (Feb 13)
+ Supabase Database Migration: Migrated legacy and new recipes. (Feb 13)
+ Recipe Grid UI Optimization: Magazine-style 2-column compact cards. (Feb 13)
+ Home Screen Design: LOCKED. (Feb 12)
+ Production Launch: Deployed to Netlify via GitHub. (Feb 12)
+ Mobile Stability: Fixed jumping dock with 100dvh and GPU transform. (Feb 10)
+ Design System v1.0: Migrated from theme.css to Tailwind Zinc palette. (Feb 10)

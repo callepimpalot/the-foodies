@@ -10,6 +10,15 @@ export function RecipeView() {
     const { setCurrentView, VIEWS } = useView();
     // console.log('Rendering Recipes:', recipes); // Debug Log
     const [selectedRecipe, setSelectedRecipe] = useState(null);
+    const [activeFilter, setActiveFilter] = useState('All');
+
+    // Derive unique archetypes from available recipes
+    const availableArchetypes = ['All', ...new Set(recipes.flatMap(r => r.archetypes || []))].filter(Boolean);
+
+    // Filter recipes based on active filter
+    const displayedRecipes = activeFilter === 'All'
+        ? recipes
+        : recipes.filter(r => r.archetypes?.includes(activeFilter));
 
     // Zinc Skeleton Loader
     if (loading) {
@@ -33,7 +42,7 @@ export function RecipeView() {
     return (
         <div className="animate-fade-in" style={{ paddingBottom: '8rem', maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}> {/* 20px Global Gutter */}
             {/* Magazine Header */}
-            <header style={{ textAlign: 'left', marginBottom: '3rem' }}>
+            <header style={{ textAlign: 'left', marginBottom: '2rem' }}>
                 <p style={{ color: 'rgba(var(--active-glow), 1)', fontWeight: 800, fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                     Curated Discovery
                 </p>
@@ -41,9 +50,45 @@ export function RecipeView() {
                 <h2 className="title-display tracking-tight font-bold" style={{ fontSize: '3.5rem', lineHeight: 0.9, opacity: 0.5 }}>Magazine</h2>
             </header>
 
+            {/* Archetype Filter Pills */}
+            <div
+                className="hide-scrollbar"
+                style={{
+                    display: 'flex',
+                    gap: '0.75rem',
+                    overflowX: 'auto',
+                    paddingBottom: '1rem',
+                    marginBottom: '1rem',
+                    padding: '0 5px', // Slight padding for first/last items scroll bleed
+                    scrollSnapType: 'x mandatory'
+                }}
+            >
+                {availableArchetypes.map(archetype => (
+                    <button
+                        key={archetype}
+                        onClick={() => setActiveFilter(archetype)}
+                        style={{
+                            padding: '0.5rem 1.25rem',
+                            borderRadius: '9999px',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            whiteSpace: 'nowrap',
+                            scrollSnapAlign: 'start',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            background: activeFilter === archetype ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.05)',
+                            color: activeFilter === archetype ? '#000' : 'rgba(255, 255, 255, 0.6)',
+                            border: `1px solid ${activeFilter === archetype ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.1)'}`,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {archetype}
+                    </button>
+                ))}
+            </div>
+
             {/* Cards-over-Canvas Feed with Cinematic Masking */}
             <div className="grid grid-cols-2 gap-4 px-5 pb-20 pt-5">
-                {recipes.map((recipe, index) => (
+                {displayedRecipes.map((recipe, index) => (
                     <RecipeCard
                         key={recipe.id}
                         recipe={recipe}

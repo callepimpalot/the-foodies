@@ -1,17 +1,20 @@
 # 🍏 Project Roadmap: Meal Buddy
-winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to upgrade AG
+"winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to upgrade AG
 
 
-## 🚨 Critical Bugs & Repairs (High Priority)
-- [x] **The "Ampersand" Loop Fix:** Refactor generation scripts to handle special characters (e.g., &) in recipe titles to prevent PowerShell execution loops.
-- [x] **Fix React Child Object Error in Detail Popups and Home View Mapping.** (Patched Feb 13)
-- [x] **Recipe Library Restoration:** Investigated empty Recipes tab. Rebuilt asset hydration pipeline to restore visual library mapping, including Playfair visual fallbacks for 404s.
-- [ ] **Planning Tab Overhaul:** Complete redesign required to fix alignment, scaling, and visual "chaos".
+## 🚨 Critical Bugs (Fix Before New Features)
+- [ ] **Planning Tab Visual Chaos:** Complete visual rebuild required. Ready-to-paste AG prompt exists: `AG_prompt_planning_ui_fix.md` — invoke @creator.md
+- [ ] **Recipe Library Empty:** Recipes tab not loading from Supabase — investigate `useRecipes` hook and restore connection
+- [ ] **Ampersand Bug:** All recipe title generation scripts must sanitize special characters (`&`) before execution
+- [ ] **Teal Accent Removal:** Global find and replace — all teal/cyan to `--gold` (`#c9a96e`)
+- [ ] **Light Background Fix:** App background must be `--zinc-950` (`#09090b`) globally — still light grey in places
+- [ ] **Typography:** Playfair Display + DM Sans not yet applied — CSS file imported, components need updating
 
 
-### 🏃 Current Sprint (Active Polish)
-- [/] **Task C: Design System 2.0 Overhaul:** Complete aesthetic refresh and documentation. (90% Complete - pending final Essentials Grid).
-- [x] **Asset Hydration:** Generated 14 Cinematic Zinc AI assets and restored broken placeholders (14/14 Complete).
+### 🏃 Current Sprint (The Data Seed)
+- [🟡] **Task D: Epicurious Local Ingestion:** Building `scripts/local_import.ts` (Local-Only mode).
+- [x] **Task E: Planning HQ Redesign:** Complete visual overhaul (LOCKED).
+- [ ] **Task F: Auth Infrastructure:** (Next Up) Supabase Auth integration.
 
 ## 🛠 Product Backlog (Open Tasks)
 
@@ -49,6 +52,9 @@ winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to up
 - [ ] **Development of the AI Meal Negotiator Logic:** Conversational AI to suggest meals based on inventory and vibe.
 
 ## 🏆 HALL OF FAME
+- [x] **The "Ampersand" Loop Fix:** Refactor generation scripts to handle special characters (e.g., &) in recipe titles to prevent PowerShell execution loops. (Feb 22)
+- [x] **Fix React Child Object Error in Detail Popups and Home View Mapping.** (Feb 22)
+- [x] **Recipe Library Restoration:** Investigated empty Recipes tab. Rebuilt asset hydration pipeline to restore visual library mapping, including Playfair visual fallbacks for 404s. (Feb 22)
 - [x] Asset Hydration 2.0: Successfully generated and mapped 14 Cinematic Zinc assets using kebab-case pathing and a React Hook override layer. (Feb 20)
 - [x] The Ampersand Fix: Eliminated PowerShell execution loops by implementing raw string sanitization for recipe titles. (Feb 20)
 - [x] **Global Asset Audit:** Verified 50+ recipe URLs; identified 14 dead (404) Unsplash links. (Feb 18)
