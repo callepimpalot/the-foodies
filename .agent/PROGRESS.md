@@ -1,4 +1,11 @@
 # 🍏 Project Roadmap: Meal Buddy
+
+## 🔄 PIVOT — Feb 27: The Great Simplification in progress
+Vision re-centered on the real loop. 7 feature briefs archived.
+New briefs + rewritten source-of-truth docs coming in session 1.
+Active features remaining: essentials_grid, shopping_consolidation.
+See CTO chat history for full context.
+
 "winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to upgrade AG
 
 
