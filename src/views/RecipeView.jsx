@@ -37,7 +37,27 @@ export function RecipeView() {
         );
     }
 
-    if (error) return <div style={{ padding: '20px', color: 'red' }}>Error loading recipes. Please try again.</div>;
+    if (error) return (
+        <div style={{
+            minHeight: '60vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            padding: '2rem',
+            background: 'var(--color-bg, #09090b)',
+            textAlign: 'center',
+        }}>
+            <span style={{ fontSize: '2rem' }}>⚠️</span>
+            <p style={{ color: '#f87171', fontWeight: 700, fontSize: '1rem', margin: 0 }}>
+                Could not connect to recipe database
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', margin: 0 }}>
+                {error?.message ?? 'Unknown error'} — check Supabase project status or network connection.
+            </p>
+        </div>
+    );
 
     return (
         <div className="animate-fade-in" style={{ paddingBottom: '8rem', maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}> {/* 20px Global Gutter */}
