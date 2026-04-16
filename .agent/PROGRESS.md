@@ -59,6 +59,7 @@ See CTO chat history for full context.
 - [ ] **Development of the AI Meal Negotiator Logic:** Conversational AI to suggest meals based on inventory and vibe.
 
 ## 🏆 HALL OF FAME
+- [x] **Recipes Tab Resilience:** Diagnosed "Error loading recipes" as a Supabase free-tier pause (ERR_NAME_NOT_RESOLVED), not a schema bug. Added mapRow() normalisation layer to handle snake_case → camelCase aliasing, plus graceful fallback to local final_recipes.json when Supabase is unreachable. Two latent schema mismatches (cook_time_minutes, base_servings) fixed in passing. Tab now works offline or when Supabase is paused. (Feb 27)
 - [x] **Recipe Import Pipeline — Full 4-Stage Build:** 20,130 raw Epicurious recipes → 400 AI-curated family recipes in Supabase. Stages: structural validation (15,600 passed), rules filter + dedup (2,000 candidates), Gemini AI scoring (400 selected), Supabase import (400 inserted, 0 failed). (Feb 26)
 - [x] **Supabase Schema Redesign:** Dropped legacy dummy-data schema. Rebuilt recipes table with correct types — integers as integers, TEXT[] arrays, JSONB ingredients. Aligned with DATA_MODELS.md. (Feb 26)
 - [x] **Gemini SDK Migration:** Switched from raw fetch to @google/genai SDK with structured output (responseMimeType + responseSchema). Eliminated all JSON parsing failures. (Feb 26)
