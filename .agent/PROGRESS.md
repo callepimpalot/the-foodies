@@ -1,65 +1,46 @@
 # 🍏 Project Roadmap: Meal Buddy
 
 ## 🔄 PIVOT — Feb 27: The Great Simplification in progress
-Vision re-centered on the real loop. 7 feature briefs archived.
-New briefs + rewritten source-of-truth docs coming in session 1.
-Active features remaining: essentials_grid, shopping_consolidation.
-See CTO chat history for full context.
+
+Vision re-centered on the real loop. 7 feature briefs archived. Scope reduced from 9 features to a target of 5.
+
+**Status of this file:** Hall of Fame is complete and canonical. Everything above it is being rewritten in session 1.
+
+**Active briefs on disk:** essentials_grid, shopping_consolidation
+**Incoming briefs (session 1):** recipe_lifecycle, week_planner, cook_mode, taste_model
+**See PROJECT.md for the current vision. See FEATURES.md for the current brief index.**
 
 "winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to upgrade AG
 
 
 ## 🚨 Critical Bugs (Fix Before New Features)
-- [ ] **Planning Tab Visual Chaos:** Complete visual rebuild required. Ready-to-paste AG prompt exists: `AG_prompt_planning_ui_fix.md` — invoke @creator.md
-- [ ] **Recipe Library Empty:** Recipes tab not loading from Supabase — investigate `useRecipes` hook and restore connection
-- [ ] **Ampersand Bug:** All recipe title generation scripts must sanitize special characters (`&`) before execution
-- [ ] **Teal Accent Removal:** Global find and replace — all teal/cyan to `--gold` (`#c9a96e`)
-- [ ] **Light Background Fix:** App background must be `--zinc-950` (`#09090b`) globally — still light grey in places
-- [ ] **Typography:** Playfair Display + DM Sans not yet applied — CSS file imported, components need updating
+- [x] **Recipe Library Empty:** Fixed Feb 27 — mapRow() normalisation layer + graceful fallback to final_recipes.json
+- [ ] **Teal Accent Removal:** Global find-and-replace — all teal/cyan to --gold (#c9a96e). Will be addressed as screens are rebuilt in session 2+.
+- [ ] **Light Background Fix:** App background must be --zinc-950 (#09090b) globally — still light grey in places. Will be addressed in session 2+ code pruning.
+- [ ] **Typography:** Playfair Display + DM Sans not yet applied — CSS file imported, components need updating. Will be addressed in session 2+ code pruning.
+- [~] **Planning Tab Visual Chaos:** No longer a bug to fix — the Planning tab is being fully replaced by FEATURE_week_planner.md in session 1+.
+- [~] **Ampersand Bug:** No longer active — recipe import pipeline sanitizes titles. Legacy scripts archived.
 
 
-### 🏃 Current Sprint (The Data Seed)
-- [x] **Task D: Epicurious Local Ingestion** — COMPLETE. Full 4-stage pipeline built and run. 400 recipes in Supabase.
-- [x] **Task E: Planning HQ Redesign:** Complete visual overhaul (LOCKED).
-- [ ] **Task F: Auth Infrastructure:** (Next Up) Supabase Auth integration.
+### 🏃 Current Sprint (The Great Simplification)
+- [x] **Task D: Epicurious Local Ingestion** — COMPLETE. 400 recipes in Supabase (Feb 26)
+- [x] **Task E: Planning HQ Redesign** — SUPERSEDED. Planning tab being replaced entirely in session 1+.
+- [~] **Task F: Auth Infrastructure** — DEFERRED. Auth is not required for v1 (solo use). Archived.
+- [ ] **Session 1 — The Great Simplification:** Rewrite PROJECT.md vision, DATA_MODELS.md schema, generate 4 new feature briefs (recipe_lifecycle, week_planner, cook_mode, taste_model). Scheduled for next CTO session.
 
-## 🛠 Product Backlog (Open Tasks)
+## 🛠 Product Backlog
 
-### 🎨 Visual & UI Upgrades
-- [ ] **Pantry Card Icon:** Replace the "childish" cardboard box emoji with a professional, Zinc-style icon.
-- [ ] **Global Style Alignment:** Re-evaluate app-wide fonts and colors to match the superior aesthetic found in the Recipes tab.
-- [ ] **Thumb-Friendly Targets:** Optimize all buttons in "Active Shopping" and "Cook" modes for one-handed thumb use.
-- [ ] **Typography Polish:** Apply `tracking-tight` and `font-bold` to Hero titles (e.g., Margherita Pizza).
-- [ ] **Carousel Indicators:** Add navigation dots below the 24H meal carousel.
-- [ ] **Smart Overlays:** Ensure date badges ("Tomorrow", "Feb 12") appear on all carousel cards.
+The previous backlog was tied to the old vision (swipe discovery, family profiles, creator subscriptions etc). It has been cleared.
 
-### 🧠 New Features & Logic
-- [ ] **Profile Depth:** Surface and make editable the "hidden" background configurations (settings/user data) when clicking the user icon.
-- [ ] **Recipe Personalization:** Enable the ability to "fork" recipes to save customized versions based on allergies or personal preferences.
-- [ ] **Leftover Management:** Build logic to tag meals as "Generating Leftovers" so they appear as selectable "Instant Meal" options for later in the week.
-- [ ] **Shopping Consolidation Engine:** Create a workflow to "Lock" planned meals and generate a static shopping snapshot.
-- [ ] **Shopping Intelligence Card:** Design a pop-up summarizing the list source (Meals included, person count, and last pantry check date).
-- [ ] **Family Settings:** Create a simple input/onboarding to save the `familyName` to state.
-- [ ] **Smart Pantry Categories:** Logic to group items by type (Produce, Dairy, etc.).
+The new backlog will be generated in session 1 alongside the new feature briefs. Until then, the two active briefs on disk are the only approved work:
+- FEATURE_essentials_grid.md
+- FEATURE_shopping_consolidation.md
 
-## ❄️ Utility & "Next Level" UX (Icebox)
-- [ ] **Mockup Subscribe button:** Design the UI for creator subscriptions.
-- [ ] **Research POD API:** Investigate print-on-demand services for cookbooks.
-- [ ] **Design Post-Cook share card:** Create the social share asset for 'Strava for Food'.
-- [ ] **Cook Now Mode:** Dedicated full-screen recipe view with large, high-readability text.
-- [ ] **Screen Wake Lock (Cook & Shop):** Implement a "Keep Screen On" toggle using the Wake Lock API for both Active Shopping and Cook modes.
-- [ ] **AI Recipe Doctor:** Integrate a chat API to modify and update recipe data in real-time through conversation.
-- [ ] **AI Smart Planner:** Use AI to auto-populate weekly meals based on specific constraints (e.g., "<30 mins cook time, high protein").
-- [ ] **Recipe Publishing:** Add functionality for users to publish their customized personal recipes.
-- [ ] "Empty State" design for the Pantry (Notion-style minimalism).
-- [ ] Hardware-accelerated transitions for "Pantry Detail" slide-up views.
-
-## 🔮 Future Sprint
-- [ ] **Implementation of Archetype Filter Pills:** Filter recipes by archetype (Family, Training, etc.).
-- [ ] **Development of the AI Meal Negotiator Logic:** Conversational AI to suggest meals based on inventory and vibe.
+Vault items (deferred, no brief) live in PROJECT.md under "Deferred / Vault".
 
 ## 🏆 HALL OF FAME
 - [x] **Recipes Tab Resilience:** Diagnosed "Error loading recipes" as a Supabase free-tier pause (ERR_NAME_NOT_RESOLVED), not a schema bug. Added mapRow() normalisation layer to handle snake_case → camelCase aliasing, plus graceful fallback to local final_recipes.json when Supabase is unreachable. Two latent schema mismatches (cook_time_minutes, base_servings) fixed in passing. Tab now works offline or when Supabase is paused. (Feb 27)
+- [x] **The Great Simplification — Phase 1:** Archived 7 feature briefs. Scope reduced from 9 features to a target of 5. Project files synced to reflect current reality. Ready for session 1 full vision rewrite. (Feb 27)
 - [x] **Recipe Import Pipeline — Full 4-Stage Build:** 20,130 raw Epicurious recipes → 400 AI-curated family recipes in Supabase. Stages: structural validation (15,600 passed), rules filter + dedup (2,000 candidates), Gemini AI scoring (400 selected), Supabase import (400 inserted, 0 failed). (Feb 26)
 - [x] **Supabase Schema Redesign:** Dropped legacy dummy-data schema. Rebuilt recipes table with correct types — integers as integers, TEXT[] arrays, JSONB ingredients. Aligned with DATA_MODELS.md. (Feb 26)
 - [x] **Gemini SDK Migration:** Switched from raw fetch to @google/genai SDK with structured output (responseMimeType + responseSchema). Eliminated all JSON parsing failures. (Feb 26)
@@ -102,4 +83,4 @@ See CTO chat history for full context.
 - [x] **Reorganize PROGRESS.md:** Initial structure setup (Self-verified). (Feb 10)
 
 ## 📝 NEXT AGENT INSTRUCTIONS
-> * Next session: Execute Sprint 01 — Implementation of the Household Essentials Quick-Check Grid and Staging Logic.
+> Next CTO session: Execute "Session 1 — The Great Simplification." Generate rewritten PROJECT.md vision, updated DATA_MODELS.md schema (with ingredient IDs + {0001} interpolation pattern + recipe lineage fields), and four new feature briefs: recipe_lifecycle, week_planner, cook_mode, taste_model. CEO will upload all current files at the start of the session.

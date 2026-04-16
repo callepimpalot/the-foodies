@@ -1,111 +1,61 @@
 # 📋 FEATURES.md — Feature Brief Index
-# Meal Buddy / The Foodies
-# Master index of all feature briefs in the /.agent/features/ folder
-# The CTO reads this to understand what has been designed vs what is backlog only
+# Meal Buddy
+# Master index of feature briefs in /.agent/features/
 
 ---
 
-## HOW TO USE THIS FILE
+## ⚠️ STATUS — FEB 27
 
-Each feature below has a dedicated brief file in `/.agent/features/`.
-Brief files are the complete design + data + build spec for that feature.
-When ready to build a feature, the CTO reads the relevant brief and
-generates the AG instruction from it — do not rebuild briefs from memory.
+The project is mid-pivot. A strategic simplification has reduced scope from 9 features to a target of 5. Seven feature briefs were archived on Feb 27. New briefs and an updated recommended build order will be generated in the next CTO session ("Session 1 — The Great Simplification").
 
-Status key:
-- 🔴 NOT STARTED — brief exists, not yet built
-- 🟡 IN PROGRESS — currently being built in AG
-- 🟢 COMPLETE — shipped and live in the app
-- 🔵 SEEDED — data/infrastructure work, not user-facing
+Until then, use this file as a directory of what exists on disk today — not as a roadmap.
 
 ---
 
-## INFRASTRUCTURE
+## ACTIVE BRIEFS (still valid, will survive the rewrite)
 
-| Feature | Brief File | Status | Priority |
-|---|---|---|---|
-| Bulk Recipe Database Import | FEATURE_bulk_recipe_import.md | 🟡 IN PROGRESS | 🚨 Urgent |
-| Authentication & Account System | FEATURE_auth_accounts.md | 🔴 NOT STARTED | 🚨 Urgent |
-
----
-
-## CORE FEATURES
-
-| Feature | Brief File | Status | Priority |
-|---|---|---|---|
-| Profile & Family Settings | FEATURE_profile_family_settings.md | 🔴 NOT STARTED | 🚨 High |
-| Planning Tab Overhaul | FEATURE_planning_tab_overhaul.md | 🔴 NOT STARTED | 🚨 High |
-| Shopping Consolidation Engine | FEATURE_shopping_consolidation.md | 🔴 NOT STARTED | 🚨 High |
-| Household Essentials Grid | FEATURE_essentials_grid.md | 🔴 NOT STARTED | 🚨 High |
-| Recipe Discovery Swipe | FEATURE_swipe_discovery.md | 🔴 NOT STARTED | High |
-| Recipe Photo Import | FEATURE_recipe_photo_import.md | 🔴 NOT STARTED | High |
-| AI Recipe Customisation (Fork) | FEATURE_recipe_customisation.md | 🔴 NOT STARTED | High |
+| Feature | Brief File | Status |
+|---|---|---|
+| Household Essentials Grid | FEATURE_essentials_grid.md | 🔴 NOT STARTED |
+| Shopping Consolidation Engine | FEATURE_shopping_consolidation.md | 🔴 NOT STARTED |
 
 ---
 
-## BACKLOG (no brief yet — ideas only)
+## ARCHIVED BRIEFS (moved to /.agent/features/archive/ on Feb 27)
 
-These features are in PROJECT.md backlog but do not have brief files yet.
-Do not build these without a brief. Ask the CEO to design them first.
+These briefs do not reflect the current vision. Do NOT reference them for new work.
 
-| Feature | Notes |
+| Brief File | Reason for Archive |
 |---|---|
-| Cook Now Mode | Full-screen recipe view, large text, screen wake lock |
-| Recipe Personalization | "Fork" a recipe to save a custom version |
-| Leftover Management | Tag meals as generating leftovers, surface as Instant Meals |
-| Smart Pantry Categories | Group pantry by type (Produce, Dairy etc) |
-| AI Recipe Doctor | Chat API to modify recipes in real-time |
-| AI Smart Planner | Auto-populate week based on constraints |
-| Post-Cook Share Card | Social share asset — Strava for Food |
-| Creator Subscriptions UI | Mockup subscribe button |
-| Recipe Publishing | Users publish their forked recipes |
-| Screen Wake Lock | Keep screen on during Cook Mode and Active Shopping |
+| FEATURE_bulk_recipe_import.md | COMPLETE — 400 recipes imported via Epicurious pipeline (Feb 26) |
+| FEATURE_auth_accounts.md | DEFERRED — solo use, auth not required for v1 |
+| FEATURE_profile_family_settings.md | DEFERRED — family sharing is post-MVP |
+| FEATURE_swipe_discovery.md | REMOVED — user arrives with recipes in mind, not browsing |
+| FEATURE_recipe_customisation.md | COLLAPSED — merging into FEATURE_recipe_lifecycle.md (session 1) |
+| FEATURE_recipe_photo_import.md | COLLAPSED — merging into FEATURE_recipe_lifecycle.md (session 1) |
+| FEATURE_planning_tab_overhaul.md | OBSOLETE — being replaced by FEATURE_week_planner.md (session 1) |
 
 ---
 
-## RECOMMENDED BUILD ORDER
+## INCOMING BRIEFS (to be written in session 1)
 
-Given current app state and the goal of making it usable daily as a family:
+These do not exist yet. Do NOT attempt to build from them.
 
-1. **Bulk Recipe Import** — app has nothing worth cooking from right now
-2. **Authentication** — required before family sharing works across devices
-3. **Profile & Family Settings** — depends on auth being live
-4. **Planning Tab Overhaul** — current state is broken and unusable
-5. **Household Essentials Grid** — simple, high daily value, standalone
-6. **Shopping Consolidation Engine** — depends on Planning being solid
-7. **Recipe Discovery Swipe** — depends on quality recipe database
-8. **Recipe Photo Import** — personal library growth, compelling feature
-9. **AI Recipe Customisation** — depends on auth (forks are user-scoped)
-
----
-
-## BACKLOG (no brief yet — ideas only)
-
-These features are in PROJECT.md backlog but do not have brief files yet.
-Do not build these without a brief. Ask the CEO to design them first.
-
-| Feature | Notes |
-|---|---|
-| Cook Now Mode | Full-screen recipe view, large text, screen wake lock |
-| Leftover Management | Tag meals as generating leftovers, surface as Instant Meals |
-| Smart Pantry Categories | Group pantry by type (Produce, Dairy etc) |
-| AI Smart Planner | Auto-populate week based on constraints |
-| Post-Cook Share Card | Social share asset — Strava for Food |
-| Creator Subscriptions UI | Mockup subscribe button |
-| Recipe Publishing | Users publish their forked recipes |
-| Screen Wake Lock | Keep screen on during Cook Mode and Active Shopping |
+- FEATURE_recipe_lifecycle.md — AI-chat capture, recipe versioning, branching
+- FEATURE_week_planner.md — simple day-by-day planner with leftover slots and day notes
+- FEATURE_cook_mode.md — readable recipe view with servings scaling and embedded OS timers
+- FEATURE_taste_model.md — home screen editorial suggestions (future sprint, not urgent)
 
 ---
 
 ## FEATURE BRIEF TEMPLATE
 
-When designing a new feature, create a new file in `/.agent/features/`
-following this structure:
+When designing a new feature, create a new file in /.agent/features/ following this structure:
 
 ```
 # FEATURE BRIEF: [Feature Name]
 # Purpose: [one sentence]
-# Audience: Gemini CTO Gem + AG @[agent].md
+# Audience: CTO + AG @[agent].md
 # Status: [NOT STARTED / IN PROGRESS / COMPLETE]
 
 ## WHAT WE ARE BUILDING
@@ -120,5 +70,4 @@ following this structure:
 ## AG INVOCATION ORDER
 ```
 
-Always add new briefs to the index table above when created.
-Always update status when a feature moves to IN PROGRESS or COMPLETE.
+Always add new briefs to the active briefs table above when created. Always update status when a feature moves to IN PROGRESS or COMPLETE.
