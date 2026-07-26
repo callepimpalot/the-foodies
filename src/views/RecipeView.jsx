@@ -3,6 +3,7 @@ import { useRecipes } from '../hooks/useRecipes';
 import { usePlan } from '../context/PlanContext';
 import { useView } from '../context/ViewContext';
 import { RecipeCard } from '../components/RecipeCard';
+import { AddToPlanModal } from '../components/AddToPlanModal';
 
 export function RecipeView() {
     const { recipes, loading, error } = useRecipes();
@@ -10,6 +11,7 @@ export function RecipeView() {
     const { setCurrentView, VIEWS } = useView();
     // console.log('Rendering Recipes:', recipes); // Debug Log
     const [selectedRecipe, setSelectedRecipe] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
     const [activeFilter, setActiveFilter] = useState('All');
 
     // Derive unique archetypes from available recipes
@@ -119,7 +121,7 @@ export function RecipeView() {
             </div>
 
             {/* Persistent Bottom Sheet (342pt width logic in CSS/Mobile view) */}
-            {selectedRecipe && (
+            {selectedRecipe && !showAddModal && (
                 <div style={{
                     position: 'fixed',
                     top: 0,
@@ -215,11 +217,7 @@ export function RecipeView() {
 
                         <div className="flex flex-col gap-3 mt-8">
                             <button
-                                onClick={() => {
-                                    // Default to today for quick add
-                                    setDayRecipe(new Date().toISOString().split('T')[0], selectedRecipe);
-                                    setSelectedRecipe(null);
-                                }}
+                                onClick={() => setShowAddModal(true)}
                                 style={{
                                     width: '100%',
                                     padding: '16px',
@@ -264,6 +262,18 @@ export function RecipeView() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showAddModal && selectedRecipe && (
+                <AddToPlanModal
+                    recipe={selectedRecipe}
+                    onClose={() => setShowAddModal(false)}
+                    onConfirm={(date, recipe) => {
+                        setDayRecipe(date, recipe);
+                        setShowAddModal(false);
+                        setSelectedRecipe(null);
+                    }}
+                />
             )}
         </div>
     );
