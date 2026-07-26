@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 export function AddToPlanModal({ recipe, onClose, onConfirm }) {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [selectedType, setSelectedType] = useState('dinner');
 
     // Generate next 7 days
     const next7Days = Array.from({ length: 7 }, (_, i) => {
@@ -16,7 +15,7 @@ export function AddToPlanModal({ recipe, onClose, onConfirm }) {
     });
 
     const handleConfirm = () => {
-        onConfirm(selectedDate, selectedType, recipe);
+        onConfirm(selectedDate, recipe);
     };
 
     return (
@@ -65,33 +64,6 @@ export function AddToPlanModal({ recipe, onClose, onConfirm }) {
                             >
                                 <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{day.label.split(' ')[0]}</span>
                                 <span style={{ fontSize: '1rem', fontWeight: 700 }}>{day.label.split(' ')[1]}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                    <label className="title-md" style={{ display: 'block', marginBottom: '12px' }}>
-                        Meal Type
-                    </label>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        {['breakfast', 'lunch', 'dinner'].map((type) => (
-                            <button
-                                key={type}
-                                onClick={() => setSelectedType(type)}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '12px',
-                                    border: selectedType === type ? '2px solid var(--color-primary)' : '1px solid var(--color-surface-dim)',
-                                    background: selectedType === type ? 'var(--color-primary-dim)' : 'var(--color-surface)',
-                                    color: selectedType === type ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                                    fontWeight: 600,
-                                    textTransform: 'capitalize',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {type}
                             </button>
                         ))}
                     </div>

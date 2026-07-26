@@ -31,8 +31,11 @@
 
     --ease-smooth: theme('transitionTimingFunction.out');
 
-    /* Legacy Variables - Migrated from theme.css */
-    --glow-training: 20, 184, 166;
+    /* Archetype glow colors — no UI entry point exists to switch archetypes,
+       so TRAINING (the default) is the only one users ever see. Its glow is
+       gold (design-system accent), not the original teal, per DESIGN_SYSTEM.md
+       "no teal or cyan anywhere in UI chrome". */
+    --glow-training: 201, 169, 110;
     --glow-family: 251, 191, 36;
     --glow-student: 16, 185, 129;
     --glow-minimalist: 244, 114, 182;

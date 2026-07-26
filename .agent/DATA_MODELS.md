@@ -1,346 +1,152 @@
 # 📊 DATA_MODELS.md — Meal Buddy / The Foodies
-# Version 1.0
-# Source of Truth for all TypeScript interfaces, data shapes, and state models.
-# All agents derive schema from this file. Never guess field names or types.
+# Version 2.0
+# Source of Truth for actual data shapes in the codebase — verified against real code, not aspirational.
+# The app is plain JavaScript (.jsx/.js), NOT TypeScript, despite this file's earlier interface syntax.
+# Interfaces below are written in TS-like shorthand for readability only.
 
 ---
 
 ## GENERAL RULES
 
-- All IDs are uuid strings, generated on creation
-- All timestamps are ISO 8601 strings
+- All IDs are uuid strings, generated on creation (or by Supabase on insert)
+- Timestamps are ISO 8601 strings
 - Optional chaining (`?.`) is mandatory on all data access in the UI layer
-- Supabase is the source of truth once a table is live — no local mocks
-- Special characters in string fields (names, titles) are stored raw, sanitized on render
+- Supabase is the source of truth for recipes once reachable — falls back to local `final_recipes.json` when unreachable (see useRecipes.js)
+- Plan, Shop, and Household Essentials data are NOT in Supabase — they are localStorage- or memory-only, per-device (see each section below)
 
 ---
 
 ## 1. RECIPE
 
-The core content unit. Already exists in Supabase.
+The core content unit. Lives in the Supabase `recipes` table.
 
-```typescript
-interface Recipe {
-  id: string;
-  title: string;                              // Never truncate in UI — scale font instead
-  imageUrl: string;                           // Always apply overlay gradient on render
-  cookTimeMinutes: number;
-  difficulty: "Easy" | "Medium" | "Hard";
-  kcal: number;
-  servings: number;
-  mealType: "Breakfast" | "Lunch" | "Dinner";
-  tags: string[];
-  ingredients: Ingredient[];
-  steps: string[];
-  createdAt: string;
+### Real Supabase columns (verified from scripts/import-to-supabase.ts — no .sql schema files exist in the repo)
+
+```
+id                  uuid
+title               text
+description         text | null
+image_url           text | null        — mostly null for the 400 bulk-imported recipes; hydrated later or left to fall back to a gradient placeholder in the UI
+cook_time_minutes   integer
+difficulty          text               — free text, typically "Easy" | "Medium" | "Hard" but NOT a DB-enforced enum
+kcal                integer | null
+base_servings       integer
+meal_type           text               — typically "Breakfast" | "Lunch" | "Dinner"
+tags                text[]
+archetypes          text[]             — legacy persona-filter tags, mostly empty on bulk-imported rows
+ingredients         jsonb              — array of { name: string, quantity: number | null, unit: string | null }
+steps               text[] | jsonb
+is_personal         boolean            — true for user-captured recipes (see Capture, below). NOT documented in the old v1.0 of this file.
+created_at          timestamptz
+```
+
+### Local fallback shape — `final_recipes.json` (repo root, 38 recipes)
+
+Used by `src/hooks/useRecipes.js` when Supabase is unreachable (paused free-tier project, offline, etc.) — this is a REAL, currently-observed condition, not a hypothetical. The local file uses different field names and an older ingredient shape:
+
+```
+cooking_time / cook_time_minutes   (inconsistent across entries)
+ingredients: [{ item: string, amount: string, unit: string }]   — NOT {name, quantity, unit}
+```
+
+`useRecipes.js`'s `mapRow()`/`mapLocalRow()` normalize `cook_time`, `servings`, `image_url` for **display** purposes, but do **not** normalize the `ingredients` array shape. Any code that reads `ingredients[].name` must also check `ingredients[].item` (see `src/lib/consolidateIngredients.js`'s `normalizeIngredient()` for the canonical way to handle both shapes — reuse it, don't reimplement).
+
+### Captured recipes (via the Capture tab)
+
+Written by `src/hooks/useRecipeCapture.js` → `src/lib/recipeExtraction.js` (Gemini `responseSchema` extraction). Captured rows always set:
+- `is_personal: true`
+- `tags: ['captured']`
+- `image_url: null` (no image generation step in this pass — relies on the existing gradient-fallback rendering)
+- `ingredients` in the canonical `{name, quantity, unit}` shape (matches the live Supabase shape, not the legacy local-JSON shape)
+
+---
+
+## 2. HOUSEHOLD ESSENTIALS (Pantry tab)
+
+Lives entirely in `src/context/InventoryContext.jsx` — **in-memory only, no persistence**. Resets to 5 hardcoded seed items on every page reload. This is real current behavior, not a bug being tracked — no localStorage or Supabase wiring exists for this feature.
+
+```
+InventoryItem {
+  id: string
+  name: string
+  category: string            // one of the DEFAULT_CATEGORIES ids (produce, protein, dairy, grains, frozen, canned, snacks, beverages, condiments, household, other)
+  quantity: number
+  targetQuantity: number
+  unit: string
+  inPantry: boolean            // false = soft-deleted
+  isMaster: boolean            // true = flagged as a household essential ("hearted")
+  toBuy: boolean                // flagged for the shopping list
+}
+```
+
+No `EssentialCheckSession` concept exists — flagging is immediate and stateless, not session-based.
+
+---
+
+## 3. WEEKLY PLAN (Plan tab)
+
+`src/context/PlanContext.jsx` — localStorage-backed, keys `meal_buddy_plan` and `meal_buddy_confirmed`.
+
+**One meal per day** (not three meal-type slots — this was simplified from an earlier breakfast/lunch/dinner model to match the "drop meals on days" vision in PROJECT.md).
+
+```
+weeklyPlan: {
+  [dateStr: 'YYYY-MM-DD']: DayEntry
 }
 
-interface Ingredient {
-  name: string;
-  quantity: number | null;
-  unit: string | null;                        // "g", "ml", "pieces", "tsp" etc
+DayEntry =
+  | { recipe: Recipe, servings: number }        // a meal is planned
+  | { leftoverOfDate: 'YYYY-MM-DD' }              // this day reuses another day's meal
+  | { note: string }                              // free text, e.g. "eating out", "mum's house"
+```
+
+A day holds **at most one** of the three — never combined. `resolveDay(date)` (exposed by `usePlan()`) follows one level of leftover reference and returns a normalized `{ type: 'recipe' | 'leftover' | 'note', ... }` shape for display — use it instead of reading `weeklyPlan` directly in views.
+
+`isPlanConfirmed` (boolean, also localStorage-persisted) gates the Shop tab — the shopping list is only computed once the week is "locked."
+
+---
+
+## 4. SHOPPING LIST (Shop tab)
+
+**Not persisted anywhere.** Computed fresh on every render of `ShopView` via `buildShoppingList(weeklyPlan)` in `src/lib/consolidateIngredients.js`. Checked/unchecked state is local component state (`useState`) — it resets if you navigate away and back, or reload the page. This is an intentional POC simplification, not an oversight.
+
+```
+buildShoppingList(weeklyPlan) → ShoppingItem[]
+
+ShoppingItem {
+  key: string              // `${name.toLowerCase()}|${unit ?? ''}` — used for dedup and React keys
+  name: string
+  unit: string | null
+  quantity: number | null   // null when quantities can't be summed (e.g. mismatched or missing units)
+  category: string          // one of CATEGORY_ORDER, derived by categoriseIngredient(name)
 }
+```
+
+Only days with a `recipe` entry contribute ingredients — `leftover` and `note` days are skipped (a leftover day's ingredients were already counted on its source day). Quantities are scaled by `servings / recipe.baseServings` via `getServingsRatio()`.
+
+`CATEGORY_ORDER`: Produce, Meat & Fish, Dairy & Eggs, Bakery, Pantry, Herbs & Spices, Frozen.
+
+---
+
+## 5. NAVIGATION
+
+No router — `src/context/ViewContext.jsx` holds `currentView` (a `VIEWS` enum value from `src/utils/constants.js`) and an ad-hoc `viewData` payload channel. `src/App.jsx` does a `switch(currentView)`.
+
+```
+VIEWS = { DASHBOARD, PLAN, RECIPES, SHOP, PANTRY, CAPTURE, COOK_MODE }
 ```
 
 ---
 
-## 2. HOUSEHOLD ESSENTIALS
+## 6. REMOVED MODELS (do not resurrect without a new brief)
 
-### EssentialCategory
-User-defined grouping. e.g. Fridge, Pantry, Bathroom, Cleaning, Freezer.
-
-```typescript
-interface EssentialCategory {
-  id: string;
-  name: string;
-  sortOrder: number;                          // Controls display order of categories
-  createdAt: string;
-}
-```
-
-### EssentialItem
-One item within a category. Represents what the household always wants stocked.
-
-```typescript
-interface EssentialItem {
-  id: string;
-  name: string;                               // Raw string — sanitize on render, never innerHTML
-  emoji: string;                              // e.g. "🥚"
-  categoryId: string;                         // FK → EssentialCategory.id
-  sortOrder: number;                          // Controls display order within category
-  createdAt: string;
-}
-```
-
-### EssentialCheckSession
-One instance of the user running through their essentials check. Created when user opens the grid. Persists until shopping list is locked.
-
-```typescript
-interface EssentialCheckSession {
-  id: string;
-  createdAt: string;                          // When this check was started
-  lockedAt: string | null;                    // Set when merged into shopping list
-  flaggedItemIds: string[];                   // EssentialItem.id values user has flagged
-}
-```
-
-### State Model
-```typescript
-type EssentialItemState = "neutral" | "flagged";  // Two states only, nothing else
-
-// Derived — computed from active session
-const isFlagged = (itemId: string, session: EssentialCheckSession): boolean =>
-  session.flaggedItemIds.includes(itemId);
-
-const flaggedCount = (session: EssentialCheckSession): number =>
-  session.flaggedItemIds.length;
-```
-
-### Session Lifecycle
-```
-1. User opens essentials grid
-   → Check for active CheckSession
-   → If none: create new with empty flaggedItemIds[]
-   → If exists: resume — show previously flagged items
-
-2. User taps item
-   → If NOT in flaggedItemIds → add (flag)
-   → If IN flaggedItemIds → remove (unflag)
-   → Instant toggle, no confirmation
-
-3. User navigates away without shopping
-   → Session persists exactly as-is
-
-4. User locks shopping list
-   → Flagged items merge into ShoppingList as HouseholdItems
-   → Session.lockedAt = now
-   → New empty session created for next week
-
-5. User manually clears flags
-   → flaggedItemIds = []
-   → Session remains open
-```
-
-### Storage Keys
-```
-"mb_essential_categories"       // EssentialCategory[]
-"mb_essential_items"            // EssentialItem[]
-"mb_active_check_session"       // EssentialCheckSession (current)
-"mb_archived_check_sessions"    // EssentialCheckSession[] (history)
-```
+The following data models existed in v1.0 of this file but describe features that were archived in the Feb 27 pivot and have since been deleted from the codebase entirely: `EssentialCheckSession` (session-based essentials — replaced by the stateless model in §2), `SwipeSession`, `PlanSlot`/multi-meal-type `WeeklyPlan`, `ShoppingListItem` with `sourceType`/`sourcePlanSlotId` provenance tracking, `RecipeFork`/`isPersonal` customisation lineage, `UserProfile`, `FamilyGroup`. None of these have any code in the current app.
 
 ---
 
-## 3. RECIPE DISCOVERY — SWIPE & ALLOCATION
-
-### SwipeSession
-One weekly curation pass. Created when user enters swipe mode. Resets on lock.
-
-```typescript
-interface SwipeSession {
-  id: string;
-  weekStartDate: string;                      // ISO 8601 — Monday of current week
-  createdAt: string;
-  lockedAt: string | null;
-  seenRecipeIds: string[];                    // All recipes shown, in order
-  shortlistedRecipeIds: string[];             // Swiped right — max 10
-  passedRecipeIds: string[];                  // Swiped left — excluded this session
-}
-```
-
-### WeeklyPlan
-Allocation of shortlisted recipes to specific days. One plan per week.
-
-```typescript
-interface WeeklyPlan {
-  id: string;
-  weekStartDate: string;                      // Matches SwipeSession.weekStartDate
-  swipeSessionId: string;                     // FK → SwipeSession.id
-  slots: PlanSlot[];
-  isLocked: boolean;
-  lockedAt: string | null;
-  createdAt: string;
-}
-```
-
-### PlanSlot
-Single meal assignment — one recipe, one day, one meal type.
-
-```typescript
-interface PlanSlot {
-  id: string;
-  weeklyPlanId: string;                       // FK → WeeklyPlan.id
-  recipeId: string;                           // FK → Recipe.id
-  dayIndex: number;                           // 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
-  mealType: "Breakfast" | "Lunch" | "Dinner";
-  assignedAt: string;
-}
-```
-
-### State Model
-```typescript
-type RecipeSwipeState = "unseen" | "shortlisted" | "passed";
-
-const SHORTLIST_CAP = 10;
-
-const getSwipeState = (recipeId: string, session: SwipeSession): RecipeSwipeState => {
-  if (session.shortlistedRecipeIds.includes(recipeId)) return "shortlisted";
-  if (session.passedRecipeIds.includes(recipeId)) return "passed";
-  return "unseen";
-};
-
-const canShortlist = (session: SwipeSession): boolean =>
-  session.shortlistedRecipeIds.length < SHORTLIST_CAP;
-
-// Stack = all recipes not yet seen, shuffled
-const getSwipeStack = (allRecipes: Recipe[], session: SwipeSession): Recipe[] =>
-  allRecipes
-    .filter(r => !session.seenRecipeIds.includes(r.id))
-    .sort(() => Math.random() - 0.5);
-
-// Unassigned = shortlisted but not yet placed on a day
-const getUnassignedRecipes = (session: SwipeSession, plan: WeeklyPlan): string[] =>
-  session.shortlistedRecipeIds.filter(
-    id => !plan.slots.some(slot => slot.recipeId === id)
-  );
-
-// What's in a specific slot
-const getSlotRecipe = (
-  plan: WeeklyPlan,
-  dayIndex: number,
-  mealType: string
-): PlanSlot | null =>
-  plan.slots.find(s => s.dayIndex === dayIndex && s.mealType === mealType) ?? null;
-```
-
-### Allocation Constraints
-```typescript
-// One recipe per day per meal type
-const isDaySlotTaken = (plan: WeeklyPlan, dayIndex: number, mealType: string): boolean =>
-  plan.slots.some(s => s.dayIndex === dayIndex && s.mealType === mealType);
-
-// A recipe can only appear once in the plan
-const isRecipeAlreadyPlaced = (plan: WeeklyPlan, recipeId: string): boolean =>
-  plan.slots.some(s => s.recipeId === recipeId);
-
-const VALID_DAY_INDEXES = [0, 1, 2, 3, 4, 5, 6];
-const VALID_MEAL_TYPES = ["Breakfast", "Lunch", "Dinner"];
-```
-
-### Session Lifecycle
-```
-1. User taps "Curate This Week"
-   → Check for active SwipeSession matching current weekStartDate
-   → If none: create new SwipeSession + empty WeeklyPlan
-   → If exists: resume — stack = unseen recipes only
-
-2. User swipes right
-   → Validate shortlistedRecipeIds.length < SHORTLIST_CAP
-   → Add to shortlistedRecipeIds[] and seenRecipeIds[]
-   → If at cap: exit swipe mode, show allocation nudge
-
-3. User swipes left
-   → Add to passedRecipeIds[] and seenRecipeIds[]
-   → Do not re-show passed recipes this session
-
-4. Stack exhausted
-   → Show end state — "You've seen everything. Ready to plan?"
-   → Do not loop passed recipes back
-
-5. User allocates recipe to day (Phase 2)
-   → Tap recipe → selectedRecipeId set (UI state only)
-   → Tap day slot:
-     - Empty slot → create PlanSlot
-     - Filled slot → delete old PlanSlot, create new one
-   → selectedRecipeId cleared
-
-6. User removes recipe from slot
-   → Delete PlanSlot from slots[]
-   → Recipe returns to unassigned row
-   → NOT removed from shortlistedRecipeIds
-
-7. User locks the week
-   → WeeklyPlan.isLocked = true, lockedAt = now
-   → SwipeSession.lockedAt = now
-   → Generate shopping list from locked plan slots
-   → Archive session + plan
-   → Create fresh empty session + plan for next week
-```
-
-### Storage Keys
-```
-"mb_swipe_session_active"       // SwipeSession (current week)
-"mb_swipe_session_archive"      // SwipeSession[] (past weeks)
-"mb_weekly_plan_active"         // WeeklyPlan (current week)
-"mb_weekly_plan_archive"        // WeeklyPlan[] (past weeks)
-```
-
----
-
-## 4. SHOPPING LIST
-
-### ShoppingListItem
-Generated on week lock. Combines meal ingredients + household essentials.
-
-```typescript
-interface ShoppingListItem {
-  id: string;
-  name: string;
-  emoji: string | null;
-  categoryLabel: string;                      // "Produce", "Dairy", "Household" etc
-  sourceType: "meal" | "household";
-  sourcePlanSlotId: string | null;            // PlanSlot.id if meal-driven
-  sourceSessionId: string | null;             // EssentialCheckSession.id if household
-  sourceRecipeId: string | null;              // Recipe.id if meal-driven
-  quantity: number | null;
-  unit: string | null;
-  checked: boolean;                           // false on creation
-  checkedAt: string | null;                   // set when ticked in store
-}
-```
-
-### Consolidation Rules
-- Duplicate ingredients across multiple recipes are merged at generation time
-- Combined quantities where units match (e.g. two recipes both need 200g chicken → one item at 400g)
-- Household essentials always appear under "Household" categoryLabel
-- Meal ingredients grouped by department: Produce, Dairy, Meat, Pantry, Bakery, Frozen
-- List is static once locked — does not update if plan changes
-
-### Storage Keys
-```
-"mb_shopping_list_active"       // ShoppingListItem[] (current locked list)
-"mb_shopping_list_archive"      // ShoppingListItem[][] (past lists)
-```
-
----
-
-## 5. EDGE CASES — GLOBAL
-
-These apply across all models:
-
-| Scenario | Handling |
-|---|---|
-| Recipe imageUrl 404 | UI fallback — zinc gradient + Playfair italic title. Never mutate Recipe record. |
-| Special chars in names (&, ', ") | Store raw. Sanitize on render via JSX. Never innerHTML. |
-| Week changes mid-session | Compare weekStartDate to current Monday. Mismatch → archive old, create fresh. |
-| User deletes flagged essential item | Remove from EssentialItem[]. Remove id from activeSession.flaggedItemIds[]. |
-| Recipe un-shortlisted after placement | Remove from shortlistedRecipeIds[]. Also remove matching PlanSlot[]. |
-| Swipe right at cap | Guard with canShortlist(). If at cap, treat as neutral. Never exceed 10. |
-| Empty recipe library | Show prompt to add recipes. Do not enter swipe mode. |
-| All essentials neutral | Valid state. Entry point shows "All good." Not an error. |
-| Slot already filled on allocation | Replace: delete old PlanSlot, create new. No duplicates. |
-
----
-
-## IMPORT STANDARDS (Local-Only Mode)
-- **Primary Gate:** `rating >= 4.0` AND `calories != null` AND `protein != null`.
-- **Exclusion List:** Auto-reject if `categories` includes "Drink", "Cocktail", "Condiment", "Sauce", or "Dessert".
-- **Sanitization:** Apply Regex to fix `&amp;` and `&quot;`. Normalize `½`, `¼`, `¾` to decimal strings.
-
----
-
-## 6. CHANGELOG
+## 7. CHANGELOG
 
 | Date | Change |
 |---|---|
-| Feb 20 | v1.0 — Initial data models documented: Recipe, Essentials, Swipe, WeeklyPlan, ShoppingList |
+| Jul 26 | v2.0 — Full rewrite against actual code. Documented real Supabase columns, the local-fallback ingredient shape mismatch, in-memory-only Essentials, the new one-meal-per-day Plan model, and the non-persisted Shop model. Removed all models for deleted features (swipe, family, auth, customisation). |
+| Feb 20 | v1.0 — Initial data models documented: Recipe, Essentials, Swipe, WeeklyPlan, ShoppingList (superseded — described a Supabase-backed design that was never built) |

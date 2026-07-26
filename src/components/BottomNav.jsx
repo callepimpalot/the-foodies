@@ -1,12 +1,13 @@
 import React from 'react';
 import { useView } from '../context/ViewContext';
-import { Home, Map, Utensils, ShoppingBag } from 'lucide-react';
+import { Home, Map, Utensils, ShoppingBag, ScanLine } from 'lucide-react';
 
 export function BottomNav() {
     const { currentView, setCurrentView, VIEWS } = useView();
 
     const navItems = [
         { id: VIEWS.DASHBOARD, label: 'Home', Icon: Home },
+        { id: VIEWS.CAPTURE, label: 'Capture', Icon: ScanLine },
         { id: VIEWS.PLAN, label: 'Plan', Icon: Map },
         { id: VIEWS.RECIPES, label: 'Meals', Icon: Utensils },
         { id: VIEWS.SHOP, label: 'Shop', Icon: ShoppingBag },

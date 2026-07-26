@@ -1,11 +1,5 @@
-import { useState } from 'react'
-import { User, Bell } from 'lucide-react'
-import { BottomNav } from './components/BottomNav'
 import { useView } from './context/ViewContext'
-import { useArchetype } from './context/ArchetypeContext'
-import { FamilyProvider } from './context/FamilyContext'
-import { MissionControl } from './components/MissionControl'
-import { FamilyProfile } from './components/profile/FamilyProfile'
+import { BottomNav } from './components/BottomNav'
 
 // Views
 import { HomeView } from './views/HomeView'
@@ -14,33 +8,22 @@ import { RecipeView } from './views/RecipeView'
 import { ShopView } from './views/ShopView'
 import { PantryView } from './views/PantryView'
 import { CookModeView } from './views/CookModeView'
-import { BottomShoppingSheet } from './components/BottomShoppingSheet'
+import { CaptureView } from './views/CaptureView'
 
 function AppContent() {
   const { currentView, VIEWS } = useView();
-  // const { activeArchetype } = useArchetype();
-  const [showProfile, setShowProfile] = useState(false);
 
   // Render Logic
   const renderView = () => {
-    // If Profile Overlay is open, show FamilyProfile
-    if (showProfile) {
-      return (
-        <FamilyProfile onClose={() => setShowProfile(false)} />
-      );
-    }
-
     switch (currentView) {
-      case VIEWS.DASHBOARD: return <HomeView onOpenProfile={() => setShowProfile(true)} />;
+      case VIEWS.DASHBOARD: return <HomeView />;
       case VIEWS.PLAN: return <PlanView />;
       case VIEWS.RECIPES: return <RecipeView />;
       case VIEWS.SHOP: return <ShopView />;
       case VIEWS.PANTRY: return <PantryView />;
+      case VIEWS.CAPTURE: return <CaptureView />;
       case VIEWS.COOK_MODE: return <CookModeView />;
-      case VIEWS.PROFILE: return (
-        <FamilyProfile onClose={() => setShowProfile(false)} />
-      );
-      default: return <HomeView onOpenProfile={() => setShowProfile(true)} />;
+      default: return <HomeView />;
     }
   };
 
@@ -64,18 +47,13 @@ function AppContent() {
         </div>
       </main>
 
-      {!showProfile && <BottomShoppingSheet />}
-      {!showProfile && <BottomNav />}
+      <BottomNav />
     </div>
   )
 }
 
 function App() {
-  return (
-    <FamilyProvider>
-      <AppContent />
-    </FamilyProvider>
-  );
+  return <AppContent />;
 }
 
 export default App

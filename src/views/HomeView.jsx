@@ -2,19 +2,17 @@ import React, { useState } from 'react';
 import { useArchetype } from '../context/ArchetypeContext';
 import { useInventory } from '../context/InventoryContext';
 import { usePlan } from '../context/PlanContext';
-import { useFamily } from '../context/FamilyContext';
 import { useView } from '../context/ViewContext';
 import { useRecipes } from '../hooks/useRecipes';
 import { MealPreviewModal } from '../components/MealPreviewModal';
 import { AddToPlanModal } from '../components/AddToPlanModal';
 import { VIEWS } from '../utils/constants';
-import { ChevronRight, Clock, Flame, Users, User, Package } from 'lucide-react';
+import { ChevronRight, Clock, Flame, Users, Package } from 'lucide-react';
 
-export function HomeView({ onOpenProfile }) {
+export function HomeView() {
     const { activeArchetype } = useArchetype();
-    const { familyData } = useFamily();
     const { items } = useInventory();
-    const { addToPlan, weeklyPlan } = usePlan();
+    const { setDayRecipe, resolveDay } = usePlan();
     const { setCurrentView } = useView();
     const { recipes } = useRecipes();
 
@@ -27,115 +25,32 @@ export function HomeView({ onOpenProfile }) {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
 
-    // Featured Meal & Hero Logic
-    const currentSlot = hour < 10 ? 'breakfast' : hour < 14 ? 'lunch' : 'dinner';
-    const SLOTS = ['breakfast', 'lunch', 'dinner'];
-    const today = new Date().toISOString().split('T')[0];
+    // Next 3 days — one meal per day
+    const nextDays = Array.from({ length: 3 }, (_, i) => {
+        const dateObj = new Date();
+        dateObj.setDate(dateObj.getDate() + i);
+        const dateStr = dateObj.toISOString().split('T')[0];
+        const resolved = resolveDay(dateStr);
 
-    // Calculate Next 3 Meals
-    const nextMeals = [];
-    let loopSlotIndex = SLOTS.indexOf(currentSlot);
-    let loopDateObj = new Date(); // Start today
-
-    for (let i = 0; i < 3; i++) {
-        const loopDateStr = loopDateObj.toISOString().split('T')[0];
-        const dayPlan = weeklyPlan[loopDateStr] || {};
-        const mealEntry = dayPlan[SLOTS[loopSlotIndex]];
-
-        let resolvedMeal = mealEntry?.recipe || mealEntry;
-
-        // Comprehensive Mapping Logic
-        // Comprehensive Mapping Logic
-        if (resolvedMeal) {
-            let foundRecipe = null;
-
-            // 1. Try key lookup
-            const idToFind = resolvedMeal.id || resolvedMeal.recipeId || (typeof resolvedMeal === 'string' ? resolvedMeal : null);
-
-            if (idToFind) {
-                // FORCE STRING COMPARISON
-                foundRecipe = recipes.find(r => String(r.id) === String(idToFind));
-            }
-
-            // 2. Fallback: Title Match (Vital for Legacy/Migration)
-            if (!foundRecipe && resolvedMeal.title) {
-                foundRecipe = recipes.find(r => r.title.toLowerCase() === resolvedMeal.title.toLowerCase());
-                if (foundRecipe) {
-                    console.log(`🔧 Auto-Repaired Link for "${resolvedMeal.title}": Legacy ID ${idToFind} -> UUID ${foundRecipe.id}`);
-                }
-            }
-
-            if (foundRecipe) {
-                // 3. FORCE MERGE - Prefer generic library data for structural things like IMAGE
-                resolvedMeal = {
-                    ...foundRecipe, // Base library data (images, title)
-                    ...((typeof resolvedMeal === 'object') ? resolvedMeal : {}), // Instance overrides
-                    // EXPLICIT HYDRATION: Force core data from library to ensure Cook Mode works
-                    id: foundRecipe.id, // Keep the real ID (Auto-Repair)
-                    instructions: foundRecipe.instructions || resolvedMeal.instructions,
-                    ingredients: foundRecipe.ingredients || resolvedMeal.ingredients,
-                    description: foundRecipe.description || resolvedMeal.description,
-                    calories: foundRecipe.calories || resolvedMeal.calories,
-                    time: foundRecipe.time || resolvedMeal.time,
-                    title: foundRecipe.title || resolvedMeal.title,
-                    image_url: foundRecipe.image_url || ((typeof resolvedMeal === 'object') ? resolvedMeal.image_url : null)
-                };
-            } else {
-                console.warn(`Hero Mapping: Could not find recipe with ID ${idToFind} or Title "${resolvedMeal.title}" in library.`);
-            }
-        } else {
-            // Case: No meal logic
-        }
-
-        // Console Debugging
-        console.log(`Hero Logic [${SLOTS[loopSlotIndex]}]:`, {
-            idSearched: resolvedMeal?.id,
-            found: !!resolvedMeal?.image_url,
-            finalImage: resolvedMeal?.image_url
-        });
-
-        // Date Badge Logic
         let badgeLabel = null;
-        if (i > 0) { // Don't show for first item (Today)
-            if (i === 1 && loopSlotIndex === 0) {
-                // Optimization: loop logic is complex, simpler check:
-                // basic check if date is tomorrow
-            }
+        if (i === 1) badgeLabel = 'Tomorrow';
+        else if (i > 1) badgeLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-            // Simplest approach: compare dates
-            const now = new Date();
-            const itemDate = new Date(loopDateObj);
-            const diffTime = itemDate.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays > 0) {
-                if (diffDays === 1) badgeLabel = 'Tomorrow';
-                else badgeLabel = loopDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }
-        }
-
-        nextMeals.push({
-            label: SLOTS[loopSlotIndex].charAt(0).toUpperCase() + SLOTS[loopSlotIndex].slice(1),
+        return {
+            dateStr,
+            label: i === 0 ? 'Today' : dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
             badgeLabel,
-            meal: resolvedMeal,
-            slot: SLOTS[loopSlotIndex]
-        });
-
-        // Advance Loop
-        loopSlotIndex++;
-        if (loopSlotIndex >= SLOTS.length) {
-            loopSlotIndex = 0;
-            loopDateObj.setDate(loopDateObj.getDate() + 1);
-        }
-    }
+            resolved,
+        };
+    });
 
     const handleMealClick = (meal, source = 'library') => {
         setSelectedMeal(meal);
         setSelectedSource(source);
     };
     const handleAddToPlanClick = () => setShowAddModal(true);
-    const handleConfirmAddToPlan = (date, type, recipe) => {
-        if (addToPlan) addToPlan(date, type, recipe);
+    const handleConfirmAddToPlan = (date, recipe) => {
+        setDayRecipe(date, recipe);
         setShowAddModal(false);
         setSelectedMeal(null);
     };
@@ -157,15 +72,9 @@ export function HomeView({ onOpenProfile }) {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-zinc-900 drop-shadow-sm">{greeting}</h1>
                     <p className="text-sm text-zinc-800 font-bold opacity-80">
-                        The Foodies Family Orchestrator
+                        Your culinary week, organised.
                     </p>
                 </div>
-                <button
-                    onClick={onOpenProfile}
-                    className="text-zinc-900 transition-colors hover:text-zinc-700 active:scale-95 mt-1 bg-white/20 backdrop-blur-sm p-2 rounded-full"
-                >
-                    <User size={20} strokeWidth={1.5} />
-                </button>
             </header>
 
             {/* HERO CAROUSEL: Next 24H */}
@@ -179,92 +88,91 @@ export function HomeView({ onOpenProfile }) {
                     className="mx-4 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-4 pb-4 px-1"
                     onScroll={handleScroll}
                 >
-                    {nextMeals.map((slotItem, index) => (
-                        <div
-                            key={`${slotItem.slot}-${index}`}
-                            onClick={() => slotItem.meal ? handleMealClick(slotItem.meal, 'hero') : setCurrentView(VIEWS.PLAN)}
-                            className="snap-center min-w-full group relative h-[320px] overflow-hidden rounded-[2rem] shadow-xl cursor-pointer active:scale-[0.99] transition-all duration-300"
-                        >
-                            <div
-                                className="absolute inset-0 transition-transform duration-700 group-hover:scale-105"
-                            >
-                                {/* Universal Image Mapping: Strictly use image_url */}
-                                {slotItem.meal?.image_url ? (
-                                    <img
-                                        src={slotItem.meal.image_url}
-                                        alt={slotItem.meal.title}
-                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                        onError={(e) => {
-                                            // Fallback to FOODIES gradient only on actual error
-                                            e.target.style.display = 'none';
-                                            e.currentTarget.nextElementSibling.style.display = 'flex';
-                                        }}
-                                    />
-                                ) : null}
+                    {nextDays.map((day) => {
+                        const recipe = day.resolved?.recipe;
+                        const isClickable = !!recipe;
 
-                                {/* Fallback Container - Shown if no image_url OR on Error */}
-                                <div
-                                    className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 flex items-center justify-center"
-                                    style={{ display: slotItem.meal?.image_url ? 'none' : 'flex' }}
-                                >
-                                    <span className="text-zinc-700 font-black text-4xl tracking-tighter opacity-50">FOODIES</span>
+                        return (
+                            <div
+                                key={day.dateStr}
+                                onClick={() => isClickable ? handleMealClick(recipe, 'hero') : setCurrentView(VIEWS.PLAN)}
+                                className="snap-center min-w-full group relative h-[320px] overflow-hidden rounded-[2rem] shadow-xl cursor-pointer active:scale-[0.99] transition-all duration-300"
+                            >
+                                <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
+                                    {recipe?.image_url ? (
+                                        <img
+                                            src={recipe.image_url}
+                                            alt={recipe.title}
+                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+
+                                    <div
+                                        className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 flex items-center justify-center"
+                                        style={{ display: recipe?.image_url ? 'none' : 'flex' }}
+                                    >
+                                        <span className="text-zinc-700 font-black text-4xl tracking-tighter opacity-50">FOODIES</span>
+                                    </div>
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                                <div className="absolute top-6 left-6 z-20">
+                                    <span className="bg-zinc-900/60 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                        {day.resolved?.type === 'leftover' ? 'Leftovers' : 'Up Next'}
+                                    </span>
+                                </div>
+
+                                <div className="absolute bottom-0 left-0 right-0 p-6">
+                                    {recipe ? (
+                                        <>
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                <span className="bg-white/20 backdrop-blur-md border border-white/10 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                                                    {day.label}
+                                                </span>
+                                                {day.badgeLabel && (
+                                                    <span className="backdrop-blur-md bg-black/30 text-white text-[10px] font-medium px-2 py-1 rounded-full border border-white/5">
+                                                        {day.badgeLabel}
+                                                    </span>
+                                                )}
+                                                <span className="bg-zinc-900/80 backdrop-blur-sm text-white px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1">
+                                                    <Clock size={10} /> {recipe.time || '20m'}
+                                                </span>
+                                            </div>
+
+                                            <h3 className="text-3xl font-bold text-white mb-2 leading-tight tracking-tight drop-shadow-md">
+                                                {recipe.title}
+                                            </h3>
+                                            <div className="flex items-center gap-4 text-white/90 text-[13px] font-medium">
+                                                <span className="flex items-center gap-1.5"><Flame size={14} className="text-orange-400" /> {recipe.kcal ?? '450'} kcal</span>
+                                                <span className="flex items-center gap-1.5"><Users size={14} /> {day.resolved?.servings ?? recipe.baseServings ?? 2} Servings</span>
+                                            </div>
+                                        </>
+                                    ) : day.resolved?.type === 'note' ? (
+                                        <div className="text-center pb-4">
+                                            <h3 className="text-2xl italic font-bold text-white mb-1 tracking-tight">{day.resolved.note}</h3>
+                                            <p className="text-white/60 text-sm">{day.label}</p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center pb-4">
+                                            <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Nothing planned</h3>
+                                            <button className="bg-white text-zinc-900 px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform">
+                                                Plan {day.label}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                            {/* Up Next Overlay Tag */}
-                            <div className="absolute top-6 left-6 z-20">
-                                <span className="bg-zinc-900/60 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                                    Up Next
-                                </span>
-                            </div>
-
-                            {/* Top Tags */}
-
-
-                            {/* Bottom Content */}
-                            <div className="absolute bottom-0 left-0 right-0 p-6">
-                                {slotItem.meal ? (
-                                    <>
-                                        {/* Badges moved to bottom */}
-                                        <div className="flex flex-wrap gap-2 mb-3">
-                                            <span className="bg-white/20 backdrop-blur-md border border-white/10 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
-                                                {slotItem.label}
-                                            </span>
-                                            {slotItem.badgeLabel && (
-                                                <span className="backdrop-blur-md bg-black/30 text-white text-[10px] font-medium px-2 py-1 rounded-full border border-white/5">
-                                                    {slotItem.badgeLabel}
-                                                </span>
-                                            )}
-                                            <span className="bg-zinc-900/80 backdrop-blur-sm text-white px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1">
-                                                <Clock size={10} /> {slotItem.meal.time || '20m'}
-                                            </span>
-                                        </div>
-
-                                        <h3 className="text-3xl font-bold text-white mb-2 leading-tight tracking-tight drop-shadow-md">
-                                            {slotItem.meal.label || slotItem.meal.title}
-                                        </h3>
-                                        <div className="flex items-center gap-4 text-white/90 text-[13px] font-medium">
-                                            <span className="flex items-center gap-1.5"><Flame size={14} className="text-orange-400" /> {slotItem.meal.calories || '450'} kcal</span>
-                                            <span className="flex items-center gap-1.5"><Users size={14} /> 2 Servings</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center pb-4">
-                                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Nothing planned</h3>
-                                        <button className="bg-white text-zinc-900 px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform">
-                                            Plan {slotItem.label}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Carousel Indicators */}
                 <div className="flex justify-center gap-2 mt-2">
-                    {nextMeals.map((_, index) => (
+                    {nextDays.map((_, index) => (
                         <div
                             key={index}
                             className={`h-1.5 rounded-full transition-all duration-300 ${index === activeIndex ? 'w-6 bg-zinc-800' : 'w-1.5 bg-zinc-200'}`}

@@ -24,7 +24,7 @@ Each agent below has a corresponding manifest file in `/.agent/`. The manifest i
 ---
 
 ### @creator — The Designer
-**Manifest:** `_creator.md`
+**Manifest:** `@creator.md`
 **Focus:** UI/UX, CSS styling, component building, animations, visual polish
 **Mandate:** Eliminate AI Slop. Bold, characterful aesthetics only. Full-bleed. Premium.
 **Invoke when:** Any task touching screens, components, visual layout, or design system implementation
@@ -33,7 +33,7 @@ Each agent below has a corresponding manifest file in `/.agent/`. The manifest i
 ---
 
 ### @engineer — The Builder
-**Manifest:** `_engineer.md`
+**Manifest:** `@engineer.md`
 **Focus:** Logic, API integration, Supabase schema, state management, bug fixing, stability
 **Mandate:** 100% Stability & Data Integrity. Zero crashes. Zero unhandled rejections.
 **Invoke when:** Data models, API calls, Supabase queries, routing, auth, performance, any bug

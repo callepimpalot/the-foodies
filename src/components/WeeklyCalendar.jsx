@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { usePlan } from '../context/PlanContext';
-import { RecipeSelector } from './RecipeSelector';
 import { DayCard } from './DayCard';
 
-export function WeeklyCalendar({ onSlotClick, highlightMode = false }) {
-    const { weeklyPlan, isPlanConfirmed, addToPlan, removeFromPlan } = usePlan();
-    const [selecting, setSelecting] = useState(null); // { date, slot } - fallback if no onSlotClick
+export function WeeklyCalendar({ onDayClick }) {
+    const { isPlanConfirmed, clearDay, resolveDay } = usePlan();
 
     // Generate next 7 days
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -14,32 +12,17 @@ export function WeeklyCalendar({ onSlotClick, highlightMode = false }) {
         return {
             dateStr: d.toISOString().split('T')[0],
             dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
-            dayNum: d.getDate()
+            dayNum: d.getDate(),
         };
     });
 
     const todayStr = new Date().toISOString().split('T')[0];
 
-    const handleSlotInteraction = (date, slot) => {
-        if (isPlanConfirmed) return;
-
-        if (onSlotClick) {
-            onSlotClick(date, slot);
-        } else {
-            setSelecting({ date, slot });
-        }
-    };
-
-    const handleSlotRemove = (date, slot) => {
-        if (isPlanConfirmed) return;
-        removeFromPlan(date, slot);
-    };
-
     return (
         <div className="w-full h-full flex flex-col">
             <div className="flex-1 w-full overflow-x-auto no-scrollbar scroll-smooth pl-[24px] pr-[24px] pb-6 pt-2">
                 <div className="flex gap-[12px] h-full min-w-max pb-[88px] snap-x snap-mandatory">
-                    {days.map((day, index) => {
+                    {days.map((day) => {
                         const isToday = day.dateStr === todayStr;
                         const isPast = day.dateStr < todayStr;
 
@@ -51,30 +34,15 @@ export function WeeklyCalendar({ onSlotClick, highlightMode = false }) {
                                 dayNum={day.dayNum}
                                 isToday={isToday}
                                 isPast={isPast}
-                                slots={weeklyPlan[day.dateStr] || {}}
-                                onSlotClick={(date, slot) => handleSlotInteraction(date, slot)}
-                                onSlotRemove={(date, slot) => handleSlotRemove(date, slot)}
+                                resolved={resolveDay(day.dateStr)}
+                                onDayClick={() => onDayClick(day.dateStr)}
+                                onRemove={() => clearDay(day.dateStr)}
                                 isPlanConfirmed={isPlanConfirmed}
-                                selectedSlot={selecting}
                             />
                         );
                     })}
                 </div>
             </div>
-
-            {
-                selecting && (
-                    <RecipeSelector
-                        slot={selecting.slot}
-                        onSelect={(recipe) => {
-                            addToPlan(selecting.date, selecting.slot, recipe);
-                            setSelecting(null);
-                        }}
-                        onClose={() => setSelecting(null)}
-                    />
-                )
-            }
         </div>
     );
 }
-

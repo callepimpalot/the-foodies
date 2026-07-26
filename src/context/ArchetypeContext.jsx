@@ -8,7 +8,7 @@ export const ARCHETYPES = {
         label: 'The Solo High-Performer',
         description: 'Focus on protein targets and easy digestion.',
         glow: 'var(--glow-training)',
-        accent: 'cyan'
+        accent: 'gold'
     },
     FAMILY: {
         id: 'FAMILY',

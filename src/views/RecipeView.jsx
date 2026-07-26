@@ -6,7 +6,7 @@ import { RecipeCard } from '../components/RecipeCard';
 
 export function RecipeView() {
     const { recipes, loading, error } = useRecipes();
-    const { addToPlan } = usePlan();
+    const { setDayRecipe } = usePlan();
     const { setCurrentView, VIEWS } = useView();
     // console.log('Rendering Recipes:', recipes); // Debug Log
     const [selectedRecipe, setSelectedRecipe] = useState(null);
@@ -216,8 +216,8 @@ export function RecipeView() {
                         <div className="flex flex-col gap-3 mt-8">
                             <button
                                 onClick={() => {
-                                    // Default to today for quick add, or open a selector. For now, simple add.
-                                    addToPlan(new Date().toISOString().split('T')[0], 'dinner', selectedRecipe);
+                                    // Default to today for quick add
+                                    setDayRecipe(new Date().toISOString().split('T')[0], selectedRecipe);
                                     setSelectedRecipe(null);
                                 }}
                                 style={{
