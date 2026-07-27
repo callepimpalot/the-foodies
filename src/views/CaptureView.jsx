@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Camera, Image as ImageIcon, ClipboardPaste, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X } from 'lucide-react';
 import { useRecipeCapture } from '../hooks/useRecipeCapture';
 import { useView } from '../context/ViewContext';
 
@@ -8,15 +8,49 @@ const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
 
 export function CaptureView() {
     const { setCurrentView, VIEWS } = useView();
-    const { status, error, draft, captureFromText, captureFromImage, updateDraft, save, reset } = useRecipeCapture();
+    const { status, error, draft, capture, updateDraft, save, reset } = useRecipeCapture();
     const [pastedText, setPastedText] = useState('');
+    const [images, setImages] = useState([]); // [{ file, previewUrl }]
     const cameraInputRef = useRef(null);
     const libraryInputRef = useRef(null);
 
+    const addImages = (files) => {
+        const additions = files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+        setImages((prev) => [...prev, ...additions]);
+    };
+
+    const removeImage = (idx) => {
+        setImages((prev) => {
+            URL.revokeObjectURL(prev[idx].previewUrl);
+            return prev.filter((_, i) => i !== idx);
+        });
+    };
+
     const handleFileChosen = (e) => {
-        const file = e.target.files?.[0];
+        const files = Array.from(e.target.files ?? []);
         e.target.value = ''; // allow re-choosing the same file later
-        if (file) captureFromImage(file);
+        if (files.length) addImages(files);
+    };
+
+    const handlePaste = (e) => {
+        const files = Array.from(e.clipboardData?.items ?? [])
+            .filter((item) => item.type.startsWith('image/'))
+            .map((item) => item.getAsFile())
+            .filter(Boolean);
+        if (files.length) {
+            e.preventDefault(); // don't also try to paste the image as garbled text
+            addImages(files);
+        }
+    };
+
+    const canExtract = pastedText.trim().length > 0 || images.length > 0;
+    const handleExtract = () => capture({ text: pastedText, images: images.map((img) => img.file) });
+
+    const resetComposer = () => {
+        images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+        setImages([]);
+        setPastedText('');
+        reset();
     };
 
     return (
@@ -31,52 +65,65 @@ export function CaptureView() {
             </div>
 
             {status === 'idle' && (
-                <div className="flex flex-col gap-[20px]">
+                <div className="flex flex-col gap-[16px]">
                     <div className="rounded-[18px] border border-[#3f3f46] bg-[#18181b] p-[16px] flex flex-col gap-[12px]">
-                        <div className="flex items-center gap-2 text-[#a1a1aa]">
-                            <ClipboardPaste size={16} strokeWidth={1.5} />
-                            <span className="font-sans font-medium text-[12px] uppercase tracking-wide">Paste recipe text</span>
-                        </div>
+                        {images.length > 0 && (
+                            <div className="flex gap-[8px] flex-wrap">
+                                {images.map((img, idx) => (
+                                    <div key={img.previewUrl} className="relative w-[64px] h-[64px] rounded-[10px] overflow-hidden shrink-0">
+                                        <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={() => removeImage(idx)}
+                                            className="absolute top-[2px] right-[2px] w-[18px] h-[18px] rounded-full bg-black/70 flex items-center justify-center text-white"
+                                        >
+                                            <X size={11} strokeWidth={2} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         <textarea
                             value={pastedText}
                             onChange={(e) => setPastedText(e.target.value)}
-                            placeholder="Paste a recipe from anywhere — a website, a message, notes..."
+                            onPaste={handlePaste}
+                            placeholder="Paste a screenshot (Ctrl/Cmd+V) and/or type or paste recipe text here..."
                             rows={6}
                             className="w-full resize-none bg-[#09090b] border border-[#27272a] rounded-[10px] p-[12px] font-sans text-[14px] text-[#e4e4e7] placeholder:text-[#52525b] focus:outline-none focus:border-[#71717a]"
                         />
+
+                        <div className="flex gap-[8px]">
+                            <button
+                                onClick={() => cameraInputRef.current?.click()}
+                                className="flex-1 flex items-center justify-center gap-2 py-[12px] rounded-[10px] border border-[#3f3f46] bg-[#09090b] text-[#a1a1aa] hover:text-[#e4e4e7] transition-colors"
+                            >
+                                <Camera size={16} strokeWidth={1.5} />
+                                <span className="font-sans font-medium text-[12px]">Take Photo</span>
+                            </button>
+                            <button
+                                onClick={() => libraryInputRef.current?.click()}
+                                className="flex-1 flex items-center justify-center gap-2 py-[12px] rounded-[10px] border border-[#3f3f46] bg-[#09090b] text-[#a1a1aa] hover:text-[#e4e4e7] transition-colors"
+                            >
+                                <ImageIcon size={16} strokeWidth={1.5} />
+                                <span className="font-sans font-medium text-[12px]">Add Photo</span>
+                            </button>
+                        </div>
+
                         <button
-                            disabled={!pastedText.trim()}
-                            onClick={() => captureFromText(pastedText)}
+                            disabled={!canExtract}
+                            onClick={handleExtract}
                             className="w-full py-[14px] rounded-full bg-[#fafafa] text-[#09090b] font-display font-bold text-[15px] disabled:opacity-30 disabled:cursor-not-allowed transition-transform active:scale-[0.98]"
                         >
                             Extract Recipe
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-3 text-[#3f3f46]">
-                        <div className="flex-1 h-px bg-[#27272a]" />
-                        <span className="font-sans text-[11px] uppercase tracking-wide text-[#52525b]">or</span>
-                        <div className="flex-1 h-px bg-[#27272a]" />
-                    </div>
+                    <p className="font-sans text-[12px] text-[#52525b] text-center">
+                        Combine a screenshot, a photo, and/or typed text — extraction uses everything you add.
+                    </p>
 
-                    <div className="grid grid-cols-2 gap-[12px]">
-                        <button
-                            onClick={() => cameraInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center gap-2 py-[24px] rounded-[18px] border border-[#3f3f46] bg-[#18181b] text-[#a1a1aa] hover:text-[#e4e4e7] transition-colors"
-                        >
-                            <Camera size={22} strokeWidth={1.5} />
-                            <span className="font-sans font-medium text-[12px]">Take Photo</span>
-                        </button>
-                        <button
-                            onClick={() => libraryInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center gap-2 py-[24px] rounded-[18px] border border-[#3f3f46] bg-[#18181b] text-[#a1a1aa] hover:text-[#e4e4e7] transition-colors"
-                        >
-                            <ImageIcon size={22} strokeWidth={1.5} />
-                            <span className="font-sans font-medium text-[12px]">From Library</span>
-                        </button>
-                    </div>
                     <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChosen} />
-                    <input ref={libraryInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChosen} />
+                    <input ref={libraryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChosen} />
                 </div>
             )}
 
@@ -104,7 +151,7 @@ export function CaptureView() {
                 <RecipeReviewForm
                     draft={draft}
                     onChange={updateDraft}
-                    onCancel={reset}
+                    onCancel={resetComposer}
                     onSave={save}
                     saveError={error}
                 />
@@ -127,7 +174,7 @@ export function CaptureView() {
                             View in Recipes
                         </button>
                         <button
-                            onClick={() => { reset(); setPastedText(''); }}
+                            onClick={resetComposer}
                             className="w-full py-[12px] rounded-full bg-transparent text-[#a1a1aa] font-sans font-medium text-[13px]"
                         >
                             Add another

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { extractRecipeFromText, extractRecipeFromImage } from '../lib/recipeExtraction';
+import { extractRecipe } from '../lib/recipeExtraction';
 
 // status: idle -> extracting -> review -> saving -> saved
 //                            \-> error (from extracting or saving)
@@ -9,31 +9,18 @@ export function useRecipeCapture() {
     const [error, setError] = useState(null);
     const [draft, setDraft] = useState(null);
 
-    const captureFromText = async (text) => {
-        if (!text?.trim()) return;
+    const capture = async ({ text, images }) => {
         setStatus('extracting');
         setError(null);
         try {
-            const result = await extractRecipeFromText(text);
+            const result = await extractRecipe({ text, images });
             setDraft(result);
             setStatus('review');
         } catch (err) {
-            console.error('Recipe text extraction failed:', err);
-            setError("We couldn't read that recipe clearly. Try pasting the full text, or a clearer photo.");
-            setStatus('error');
-        }
-    };
-
-    const captureFromImage = async (file) => {
-        setStatus('extracting');
-        setError(null);
-        try {
-            const result = await extractRecipeFromImage(file);
-            setDraft(result);
-            setStatus('review');
-        } catch (err) {
-            console.error('Recipe image extraction failed:', err);
-            setError("We couldn't read that recipe clearly. Try a cleaner photo or better lighting.");
+            console.error('Recipe extraction failed:', err);
+            setError(err?.message?.startsWith('Add some text')
+                ? err.message
+                : "We couldn't read that recipe clearly. Try adding more text, a clearer photo, or both.");
             setStatus('error');
         }
     };
@@ -106,5 +93,5 @@ export function useRecipeCapture() {
         setStatus('idle');
     };
 
-    return { status, error, draft, captureFromText, captureFromImage, updateDraft, save, reset };
+    return { status, error, draft, capture, updateDraft, save, reset };
 }
