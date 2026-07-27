@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X } from 'lucide-react';
+import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X, Send } from 'lucide-react';
 import { useRecipeCapture } from '../hooks/useRecipeCapture';
 import { useView } from '../context/ViewContext';
 
@@ -8,7 +8,7 @@ const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
 
 export function CaptureView() {
     const { setCurrentView, VIEWS } = useView();
-    const { status, error, draft, capture, updateDraft, save, reset } = useRecipeCapture();
+    const { status, error, draft, capture, updateDraft, save, reset, refine, refining, chatLog } = useRecipeCapture();
     const [pastedText, setPastedText] = useState('');
     const [images, setImages] = useState([]); // [{ file, previewUrl }]
     const cameraInputRef = useRef(null);
@@ -154,6 +154,9 @@ export function CaptureView() {
                     onCancel={resetComposer}
                     onSave={save}
                     saveError={error}
+                    onRefine={refine}
+                    refining={refining}
+                    chatLog={chatLog}
                 />
             )}
 
@@ -186,7 +189,7 @@ export function CaptureView() {
     );
 }
 
-function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError }) {
+function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefine, refining, chatLog }) {
     const ingredients = draft.ingredients ?? [];
     const steps = draft.steps ?? [];
 
@@ -209,6 +212,8 @@ function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError }) {
             <button onClick={onCancel} className="flex items-center gap-1 text-[#71717a] font-sans text-[13px] self-start">
                 <ArrowLeft size={16} strokeWidth={1.5} /> Start over
             </button>
+
+            <RefineChat onRefine={onRefine} refining={refining} chatLog={chatLog} />
 
             <Field label="Title">
                 <input
@@ -315,10 +320,62 @@ function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError }) {
 
             <button
                 onClick={onSave}
-                className="w-full py-[16px] rounded-full bg-[#fafafa] text-[#09090b] font-display font-bold text-[16px] transition-transform active:scale-[0.98]"
+                disabled={refining}
+                className="w-full py-[16px] rounded-full bg-[#fafafa] text-[#09090b] font-display font-bold text-[16px] transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
             >
                 Looks Good — Save Recipe
             </button>
+        </div>
+    );
+}
+
+function RefineChat({ onRefine, refining, chatLog }) {
+    const [message, setMessage] = useState('');
+
+    const handleSend = () => {
+        if (!message.trim() || refining) return;
+        onRefine(message.trim());
+        setMessage('');
+    };
+
+    return (
+        <div className="flex flex-col gap-[10px] rounded-[14px] border border-[#3f3f46] bg-[#09090b] p-[14px]">
+            <span className="font-sans font-semibold text-[10px] uppercase text-[#71717a] tracking-[0.12em]">
+                Ask for changes
+            </span>
+
+            {chatLog.length > 0 && (
+                <div className="flex flex-col gap-[10px] max-h-[180px] overflow-y-auto">
+                    {chatLog.map((entry, idx) => (
+                        <div key={idx} className="flex flex-col gap-[2px]">
+                            <span className="font-sans text-[13px] text-[#e4e4e7]">"{entry.instruction}"</span>
+                            <span className="font-sans text-[12px] text-[#c9a96e] italic">{entry.changeSummary}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {refining && (
+                <p className="font-display italic text-[13px] text-[#71717a] animate-pulse">Applying that change...</p>
+            )}
+
+            <div className="flex gap-[8px]">
+                <input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                    placeholder="e.g. make it 4 servings, swap carrots for cucumbers"
+                    disabled={refining}
+                    className="flex-1 bg-[#18181b] border border-[#27272a] rounded-[10px] p-[10px] font-sans text-[13px] text-[#e4e4e7] placeholder:text-[#52525b] focus:outline-none focus:border-[#71717a] disabled:opacity-50"
+                />
+                <button
+                    onClick={handleSend}
+                    disabled={refining || !message.trim()}
+                    className="px-[16px] rounded-[10px] bg-[#c9a96e] text-[#09090b] flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                    <Send size={15} strokeWidth={2} />
+                </button>
+            </div>
         </div>
     );
 }

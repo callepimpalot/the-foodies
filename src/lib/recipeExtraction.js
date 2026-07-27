@@ -49,6 +49,28 @@ Rules:
 - kcal: estimate per serving if not stated; use your best judgement, do not leave null unless truly impossible to estimate.
 - base_servings: the number of people the recipe serves as written.`;
 
+const REFINE_SCHEMA = {
+    type: 'object',
+    properties: {
+        recipe: RECIPE_SCHEMA,
+        changeSummary: { type: 'string' },
+    },
+    required: ['recipe', 'changeSummary'],
+};
+
+const REFINE_PROMPT = `You are helping refine a recipe based on a follow-up request, like sparring
+with a chef before committing to a final version. You'll be given the current recipe as JSON and a
+request describing a change. Apply the request and return the complete updated recipe (not just the
+changed fields) plus a one-sentence summary of what you changed.
+
+Rules:
+- Apply only what's asked, but adjust anything that logically follows — e.g. scaling servings scales
+  every ingredient quantity proportionally; swapping an ingredient keeps a sensible quantity/unit for
+  the replacement; removing an ingredient also removes or rewrites any step that specifically calls
+  for it.
+- Keep everything else identical to the current recipe unless the request requires changing it.
+- changeSummary should be short and human, e.g. "Scaled to 4 servings and swapped carrots for cucumbers."`;
+
 function cleanJson(text) {
     return (text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
 }
@@ -92,6 +114,29 @@ export async function extractRecipe({ text, images = [] } = {}) {
     const raw = cleanJson(response.text);
     if (!raw) throw new Error('Gemini returned an empty response.');
     return JSON.parse(raw);
+}
+
+// Applies one follow-up instruction to an already-extracted recipe draft, e.g. "make it 4 servings"
+// or "swap carrots for cucumbers". Returns the updated recipe plus a short human-readable summary.
+export async function refineRecipe(currentRecipe, instruction) {
+    assertConfigured();
+    if (!instruction?.trim()) {
+        throw new Error('Describe what you want to change.');
+    }
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `${REFINE_PROMPT}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: REFINE_SCHEMA,
+        },
+    });
+
+    const raw = cleanJson(response.text);
+    if (!raw) throw new Error('Gemini returned an empty response.');
+    const parsed = JSON.parse(raw);
+    return { recipe: parsed.recipe, changeSummary: parsed.changeSummary };
 }
 
 function fileToBase64(file) {

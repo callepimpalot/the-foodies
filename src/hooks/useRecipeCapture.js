@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { extractRecipe } from '../lib/recipeExtraction';
+import { extractRecipe, refineRecipe } from '../lib/recipeExtraction';
 
 // status: idle -> extracting -> review -> saving -> saved
 //                            \-> error (from extracting or saving)
@@ -8,6 +8,8 @@ export function useRecipeCapture() {
     const [status, setStatus] = useState('idle');
     const [error, setError] = useState(null);
     const [draft, setDraft] = useState(null);
+    const [chatLog, setChatLog] = useState([]); // [{ instruction, changeSummary }]
+    const [refining, setRefining] = useState(false);
 
     const capture = async ({ text, images }) => {
         setStatus('extracting');
@@ -22,6 +24,22 @@ export function useRecipeCapture() {
                 ? err.message
                 : "We couldn't read that recipe clearly. Try adding more text, a clearer photo, or both.");
             setStatus('error');
+        }
+    };
+
+    const refine = async (instruction) => {
+        if (!draft || !instruction?.trim()) return;
+        setRefining(true);
+        setError(null);
+        try {
+            const { recipe, changeSummary } = await refineRecipe(draft, instruction);
+            setDraft(recipe);
+            setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary }]);
+        } catch (err) {
+            console.error('Recipe refine failed:', err);
+            setError("Couldn't apply that change — try rephrasing it.");
+        } finally {
+            setRefining(false);
         }
     };
 
@@ -91,7 +109,8 @@ export function useRecipeCapture() {
         setDraft(null);
         setError(null);
         setStatus('idle');
+        setChatLog([]);
     };
 
-    return { status, error, draft, capture, updateDraft, save, reset };
+    return { status, error, draft, capture, updateDraft, save, reset, refine, refining, chatLog };
 }
