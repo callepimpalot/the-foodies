@@ -20,9 +20,7 @@ export function useRecipeCapture() {
             setStatus('review');
         } catch (err) {
             console.error('Recipe extraction failed:', err);
-            setError(err?.message?.startsWith('Add some text')
-                ? err.message
-                : "We couldn't read that recipe clearly. Try adding more text, a clearer photo, or both.");
+            setError(err?.message || "We couldn't read that recipe clearly. Try adding more text, a clearer photo, or both.");
             setStatus('error');
         }
     };
@@ -37,7 +35,7 @@ export function useRecipeCapture() {
             setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary }]);
         } catch (err) {
             console.error('Recipe refine failed:', err);
-            setError("Couldn't apply that change — try rephrasing it.");
+            setError(err?.message || "Couldn't apply that change — try rephrasing it.");
         } finally {
             setRefining(false);
         }

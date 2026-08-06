@@ -98,21 +98,28 @@ export async function extractRecipe({ text, images = [] } = {}) {
 
     const parts = [{ text: promptText }];
     for (const file of images) {
-        const { base64, mimeType } = await fileToBase64(file);
+        const normalized = await normalizeImage(file);
+        const { base64, mimeType } = await fileToBase64(normalized);
         parts.push({ inlineData: { mimeType, data: base64 } });
     }
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: parts,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: RECIPE_SCHEMA,
-        },
-    });
+    let response;
+    try {
+        response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: parts,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: RECIPE_SCHEMA,
+                maxOutputTokens: 8192,
+            },
+        });
+    } catch (err) {
+        throw describeApiError(err);
+    }
 
     const raw = cleanJson(response.text);
-    if (!raw) throw new Error('Gemini returned an empty response.');
+    if (!raw) throw new Error('Gemini returned an empty response — the image or text may be unreadable.');
     return JSON.parse(raw);
 }
 
@@ -124,14 +131,20 @@ export async function refineRecipe(currentRecipe, instruction) {
         throw new Error('Describe what you want to change.');
     }
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `${REFINE_PROMPT}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: REFINE_SCHEMA,
-        },
-    });
+    let response;
+    try {
+        response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `${REFINE_PROMPT}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: REFINE_SCHEMA,
+                maxOutputTokens: 8192,
+            },
+        });
+    } catch (err) {
+        throw describeApiError(err);
+    }
 
     const raw = cleanJson(response.text);
     if (!raw) throw new Error('Gemini returned an empty response.');
@@ -139,14 +152,68 @@ export async function refineRecipe(currentRecipe, instruction) {
     return { recipe: parsed.recipe, changeSummary: parsed.changeSummary };
 }
 
+// Every image is re-encoded through canvas before it's sent, regardless of source (camera, photo
+// library, or clipboard paste) or original format. This fixes two real failure modes:
+// 1. Pasted/clipboard images can carry an empty or missing MIME type, which Gemini's API hard-rejects
+//    with "Unsupported MIME type: " — canvas re-encoding always produces a correctly-labeled JPEG.
+// 2. Full-resolution phone photos (several MB, HEIC on iOS) are downscaled to a sane size, which cuts
+//    payload size/latency and sidesteps formats Gemini may not accept — Safari can decode HEIC via
+//    createImageBitmap using the OS codec, so this doubles as HEIC support on the platform most likely
+//    to produce HEIC files. If decoding fails for any reason, the original file is sent as a fallback.
+async function normalizeImage(file, maxDimension = 2000) {
+    try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close?.();
+
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+        if (!blob) return file;
+        return new File([blob], 'image.jpg', { type: 'image/jpeg' });
+    } catch (err) {
+        console.warn('Image normalization failed, sending original file:', err);
+        return file;
+    }
+}
+
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
             const result = reader.result;
-            resolve({ base64: result.split(',')[1], mimeType: file.type });
+            resolve({ base64: result.split(',')[1], mimeType: file.type || 'image/jpeg' });
         };
         reader.onerror = () => reject(new Error('Failed to read image file'));
         reader.readAsDataURL(file);
     });
+}
+
+// Translates raw Gemini API errors into something a user's error message can actually reflect,
+// instead of a one-size-fits-all "couldn't read that recipe."
+function describeApiError(err) {
+    const raw = err?.message ?? String(err);
+    let code = err?.status ?? null;
+    let status = null;
+    try {
+        const parsed = JSON.parse(raw);
+        code = parsed?.error?.code ?? code;
+        status = parsed?.error?.status ?? null;
+    } catch {
+        // not a JSON error body — fall through with whatever we already have
+    }
+
+    if (status === 'RESOURCE_EXHAUSTED' || code === 429) {
+        return new Error('Gemini rate limit or quota reached — wait a minute and try again.');
+    }
+    if (status === 'INVALID_ARGUMENT' || code === 400) {
+        return new Error(`Gemini rejected the request (${raw.slice(0, 200)}).`);
+    }
+    if (code === 401 || code === 403) {
+        return new Error('Gemini API key was rejected — check VITE_GEMINI_API_KEY.');
+    }
+    return new Error(raw);
 }
