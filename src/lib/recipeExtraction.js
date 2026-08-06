@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { normalizeImage, fileToBase64 } from './imageUtils';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
@@ -41,6 +42,9 @@ Rules:
   ingredients and another the steps, or a photo of a handwritten card plus a typed correction.
 - If a screenshot includes social-media chrome (usernames, likes, comments, captions unrelated to
   the recipe), ignore that and extract only the actual recipe content.
+- title: if the source doesn't clearly state a dish name, suggest a fitting, appetizing one yourself
+  based on the main ingredients and cooking method (e.g. "Garlic Butter Chicken Thighs") — never
+  leave it generic like "Recipe" or "Untitled".
 - If a field isn't present in any source, use a sensible default rather than leaving it out.
 - difficulty: derive from cook time and technique if not stated — under 20min simple prep = Easy, 20-40min = Medium, over 40min or technical = Hard.
 - meal_type: infer from the dish itself (a dessert or dinner-style dish is "Dinner" unless clearly a breakfast/lunch dish).
@@ -150,46 +154,6 @@ export async function refineRecipe(currentRecipe, instruction) {
     if (!raw) throw new Error('Gemini returned an empty response.');
     const parsed = JSON.parse(raw);
     return { recipe: parsed.recipe, changeSummary: parsed.changeSummary };
-}
-
-// Every image is re-encoded through canvas before it's sent, regardless of source (camera, photo
-// library, or clipboard paste) or original format. This fixes two real failure modes:
-// 1. Pasted/clipboard images can carry an empty or missing MIME type, which Gemini's API hard-rejects
-//    with "Unsupported MIME type: " — canvas re-encoding always produces a correctly-labeled JPEG.
-// 2. Full-resolution phone photos (several MB, HEIC on iOS) are downscaled to a sane size, which cuts
-//    payload size/latency and sidesteps formats Gemini may not accept — Safari can decode HEIC via
-//    createImageBitmap using the OS codec, so this doubles as HEIC support on the platform most likely
-//    to produce HEIC files. If decoding fails for any reason, the original file is sent as a fallback.
-async function normalizeImage(file, maxDimension = 2000) {
-    try {
-        const bitmap = await createImageBitmap(file);
-        const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(bitmap.width * scale);
-        canvas.height = Math.round(bitmap.height * scale);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        bitmap.close?.();
-
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
-        if (!blob) return file;
-        return new File([blob], 'image.jpg', { type: 'image/jpeg' });
-    } catch (err) {
-        console.warn('Image normalization failed, sending original file:', err);
-        return file;
-    }
-}
-
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = reader.result;
-            resolve({ base64: result.split(',')[1], mimeType: file.type || 'image/jpeg' });
-        };
-        reader.onerror = () => reject(new Error('Failed to read image file'));
-        reader.readAsDataURL(file);
-    });
 }
 
 // Translates raw Gemini API errors into something a user's error message can actually reflect,

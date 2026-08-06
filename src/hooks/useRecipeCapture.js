@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { extractRecipe, refineRecipe } from '../lib/recipeExtraction';
+import { uploadDishPhoto } from '../lib/uploadRecipeImage';
 
 // status: idle -> extracting -> review -> saving -> saved
 //                            \-> error (from extracting or saving)
@@ -45,7 +46,7 @@ export function useRecipeCapture() {
         setDraft((prev) => ({ ...prev, ...patch }));
     };
 
-    const save = async () => {
+    const save = async (dishPhotoFile) => {
         if (!draft) return null;
         if (!supabase) {
             setError('Supabase is not configured — cannot save.');
@@ -59,10 +60,15 @@ export function useRecipeCapture() {
         setStatus('saving');
         setError(null);
         try {
+            let imageUrl = null;
+            if (dishPhotoFile) {
+                imageUrl = await uploadDishPhoto(dishPhotoFile);
+            }
+
             const row = {
                 title: draft.title.trim(),
                 description: draft.description ?? null,
-                image_url: null,
+                image_url: imageUrl,
                 cook_time_minutes: draft.cook_time_minutes ?? 30,
                 difficulty: draft.difficulty ?? 'Easy',
                 kcal: draft.kcal ?? null,
@@ -97,7 +103,7 @@ export function useRecipeCapture() {
                 || err?.message?.includes('ERR_NAME_NOT_RESOLVED');
             setError(isNetworkError
                 ? "Can't reach your recipe library right now. Check your connection and try again."
-                : 'Could not save this recipe. Please try again.');
+                : (err?.message || 'Could not save this recipe. Please try again.'));
             setStatus('review');
             return null;
         }

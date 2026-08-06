@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X, Send } from 'lucide-react';
+import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X, Send, Utensils } from 'lucide-react';
 import { useRecipeCapture } from '../hooks/useRecipeCapture';
 import { useView } from '../context/ViewContext';
 
@@ -11,6 +11,7 @@ export function CaptureView() {
     const { status, error, draft, capture, updateDraft, save, reset, refine, refining, chatLog } = useRecipeCapture();
     const [pastedText, setPastedText] = useState('');
     const [images, setImages] = useState([]); // [{ file, previewUrl }]
+    const [dishPhoto, setDishPhoto] = useState(null); // { file, previewUrl } | null
     const cameraInputRef = useRef(null);
     const libraryInputRef = useRef(null);
 
@@ -46,10 +47,21 @@ export function CaptureView() {
     const canExtract = pastedText.trim().length > 0 || images.length > 0;
     const handleExtract = () => capture({ text: pastedText, images: images.map((img) => img.file) });
 
+    const setDishPhotoFile = (file) => {
+        if (!file) return;
+        if (dishPhoto) URL.revokeObjectURL(dishPhoto.previewUrl);
+        setDishPhoto({ file, previewUrl: URL.createObjectURL(file) });
+    };
+    const clearDishPhoto = () => {
+        if (dishPhoto) URL.revokeObjectURL(dishPhoto.previewUrl);
+        setDishPhoto(null);
+    };
+
     const resetComposer = () => {
         images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
         setImages([]);
         setPastedText('');
+        clearDishPhoto();
         reset();
     };
 
@@ -152,11 +164,14 @@ export function CaptureView() {
                     draft={draft}
                     onChange={updateDraft}
                     onCancel={resetComposer}
-                    onSave={save}
+                    onSave={() => save(dishPhoto?.file)}
                     saveError={error}
                     onRefine={refine}
                     refining={refining}
                     chatLog={chatLog}
+                    dishPhoto={dishPhoto}
+                    onSetDishPhoto={setDishPhotoFile}
+                    onClearDishPhoto={clearDishPhoto}
                 />
             )}
 
@@ -189,9 +204,10 @@ export function CaptureView() {
     );
 }
 
-function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefine, refining, chatLog }) {
+function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefine, refining, chatLog, dishPhoto, onSetDishPhoto, onClearDishPhoto }) {
     const ingredients = draft.ingredients ?? [];
     const steps = draft.steps ?? [];
+    const dishPhotoInputRef = useRef(null);
 
     const updateIngredient = (idx, patch) => {
         const next = ingredients.map((ing, i) => (i === idx ? { ...ing, ...patch } : ing));
@@ -220,6 +236,35 @@ function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefi
                     value={draft.title ?? ''}
                     onChange={(e) => onChange({ title: e.target.value })}
                     className="w-full bg-[#18181b] border border-[#3f3f46] rounded-[10px] p-[12px] font-display font-bold text-[18px] text-[#fafafa] focus:outline-none focus:border-[#71717a]"
+                />
+            </Field>
+
+            <Field label="Photo of the dish (optional)">
+                {dishPhoto ? (
+                    <div className="relative w-[100px] h-[100px] rounded-[12px] overflow-hidden">
+                        <img src={dishPhoto.previewUrl} alt="" className="w-full h-full object-cover" />
+                        <button
+                            onClick={onClearDishPhoto}
+                            className="absolute top-[4px] right-[4px] w-[20px] h-[20px] rounded-full bg-black/70 flex items-center justify-center text-white"
+                        >
+                            <X size={12} strokeWidth={2} />
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => dishPhotoInputRef.current?.click()}
+                        className="flex items-center gap-2 py-[10px] px-[14px] rounded-[10px] border border-dashed border-[#3f3f46] bg-[#09090b] text-[#71717a] hover:text-[#e4e4e7] self-start"
+                    >
+                        <Utensils size={15} strokeWidth={1.5} />
+                        <span className="font-sans text-[12px]">Add a photo — now, or later from Recipes</span>
+                    </button>
+                )}
+                <input
+                    ref={dishPhotoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { onSetDishPhoto(e.target.files?.[0]); e.target.value = ''; }}
                 />
             </Field>
 

@@ -1,18 +1,52 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { Camera, Loader2 } from 'lucide-react';
 import { useRecipes } from '../hooks/useRecipes';
 import { usePlan } from '../context/PlanContext';
 import { useView } from '../context/ViewContext';
 import { RecipeCard } from '../components/RecipeCard';
 import { AddToPlanModal } from '../components/AddToPlanModal';
+import { supabase } from '../lib/supabase';
+import { uploadDishPhoto } from '../lib/uploadRecipeImage';
 
 export function RecipeView() {
-    const { recipes, loading, error } = useRecipes();
+    const { recipes, loading, error, refetch } = useRecipes();
     const { setDayRecipe } = usePlan();
     const { setCurrentView, VIEWS } = useView();
     // console.log('Rendering Recipes:', recipes); // Debug Log
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeFilter, setActiveFilter] = useState('All');
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [photoError, setPhotoError] = useState(null);
+    const photoInputRef = useRef(null);
+
+    const handlePhotoChosen = async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file || !selectedRecipe) return;
+
+        setUploadingPhoto(true);
+        setPhotoError(null);
+        try {
+            const url = await uploadDishPhoto(file);
+            if (!supabase) throw new Error('Supabase is not configured — cannot save photo.');
+
+            const { error: updateError } = await supabase
+                .from('recipes')
+                .update({ image_url: url })
+                .eq('id', selectedRecipe.id);
+
+            if (updateError) throw updateError;
+
+            setSelectedRecipe((prev) => (prev ? { ...prev, image_url: url, image: url } : prev));
+            refetch();
+        } catch (err) {
+            console.error('Recipe photo update failed:', err);
+            setPhotoError(err?.message || 'Could not save that photo. Please try again.');
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
 
     // Derive unique archetypes from available recipes
     const availableArchetypes = ['All', ...new Set(recipes.flatMap(r => r.archetypes || []))].filter(Boolean);
@@ -171,7 +205,36 @@ export function RecipeView() {
                                     e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800';
                                 }}
                             />
+                            <button
+                                onClick={() => photoInputRef.current?.click()}
+                                disabled={uploadingPhoto}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '12px',
+                                    right: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 14px',
+                                    borderRadius: '999px',
+                                    background: 'rgba(0,0,0,0.6)',
+                                    backdropFilter: 'blur(8px)',
+                                    border: 'none',
+                                    color: '#fff',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: uploadingPhoto ? 'default' : 'pointer',
+                                }}
+                            >
+                                {uploadingPhoto ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                                {uploadingPhoto ? 'Uploading...' : (selectedRecipe.image_url ? 'Change Photo' : 'Add Photo')}
+                            </button>
+                            <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChosen} />
                         </div>
+
+                        {photoError && (
+                            <p style={{ color: '#f87171', fontSize: '0.8rem', marginBottom: '1rem' }}>{photoError}</p>
+                        )}
 
                         <h2 className="title-display tracking-tight font-bold text-zinc-50" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
                             {selectedRecipe.title || selectedRecipe.name || 'Untitled Recipe'}
@@ -196,7 +259,7 @@ export function RecipeView() {
                         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                             {(selectedRecipe.ingredients || []).map((ing, i) => {
                                 const displayText = typeof ing === 'object' && ing !== null
-                                    ? `${ing.amount || ''} ${ing.unit || ''} ${ing.item || ing.name || ''}`.trim()
+                                    ? `${ing.quantity ?? ing.amount ?? ''} ${ing.unit || ''} ${ing.name || ing.item || ''}`.trim()
                                     : ing;
 
                                 return (

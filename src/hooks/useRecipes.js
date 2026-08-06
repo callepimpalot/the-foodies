@@ -73,62 +73,63 @@ export function useRecipes() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        async function fetchRecipes() {
-            // ── Guard: Supabase client not initialised ──────────────────────
-            if (!supabase) {
-                console.warn('⚠️ Supabase not configured — loading from local JSON fallback.');
-                const mapped = (localRecipes || []).map(mapLocalRow);
-                setRecipes(mapped);
-                setLoading(false);
-                return;
-            }
-
-            try {
-                setLoading(true);
-
-                const { data, error: fetchError } = await supabase
-                    .from('recipes')
-                    .select('*');
-
-                if (fetchError) throw fetchError;
-
-                console.log(`✅ Supabase: loaded ${data?.length ?? 0} recipes`);
-
-                const localOverride = localRecipes || [];
-                const mapped = (data || []).map((r, idx) => mapRow(r, idx, localOverride));
-                setRecipes(mapped);
-
-            } catch (err) {
-                const isNetworkError = err?.message?.includes('Failed to fetch')
-                    || err?.message?.includes('NetworkError')
-                    || err?.message?.includes('ERR_NAME_NOT_RESOLVED');
-
-                if (isNetworkError) {
-                    // Supabase is unreachable (paused project, offline, etc.)
-                    // Graceful degradation: serve local JSON so the tab stays usable.
-                    console.warn('🔌 Supabase unreachable — falling back to local recipe library.');
-                    const mapped = (localRecipes || []).map(mapLocalRow);
-                    if (mapped.length > 0) {
-                        setRecipes(mapped);
-                        setError(null); // Not an error the user needs to see
-                        return;
-                    }
-                }
-
-                // Genuine DB error (schema mismatch, RLS, etc.) — surface it
-                console.error('❌ Error fetching recipes:', err?.message ?? err);
-                if (err?.code === 'PGRST205') {
-                    console.error('🛑 TABLE NOT FOUND: "recipes" table missing from Supabase project.');
-                }
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
+    const fetchRecipes = async () => {
+        // ── Guard: Supabase client not initialised ──────────────────────
+        if (!supabase) {
+            console.warn('⚠️ Supabase not configured — loading from local JSON fallback.');
+            const mapped = (localRecipes || []).map(mapLocalRow);
+            setRecipes(mapped);
+            setLoading(false);
+            return;
         }
 
+        try {
+            setLoading(true);
+
+            const { data, error: fetchError } = await supabase
+                .from('recipes')
+                .select('*');
+
+            if (fetchError) throw fetchError;
+
+            console.log(`✅ Supabase: loaded ${data?.length ?? 0} recipes`);
+
+            const localOverride = localRecipes || [];
+            const mapped = (data || []).map((r, idx) => mapRow(r, idx, localOverride));
+            setRecipes(mapped);
+            setError(null);
+
+        } catch (err) {
+            const isNetworkError = err?.message?.includes('Failed to fetch')
+                || err?.message?.includes('NetworkError')
+                || err?.message?.includes('ERR_NAME_NOT_RESOLVED');
+
+            if (isNetworkError) {
+                // Supabase is unreachable (paused project, offline, etc.)
+                // Graceful degradation: serve local JSON so the tab stays usable.
+                console.warn('🔌 Supabase unreachable — falling back to local recipe library.');
+                const mapped = (localRecipes || []).map(mapLocalRow);
+                if (mapped.length > 0) {
+                    setRecipes(mapped);
+                    setError(null); // Not an error the user needs to see
+                    return;
+                }
+            }
+
+            // Genuine DB error (schema mismatch, RLS, etc.) — surface it
+            console.error('❌ Error fetching recipes:', err?.message ?? err);
+            if (err?.code === 'PGRST205') {
+                console.error('🛑 TABLE NOT FOUND: "recipes" table missing from Supabase project.');
+            }
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchRecipes();
     }, []);
 
-    return { recipes, loading, error };
+    return { recipes, loading, error, refetch: fetchRecipes };
 }
