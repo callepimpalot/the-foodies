@@ -1,44 +1,26 @@
 # 🍏 Project Roadmap: Meal Buddy
 
-## 🔄 PIVOT — Feb 27: The Great Simplification in progress
+## ✅ POC LOOP SHIPPED — Aug 6, 2026
 
-Vision re-centered on the real loop. 7 feature briefs archived. Scope reduced from 9 features to a target of 5.
+The Great Simplification's goal (Capture → Plan → Shop → Cook, one meal per day, no swipe/family/auth cruft) is built and live in production at https://thefoodi.netlify.app. See FEATURES.md for what shipped vs. what's still a brief, and PROJECT.md for current vision/status.
 
-**Status of this file:** Hall of Fame is complete and canonical. Everything above it is being rewritten in session 1.
-
-**Active briefs on disk:** essentials_grid, shopping_consolidation
-**Incoming briefs (session 1):** recipe_lifecycle, week_planner, cook_mode, taste_model
-**See PROJECT.md for the current vision. See FEATURES.md for the current brief index.**
-
-"winget install --id Google.Antigravity --force" (as a adminstrator in CMD) to upgrade AG
-
-
-## 🚨 Critical Bugs (Fix Before New Features)
-- [x] **Recipe Library Empty:** Fixed Feb 27 — mapRow() normalisation layer + graceful fallback to final_recipes.json
-- [ ] **Teal Accent Removal:** Global find-and-replace — all teal/cyan to --gold (#c9a96e). Will be addressed as screens are rebuilt in session 2+.
-- [ ] **Light Background Fix:** App background must be --zinc-950 (#09090b) globally — still light grey in places. Will be addressed in session 2+ code pruning.
-- [ ] **Typography:** Playfair Display + DM Sans not yet applied — CSS file imported, components need updating. Will be addressed in session 2+ code pruning.
-- [~] **Planning Tab Visual Chaos:** No longer a bug to fix — the Planning tab is being fully replaced by FEATURE_week_planner.md in session 1+.
-- [~] **Ampersand Bug:** No longer active — recipe import pipeline sanitizes titles. Legacy scripts archived.
-
-
-### 🏃 Current Sprint (The Great Simplification)
-- [x] **Task D: Epicurious Local Ingestion** — COMPLETE. 400 recipes in Supabase (Feb 26)
-- [x] **Task E: Planning HQ Redesign** — SUPERSEDED. Planning tab being replaced entirely in session 1+.
-- [~] **Task F: Auth Infrastructure** — DEFERRED. Auth is not required for v1 (solo use). Archived.
-- [ ] **Session 1 — The Great Simplification:** Rewrite PROJECT.md vision, DATA_MODELS.md schema, generate 4 new feature briefs (recipe_lifecycle, week_planner, cook_mode, taste_model). Scheduled for next CTO session.
+**Status of this file:** Hall of Fame below is canonical history. Read top-to-bottom, newest first.
 
 ## 🛠 Product Backlog
 
-The previous backlog was tied to the old vision (swipe discovery, family profiles, creator subscriptions etc). It has been cleared.
+- **AI Week Planner Chat** (`FEATURE_ai_week_planner_chat.md`) — next planned feature, requirements captured but has open questions to resolve before building. See the brief.
+- **Dish photo save-through** — code is built (Capture review screen + RecipeView "Add/Change Photo"), blocked on one missing RLS `UPDATE` policy on `recipes`. See "Next Agent Instructions" below for exact steps.
+- **Playfair Display / DM Sans typography** — flagged as a standalone fix, not yet done. The whole app currently renders in Geist Sans; `font-display` is used everywhere as a Tailwind class but isn't wired to anything real.
 
-The new backlog will be generated in session 1 alongside the new feature briefs. Until then, the two active briefs on disk are the only approved work:
-- FEATURE_essentials_grid.md
-- FEATURE_shopping_consolidation.md
-
-Vault items (deferred, no brief) live in PROJECT.md under "Deferred / Vault".
+Vault items (deliberately out of scope, no brief) live in PROJECT.md under "Deferred / Vault".
 
 ## 🏆 HALL OF FAME
+- [x] **Infra debugging marathon — three separate deploy blockers found and fixed:** (1) Netlify build was missing `VITE_GEMINI_API_KEY` entirely — Vite bakes `VITE_` vars in at build time, and the local `.env` (correctly configured) never reaches Netlify's build since it's gitignored. (2) Once added, the value itself was wrong (`VITE_GEMINI_API_KEY=...` had been pasted including the variable name, not just the key) — Google returned `API_KEY_INVALID`. (3) A stale PWA service worker repeatedly masked the real error state between fixes, making resolved issues look unresolved until a full close-reopen or manual `unregister()` + cache clear. Also found and fixed missing Supabase RLS policies (`INSERT` on `recipes`, `INSERT` on the `recipe-images` storage bucket) — the 400 bulk-imported recipes went in via a service-role key that bypasses RLS, so client-side inserts had never actually been exercised until this session. `UPDATE` on `recipes` is still missing (needed for photo-editing-later) — see Next Agent Instructions. (Aug 6)
+- [x] **Verified full Capture → Save → View loop end-to-end for the first time:** captured a recipe from pasted text, saved it, confirmed it survives a full page reload (genuinely in Supabase, not cached client state), confirmed it displays correctly back in Recipes. Found and fixed a real bug in passing: the recipe detail view only read the legacy local-fallback ingredient field name (`amount`), never the live Supabase field (`quantity`) — every captured recipe's ingredients were displaying with blank quantities. (Aug 6)
+- [x] **Capture: combined text+image input, fixed silent paste failure:** root cause of "can't paste text" was that pasting a copied screenshot into the old plain `<textarea>` did nothing visible — a textarea can't render image clipboard data. Rebuilt Capture into one composer: paste a screenshot (Ctrl/Cmd+V), attach multiple photos, and/or type text, then extract once — everything goes to Gemini together instead of forcing text-OR-one-photo. (Aug 6)
+- [x] **Fixed real image-extraction bug — "Unsupported MIME type" on pasted screenshots:** clipboard-pasted images can carry an empty/missing MIME type, which Gemini's API hard-rejects. Every image is now re-encoded through canvas before sending (`src/lib/imageUtils.js`'s `normalizeImage`), regardless of source or original format — always produces a correctly-labeled JPEG, downscales oversized phone photos, and lets Safari decode HEIC natively via the OS codec. Also stopped masking every extraction failure behind one generic error message — real API errors (rate limit, bad key, rejected request) now surface with their actual cause. (Aug 6)
+- [x] **Added conversational refinement to Capture:** an "Ask for changes" chat on the review screen re-sends the current draft + a follow-up instruction ("make it 4 servings", "swap carrots for cucumbers") to Gemini and applies the update in place, logging what changed. Verified two chained refinements compose correctly. This pattern is the reusable basis for the planned AI Week Planner Chat. (Aug 6)
+- [x] **Rebuilt the app around the Capture → Plan → Shop → Cook loop, deleted the archived-feature debris:** removed the family/profile system, Jackpot slot-machine picker, AutoPopulate, the orphaned photo-import stub, and dead swipe-discovery leftovers (15 files). Fixed the teal-vs-gold accent bug at its root. Built Capture from scratch (paste/photo → Gemini structured extraction → review/edit → save). Simplified Plan from a 3-slot breakfast/lunch/dinner model to one meal per day with leftover-day references and free-text notes. Rebuilt Shop, which was actually crashing the app on a confirmed plan (an ingredient object was being rendered directly as a React child) — now a categorized, quantity-summed, checkable list. Extended Cook mode with a servings stepper and a simple countdown timer. Rewrote DATA_MODELS.md against the real schema instead of the stale aspirational one. (Aug 6)
 - [x] **Recipes Tab Resilience:** Diagnosed "Error loading recipes" as a Supabase free-tier pause (ERR_NAME_NOT_RESOLVED), not a schema bug. Added mapRow() normalisation layer to handle snake_case → camelCase aliasing, plus graceful fallback to local final_recipes.json when Supabase is unreachable. Two latent schema mismatches (cook_time_minutes, base_servings) fixed in passing. Tab now works offline or when Supabase is paused. (Feb 27)
 - [x] **The Great Simplification — Phase 1:** Archived 7 feature briefs. Scope reduced from 9 features to a target of 5. Project files synced to reflect current reality. Ready for session 1 full vision rewrite. (Feb 27)
 - [x] **Recipe Import Pipeline — Full 4-Stage Build:** 20,130 raw Epicurious recipes → 400 AI-curated family recipes in Supabase. Stages: structural validation (15,600 passed), rules filter + dedup (2,000 candidates), Gemini AI scoring (400 selected), Supabase import (400 inserted, 0 failed). (Feb 26)
@@ -83,4 +65,9 @@ Vault items (deferred, no brief) live in PROJECT.md under "Deferred / Vault".
 - [x] **Reorganize PROGRESS.md:** Initial structure setup (Self-verified). (Feb 10)
 
 ## 📝 NEXT AGENT INSTRUCTIONS
-> Next CTO session: Execute "Session 1 — The Great Simplification." Generate rewritten PROJECT.md vision, updated DATA_MODELS.md schema (with ingredient IDs + {0001} interpolation pattern + recipe lineage fields), and four new feature briefs: recipe_lifecycle, week_planner, cook_mode, taste_model. CEO will upload all current files at the start of the session.
+> Two known next steps, in likely priority order:
+>
+> 1. **Finish the dish-photo feature.** All the code is built (Capture review screen's photo picker, RecipeView's "Add/Change Photo"). It's blocked on one missing Supabase RLS policy: an `UPDATE` policy on `recipes` (`to public`, `USING (true)`, `WITH CHECK (true)`) — same pattern as the `INSERT` policy already added. Add it via Supabase's Table Editor → `recipes` → RLS Policies, or the SQL Editor. Once added, test saving a captured recipe with a dish photo attached, and test changing an existing recipe's photo from the Recipes tab detail view.
+> 2. **Build the AI Week Planner Chat** — see `.agent/features/FEATURE_ai_week_planner_chat.md`. Has open questions (where suggested dishes come from, how "lock" interacts with leftover/note days, whether it can overwrite an already-manually-planned day) that should be resolved with the user before writing code. The Capture "Ask for changes" refine-chat (`useRecipeCapture.js`'s `refine()`, `recipeExtraction.js`'s `refineRecipe()`) is the pattern to reuse, not rebuild from scratch.
+>
+> Read CLAUDE.md, then this file, then FEATURES.md and DATA_MODELS.md before starting either.

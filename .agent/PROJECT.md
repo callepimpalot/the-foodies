@@ -1,20 +1,19 @@
 🚀 PROJECT: Meal Buddy (Master Record)
-Last updated: Feb 27, 2026 — Mid-pivot. See PROGRESS.md for current phase.
+Last updated: Aug 6, 2026 — POC loop built and live in production.
 
 🏛️ Manifest & Vision — CURRENT
 
 **One-sentence vision:** A personal culinary companion for one dad who talks to AI about food, plans a few days ahead, and cooks with his phone in the kitchen.
 
-**The loop the app serves:**
-1. Capture — every new recipe starts as an AI conversation (from scratch, from paste, from photo). Save a version.
-2. Plan — drop meals on days. Mark leftover days (any day → any other day). Add day notes ("mum's house", "takeaway"). Gaps are fine.
-3. Shop — consolidated list from planned days + flagged household essentials.
-4. Cook — readable recipe view, servings scaling, OS-native timers, post-cook notes.
-5. Iterate — next time you plan that recipe, AI chat opens pre-loaded with full version history and last notes. Save a new version. Branch sideways if you want.
+**The loop the app serves — all four stages are built and live:**
+1. Capture — paste text and/or attach one or more photos/screenshots (combined, not either/or) → AI extracts a structured recipe → conversational "Ask for changes" refinement loop before saving → save. Dish-photo-of-the-finished-meal upload exists in code but needs one more RLS policy before it's fully wired (see PROGRESS.md next steps).
+2. Plan — one meal per day (simplified from an earlier 3-slot breakfast/lunch/dinner model). Tap a day → choose a recipe, mark it as leftovers from another day, or leave a free-text note. Gaps are fine.
+3. Shop — consolidated, categorized, checkable shopping list generated from the locked plan. Handles both the live Supabase ingredient shape and the local-fallback shape.
+4. Cook — step-by-step view with a servings stepper (scales ingredient quantities live) and a simple in-app countdown timer.
 
-**Design soul:** Cinematic Zinc — dark, moody, editorial. A digital culinary magazine that happens to be interactive.
+**Design soul:** Cinematic Zinc — dark, moody, editorial. A digital culinary magazine that happens to be interactive. Known gap: Playfair Display/DM Sans are not actually loaded anywhere (no Google Fonts link in index.html, `font-display` isn't a real Tailwind class) — flagged as a standalone fix, not yet done.
 
-**Who it is built for:** The CEO and his family. Solo use first. No auth, no family sharing, no moonshots in v1.
+**Who it is built for:** One dad, solo use. No auth, no family sharing, no moonshots in v1.
 
 ---
 
@@ -28,38 +27,33 @@ Last updated: Feb 27, 2026 — Mid-pivot. See PROGRESS.md for current phase.
 - Creator subscriptions
 - Print-on-demand cookbooks
 - Post-cook share cards ("Strava for Food")
-- AI Meal Negotiator (conversational meal suggestion based on inventory)
+- Recipe forking / customisation (AI rewrite of a saved recipe into a personal variant) — the Capture "Ask for changes" chat covers pre-save refinement; post-save forking is still deferred
 
 ---
 
 📂 Project Status
 
-**Current phase:** Phase 3 — Simplification & Rebuild
-**Active session:** Pre-session-1 (file reconciliation in progress)
-**Next session goal:** Session 1 — The Great Simplification. Rewrite vision docs and generate new feature briefs.
-**Agent system:** CTO Gem (Gemini), AG squad (@engineer, @creator)
-**Source of truth files:** DESIGN_SYSTEM.md, DATA_MODELS.md (both pending update in session 1), FEATURES.md, AGENTS.md
+**Current phase:** POC loop live in production at https://thefoodi.netlify.app — iterating on top of it.
+**Source of truth files:** DESIGN_SYSTEM.md, DATA_MODELS.md (rewritten Aug 6 against the real schema — trust it over this file for data shapes), FEATURES.md, AGENTS.md (legacy Gemini CTO Gem framework — retired, see CLAUDE.md's workflow note)
+**Deploy:** Netlify, auto-deploys from GitHub `main`. Requires `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY` set as Netlify environment variables (not secret-flagged — they're baked into the client bundle by design). The app is a PWA with a service worker; after any deploy, do a full close-and-reopen (not just refresh) before testing, or you may see a stale cached version.
 
 ---
 
 🌱 Data
 
-- Recipe database: 400 family recipes from Epicurious pipeline, live in Supabase (Feb 26, 2026)
-- Local fallback: final_recipes.json at project root — used when Supabase is paused or unreachable
-- Recipes tab resilient to Supabase free-tier pauses as of Feb 27
+- Recipe database: 400 family recipes from Epicurious pipeline + user-captured recipes (`is_personal: true`, `tags: ['captured']`), live in Supabase.
+- Local fallback: `final_recipes.json` at project root — used when Supabase is paused/unreachable. Uses an older ingredient shape (`{item, amount, unit}`) than the live schema (`{name, quantity, unit}`) — `src/lib/consolidateIngredients.js`'s `normalizeIngredient()` is the canonical way to handle both, reuse it rather than re-deriving.
+- RLS on `recipes`: SELECT and INSERT policies exist (both `to public`, unconditional). **UPDATE policy is still missing** — needed for the "add/change photo later" feature in RecipeView and for any future in-place recipe edits.
+- Storage bucket `recipe-images`: exists, public, with an INSERT policy for the public role. No SELECT/UPDATE/DELETE policies on `storage.objects` yet — not blocking today's features (uploads always create new files, never overwrite), but would matter if photo cleanup/replacement-in-place is ever wanted.
 
 ---
 
 🗂️ Active Feature Briefs
 
-See FEATURES.md for the current index. Two active briefs on disk:
-- FEATURE_essentials_grid.md
-- FEATURE_shopping_consolidation.md
-
-Seven additional briefs archived on Feb 27 — see FEATURES.md for details.
+See FEATURES.md for the current index.
 
 ---
 
 📖 History
 
-See PROGRESS.md for the full Hall of Fame and historical context. The pivot to the current simplified vision was decided on Feb 27 after a strategic CTO review.
+See PROGRESS.md for the full Hall of Fame and historical context.
