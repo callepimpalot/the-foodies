@@ -20,7 +20,6 @@ Last updated: Aug 6, 2026 — POC loop built and live in production.
 🗃️ Deferred / Vault (not v1 — do not build without a new brief)
 
 - Globe view of recipe library (visual universe of recipes by cuisine/origin)
-- Taste model (home screen editorial suggestions based on cooking history)
 - Family sharing and multi-user profiles
 - Authentication / accounts
 - Swipe-based recipe discovery

@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { extractRecipe, refineRecipe } from '../lib/recipeExtraction';
-import { uploadDishPhoto } from '../lib/uploadRecipeImage';
+import { saveRecipe } from '../lib/saveRecipe';
 
 // status: idle -> extracting -> review -> saving -> saved
 //                            \-> error (from extracting or saving)
@@ -48,52 +47,11 @@ export function useRecipeCapture() {
 
     const save = async (dishPhotoFile) => {
         if (!draft) return null;
-        if (!supabase) {
-            setError('Supabase is not configured — cannot save.');
-            return null;
-        }
-        if (!draft.title?.trim()) {
-            setError('Recipe needs a name before saving.');
-            return null;
-        }
 
         setStatus('saving');
         setError(null);
         try {
-            let imageUrl = null;
-            if (dishPhotoFile) {
-                imageUrl = await uploadDishPhoto(dishPhotoFile);
-            }
-
-            const row = {
-                title: draft.title.trim(),
-                description: draft.description ?? null,
-                image_url: imageUrl,
-                cook_time_minutes: draft.cook_time_minutes ?? 30,
-                difficulty: draft.difficulty ?? 'Easy',
-                kcal: draft.kcal ?? null,
-                base_servings: draft.base_servings ?? 2,
-                meal_type: draft.meal_type ?? 'Dinner',
-                tags: ['captured'],
-                archetypes: [],
-                ingredients: (draft.ingredients ?? []).map((i) => ({
-                    name: i.name,
-                    quantity: i.quantity ?? null,
-                    unit: i.unit ?? null,
-                })),
-                steps: draft.steps ?? [],
-                is_personal: true,
-                created_at: new Date().toISOString(),
-            };
-
-            const { data, error: insertError } = await supabase
-                .from('recipes')
-                .insert(row)
-                .select()
-                .single();
-
-            if (insertError) throw insertError;
-
+            const data = await saveRecipe(draft, dishPhotoFile);
             setStatus('saved');
             return data;
         } catch (err) {

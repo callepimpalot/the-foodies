@@ -239,6 +239,15 @@ function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefi
                 />
             </Field>
 
+            <Field label="Creator (optional)">
+                <input
+                    value={draft.creator ?? ''}
+                    onChange={(e) => onChange({ creator: e.target.value })}
+                    placeholder="e.g. Jamie Oliver, @claudiasoncooks, Half Baked Harvest"
+                    className="w-full bg-[#18181b] border border-[#3f3f46] rounded-[10px] p-[10px] font-sans text-[14px] text-[#e4e4e7] placeholder:text-[#52525b] focus:outline-none focus:border-[#71717a]"
+                />
+            </Field>
+
             <Field label="Photo of the dish (optional)">
                 {dishPhoto ? (
                     <div className="relative w-[100px] h-[100px] rounded-[12px] overflow-hidden">

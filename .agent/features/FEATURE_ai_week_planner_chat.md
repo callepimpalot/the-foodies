@@ -1,7 +1,7 @@
 # FEATURE BRIEF: AI Week Planner Chat
 # Purpose: Plan a whole week of meals via natural-language conversation instead of tapping days one at a time
 # Audience: Next session
-# Status: NOT STARTED — requirements captured Aug 6, 2026; open questions resolved Aug 15, 2026 — ready to design/build
+# Status: SHIPPED & VERIFIED LIVE — requirements captured Aug 6, 2026; built and verified by the user in their own browser Aug 15, 2026 (this session's Browser pane could never reach the user's local dev server — an environment networking limitation, not a code issue — so all verification happened via the user testing directly and reporting back). Extended past the original scope with three rounds of user feedback during testing — see FILE STRUCTURE below for the full final shape.
 
 ---
 
@@ -49,14 +49,32 @@ The Capture feature's refine-chat (`src/hooks/useRecipeCapture.js`'s `refine()`,
   ```
   A prompt that receives the conversation instruction + the current proposal + which rows are locked (excluded from change) + a condensed searchable library shortlist (`{id, title, meal_type, tags, kcal, difficulty}` per row — not the full 400 recipes with ingredients/steps, to keep the prompt small) + instructions for when to invent a `generated` dish instead of matching one.
 
+## FILE STRUCTURE (final, as shipped Aug 15, 2026)
+
+- `src/lib/recipeExtraction.js` — `RECIPE_SCHEMA`, `cleanJson`, `describeApiError` exported for reuse (were module-private). Also gained a `creator` field this session (unrelated feature, see FEATURES.md's Recipe Library entry).
+- `src/lib/saveRecipe.js` — **new.** `saveRecipe(draft, dishPhotoFile)` extracted out of `useRecipeCapture.js`'s old inline insert logic, so Capture and the week planner's "generated" days share one save path.
+- `src/hooks/useRecipeCapture.js` — refactored to call `saveRecipe()` instead of duplicating the insert.
+- `src/lib/weekPlanChat.js` — **new.** `planWeek({ instruction, scopeDates, currentProposal, libraryShortlist })`, the Gemini call, plus `addDaysToDateStr()` (timezone-safe date-string arithmetic). Prompt explicitly distinguishes a first turn (may narrow to a stated date range) from a follow-up turn (the date set already in `currentProposal` is fixed — a follow-up mentioning one day must not collapse the rest of the response, a real bug hit during testing).
+- `src/hooks/useWeekPlanChat.js` — **new.** Proposal state and every mutation: `send()`/`sendSingleDay()` (Gemini calls — locked-day content is never trusted from the model's response, only ever carried over from before the turn, regardless of what the model echoes back), `toggleLock()`, `swapDays()`, `setLeftoverSource()`, `setDayAsLibraryRecipe/Leftover/Note()` (manual single-day edits), `setDayRecipeCustomization()` (commits an inspected/refined recipe + servings onto one day and locks it), `addDay()`/`nextAddableDate`, `reset()`.
+- `src/components/WeekPlanChat.jsx` — **new.** The chat UI: overwrite-warning gate, chat log, day-row list, composer, "Apply to Plan." Each day row: source badge (Library/New idea), a tap-to-swap grip handle (see note below), a lock toggle, and a dashed "Add a day" row to extend past the initial 7-day window. Tapping a `recipe` day opens `RecipeDaySheet`; tapping an `empty` day opens the in-file `DayEditSheet` (library pick / leftovers / single-day AI chat / note — mirrors `DayActionSheet.jsx`'s manual-calendar sheet).
+- `src/components/RecipeDaySheet.jsx` — **new.** Inspect a day's actual recipe before committing: servings stepper, live-scaled ingredients, steps, and a refine-chat (reuses `refineRecipe()`) to substitute ingredients etc. "Lock In This Day" never touches the shared library recipe — it's a per-day, per-week-only copy, embedded by value into that day's proposal entry exactly like `PlanContext` already does for the real plan.
+- `src/views/PlanView.jsx` — "Manual" / "Chat Plan" pill toggle in the header; renders `WeekPlanChat` in place of `WeeklyCalendar` in chat mode; "Lock This Week" / "Plan Locked" buttons only show in manual mode.
+
+### Notable bugs hit and fixed during live testing
+- **Locked-day content wasn't actually protected** — only the `locked` boolean was forced back client-side; the model's returned content for that date was still trusted. Fixed by carrying over the entire pre-turn day object for any locked date, never just patching the flag.
+- **A follow-up mentioning one day collapsed the whole week** — the "narrow to a stated date range" rule (meant only for the first message) was being applied on every turn. Fixed with an explicit first-turn-vs-follow-up prompt distinction, plus a client-side guarantee that a follow-up's date set can never shrink from what it was before that turn.
+- **Drag-and-drop didn't work on touch** — first attempt used the HTML5 Drag and Drop API, which is mouse-only and unsupported on iOS. Replaced with a tap-to-pick-up/tap-to-swap interaction (plain `onClick`, no gesture tracking).
+- **The tap-to-swap "worked" on the first tap but never actually swapped** — `swapDays()` (a side effect) was called from inside a `setState` updater function; React.StrictMode (`main.jsx`) double-invokes updaters in dev to catch impurity, so it silently swapped then swapped back. Fixed by reading state directly instead of via the updater.
+
 ## ACCEPTANCE CRITERIA
 
-- [ ] User can enter chat mode from the Plan tab and describe a week (or a stated sub-range) in one message
-- [ ] AI proposes days matching the stated constraints (meal count, leftover days, specific dish themes), covering only the dates in scope
-- [ ] Each recipe suggestion is clearly labeled as "Library" or "New idea" (source badge)
-- [ ] Each proposed day can be individually locked
-- [ ] Follow-up messages only change unlocked days
-- [ ] Locked days persist across multiple follow-up turns
-- [ ] Entering chat mode with an already-partially-planned week shows a warning before the composer appears
-- [ ] Applying the finalized week correctly writes to PlanContext (including saving `generated` days as real recipes first) and is immediately visible in the manual calendar view
-- [ ] Applying only writes days that were actually in scope for that session — days outside a stated sub-range are left untouched
+- [x] User can enter chat mode from the Plan tab and describe a week (or a stated sub-range) in one message
+- [x] AI proposes days matching the stated constraints (meal count, leftover days, specific dish themes), covering only the dates in scope
+- [x] Each recipe suggestion is clearly labeled as "Library" or "New idea" (source badge)
+- [x] Each proposed day can be individually locked
+- [x] Follow-up messages only change unlocked days
+- [x] Locked days persist across multiple follow-up turns
+- [x] Entering chat mode with an already-partially-planned week shows a warning before the composer appears
+- [x] Applying the finalized week correctly writes to PlanContext (including saving `generated` days as real recipes first) and is immediately visible in the manual calendar view
+- [x] Applying only writes days that were actually in scope for that session — days outside a stated sub-range are left untouched
+- [x] (added during testing) Days can be reordered via tap-to-swap; the proposal can be extended past 7 days; an empty day can be filled via library pick, leftover pick, a single-day AI chat, or a note; a recipe day can be inspected, have servings adjusted and ingredients substituted via chat, and locked in per-day without touching the shared library recipe

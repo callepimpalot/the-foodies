@@ -6,11 +6,12 @@ const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
 // Matches the real Supabase `recipes` columns (see scripts/import-to-supabase.ts),
 // not the stale .agent/DATA_MODELS.md interface.
-const RECIPE_SCHEMA = {
+export const RECIPE_SCHEMA = {
     type: 'object',
     properties: {
         title: { type: 'string' },
         description: { type: 'string' },
+        creator: { type: 'string', nullable: true },
         cook_time_minutes: { type: 'integer' },
         difficulty: { type: 'string', enum: ['Easy', 'Medium', 'Hard'] },
         kcal: { type: 'integer', nullable: true },
@@ -40,12 +41,19 @@ provided content, which may include pasted text, one or more photos/screenshots,
 Rules:
 - If multiple images are provided, synthesize them into one recipe — e.g. one screenshot may show
   ingredients and another the steps, or a photo of a handwritten card plus a typed correction.
-- If a screenshot includes social-media chrome (usernames, likes, comments, captions unrelated to
-  the recipe), ignore that and extract only the actual recipe content.
+- If a screenshot includes social-media chrome (likes, comments, unrelated captions), ignore that
+  and extract only the actual recipe content — except the poster's username/handle, which is the
+  primary source for the creator field below (see that rule before discarding anything).
 - title: if the source doesn't clearly state a dish name, suggest a fitting, appetizing one yourself
   based on the main ingredients and cooking method (e.g. "Garlic Butter Chicken Thighs") — never
   leave it generic like "Recipe" or "Untitled".
-- If a field isn't present in any source, use a sensible default rather than leaving it out.
+- creator: actively look for who this recipe is from — a poster's username/handle in a screenshot
+  (e.g. the @handle above or below the photo/video), a blog or publication name, a cookbook or
+  chef's name in a byline. Extract it exactly as written (e.g. "@claudiasoncooks", "Half Baked
+  Harvest", "Jamie Oliver"). Only leave this null if truly nothing in the source identifies an
+  author or account — never guess or invent a name.
+- If a field isn't present in any source, use a sensible default rather than leaving it out — except
+  creator, which should stay null rather than be guessed.
 - difficulty: derive from cook time and technique if not stated — under 20min simple prep = Easy, 20-40min = Medium, over 40min or technical = Hard.
 - meal_type: infer from the dish itself (a dessert or dinner-style dish is "Dinner" unless clearly a breakfast/lunch dish).
 - ingredients: split into clean {name, quantity, unit} — name should never include the quantity.
@@ -75,7 +83,7 @@ Rules:
 - Keep everything else identical to the current recipe unless the request requires changing it.
 - changeSummary should be short and human, e.g. "Scaled to 4 servings and swapped carrots for cucumbers."`;
 
-function cleanJson(text) {
+export function cleanJson(text) {
     return (text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
 }
 
@@ -158,7 +166,7 @@ export async function refineRecipe(currentRecipe, instruction) {
 
 // Translates raw Gemini API errors into something a user's error message can actually reflect,
 // instead of a one-size-fits-all "couldn't read that recipe."
-function describeApiError(err) {
+export function describeApiError(err) {
     const raw = err?.message ?? String(err);
     let code = err?.status ?? null;
     let status = null;
