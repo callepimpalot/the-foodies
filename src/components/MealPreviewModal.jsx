@@ -126,7 +126,7 @@ export function MealPreviewModal({ recipe, onClose, onAddToPlan, onCookNow, sour
                             fontWeight: 600,
                             color: '#e4e4e7'
                         }}>
-                            {Number(safeRecipe.calories) ? Math.round(Number(safeRecipe.calories)) : '450'} kcal
+                            {Number(safeRecipe.kcal) ? Math.round(Number(safeRecipe.kcal)) : '450'} kcal
                         </span>
                     </div>
 

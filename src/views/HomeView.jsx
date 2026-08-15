@@ -246,7 +246,7 @@ export function HomeView() {
                                 </div>
                             </div>
                             <h3 className="text-lg font-bold text-zinc-900 leading-tight px-1 tracking-tight">{recipe.title}</h3>
-                            <p className="text-sm text-zinc-500 px-1 mt-1">{recipe.time} • {recipe.calories} kcal</p>
+                            <p className="text-sm text-zinc-500 px-1 mt-1">{recipe.time} • {recipe.kcal ?? '450'} kcal</p>
                         </div>
                     ))}
                 </div>
