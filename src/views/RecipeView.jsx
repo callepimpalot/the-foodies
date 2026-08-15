@@ -1,10 +1,14 @@
-import React, { useRef, useState } from 'react';
-import { Camera, Loader2 } from 'lucide-react';
+import React, { useMemo, useRef, useState } from 'react';
+import { Camera, Loader2, SlidersHorizontal } from 'lucide-react';
 import { useRecipes } from '../hooks/useRecipes';
 import { usePlan } from '../context/PlanContext';
 import { useView } from '../context/ViewContext';
 import { RecipeCard } from '../components/RecipeCard';
 import { AddToPlanModal } from '../components/AddToPlanModal';
+import { RecipeSearchBar } from '../components/RecipeSearchBar';
+import { RecipeFilterSheet } from '../components/RecipeFilterSheet';
+import { FilterChip } from '../components/FilterChip';
+import { filterRecipes, getDisplayTags, buildCreatorGroup, FILTER_GROUPS, QUICK_FILTERS } from '../lib/recipeSearch';
 import { supabase } from '../lib/supabase';
 import { uploadDishPhoto } from '../lib/uploadRecipeImage';
 
@@ -12,10 +16,11 @@ export function RecipeView() {
     const { recipes, loading, error, refetch } = useRecipes();
     const { setDayRecipe } = usePlan();
     const { setCurrentView, VIEWS } = useView();
-    // console.log('Rendering Recipes:', recipes); // Debug Log
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [activeFilter, setActiveFilter] = useState('All');
+    const [search, setSearch] = useState('');
+    const [activeKeys, setActiveKeys] = useState([]);
+    const [showFilterSheet, setShowFilterSheet] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [photoError, setPhotoError] = useState(null);
     const photoInputRef = useRef(null);
@@ -48,13 +53,29 @@ export function RecipeView() {
         }
     };
 
-    // Derive unique archetypes from available recipes
-    const availableArchetypes = ['All', ...new Set(recipes.flatMap(r => r.archetypes || []))].filter(Boolean);
+    const toggleFilter = (key) => {
+        setActiveKeys((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
+    };
 
-    // Filter recipes based on active filter
-    const displayedRecipes = activeFilter === 'All'
-        ? recipes
-        : recipes.filter(r => r.archetypes?.includes(activeFilter));
+    const clearFilters = () => {
+        setSearch('');
+        setActiveKeys([]);
+    };
+
+    const creatorGroup = useMemo(() => buildCreatorGroup(recipes), [recipes]);
+    const allGroups = useMemo(
+        () => creatorGroup ? [...FILTER_GROUPS, creatorGroup] : FILTER_GROUPS,
+        [creatorGroup]
+    );
+
+    const displayedRecipes = useMemo(
+        () => filterRecipes(recipes, { query: search, activeKeys, groups: allGroups }),
+        [recipes, search, activeKeys, allGroups]
+    );
+
+    const hasActiveFilters = search.trim().length > 0 || activeKeys.length > 0;
+    const quickKeys = new Set(QUICK_FILTERS.map((f) => f.key));
+    const extraFilterCount = activeKeys.filter((k) => !quickKeys.has(k)).length;
 
     // Zinc Skeleton Loader
     if (loading) {
@@ -96,54 +117,96 @@ export function RecipeView() {
     );
 
     return (
-        <div className="animate-fade-in" style={{ paddingBottom: '8rem', maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}> {/* 20px Global Gutter */}
-            {/* Magazine Header */}
-            <header style={{ textAlign: 'left', marginBottom: '2rem' }}>
-                <p style={{ color: 'rgba(var(--active-glow), 1)', fontWeight: 800, fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                    Curated Discovery
+        <div
+            className="animate-fade-in"
+            style={{
+                paddingBottom: '8rem',
+                maxWidth: '1200px',
+                margin: '0 auto',
+                padding: '0 20px',
+                background: 'var(--zinc-950)',
+                minHeight: '100%',
+            }}
+        >
+            {/* Header */}
+            <header style={{ textAlign: 'left', paddingTop: '2rem', marginBottom: '1.5rem' }}>
+                <p className="t-eyebrow" style={{ marginBottom: '0.5rem' }}>Your Library</p>
+                <h2 className="title-display tracking-tight font-bold" style={{ fontSize: '2.75rem', lineHeight: 0.95, color: 'var(--zinc-50)', marginBottom: '0.5rem' }}>
+                    Recipes
+                </h2>
+                <p className="t-body" style={{ margin: 0 }}>
+                    {hasActiveFilters
+                        ? `${displayedRecipes.length} of ${recipes.length} recipes match`
+                        : `${recipes.length} recipes to explore`}
                 </p>
-                <h2 className="title-display tracking-tight font-bold" style={{ fontSize: '3.5rem', lineHeight: 0.9 }}>Digital Culinary</h2>
-                <h2 className="title-display tracking-tight font-bold" style={{ fontSize: '3.5rem', lineHeight: 0.9, opacity: 0.5 }}>Magazine</h2>
             </header>
 
-            {/* Archetype Filter Pills */}
+            {/* Search */}
+            <div style={{ marginBottom: '1rem' }}>
+                <RecipeSearchBar value={search} onChange={setSearch} />
+            </div>
+
+            {/* Quick filter chips + "More filters" trigger */}
             <div
-                className="hide-scrollbar"
+                className="scrollbar-hide"
                 style={{
                     display: 'flex',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     overflowX: 'auto',
                     paddingBottom: '1rem',
-                    marginBottom: '1rem',
-                    padding: '0 5px', // Slight padding for first/last items scroll bleed
-                    scrollSnapType: 'x mandatory'
+                    marginBottom: '0.5rem',
                 }}
             >
-                {availableArchetypes.map(archetype => (
-                    <button
-                        key={archetype}
-                        onClick={() => setActiveFilter(archetype)}
-                        style={{
-                            padding: '0.5rem 1.25rem',
-                            borderRadius: '9999px',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            whiteSpace: 'nowrap',
-                            scrollSnapAlign: 'start',
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            background: activeFilter === archetype ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.05)',
-                            color: activeFilter === archetype ? '#000' : 'rgba(255, 255, 255, 0.6)',
-                            border: `1px solid ${activeFilter === archetype ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.1)'}`,
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {archetype}
-                    </button>
+                <button
+                    onClick={() => setShowFilterSheet(true)}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        padding: '0.5rem 1rem',
+                        borderRadius: 'var(--radius-pill)',
+                        fontFamily: 'var(--font-ui)',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                        background: extraFilterCount > 0 ? 'var(--gold-bg)' : 'rgba(255,255,255,0.05)',
+                        color: extraFilterCount > 0 ? 'var(--gold)' : 'var(--zinc-400)',
+                        border: `1px solid ${extraFilterCount > 0 ? 'var(--gold-border)' : 'rgba(255,255,255,0.1)'}`,
+                        cursor: 'pointer',
+                    }}
+                >
+                    <SlidersHorizontal size={14} strokeWidth={2} />
+                    Filters{extraFilterCount > 0 ? ` (${extraFilterCount})` : ''}
+                </button>
+                {QUICK_FILTERS.map(({ key, label }) => (
+                    <FilterChip key={key} label={label} active={activeKeys.includes(key)} onClick={() => toggleFilter(key)} />
                 ))}
             </div>
 
-            {/* Cards-over-Canvas Feed with Cinematic Masking */}
-            <div className="grid grid-cols-2 gap-4 px-5 pb-20 pt-5">
+            {hasActiveFilters && (
+                <button
+                    onClick={clearFilters}
+                    className="btn-ghost"
+                    style={{ marginBottom: '1rem', padding: '4px 8px', fontSize: '0.8rem' }}
+                >
+                    Clear all
+                </button>
+            )}
+
+            {/* Results */}
+            {displayedRecipes.length === 0 ? (
+                <div className="empty-state">
+                    <p className="empty-state-title">Nothing matches, yet</p>
+                    <p className="empty-state-body">
+                        Try a different search term or clear a filter — your library has {recipes.length} recipes waiting.
+                    </p>
+                    {hasActiveFilters && (
+                        <button className="btn-secondary" onClick={clearFilters}>Clear all filters</button>
+                    )}
+                </div>
+            ) : (
+            <div className="grid grid-cols-2 gap-4 pb-20 pt-1">
                 {displayedRecipes.map((recipe, index) => (
                     <RecipeCard
                         key={recipe.id}
@@ -153,6 +216,17 @@ export function RecipeView() {
                     />
                 ))}
             </div>
+            )}
+
+            {showFilterSheet && (
+                <RecipeFilterSheet
+                    groups={allGroups}
+                    activeKeys={activeKeys}
+                    onToggle={toggleFilter}
+                    onClear={() => setActiveKeys([])}
+                    onClose={() => setShowFilterSheet(false)}
+                />
+            )}
 
             {/* Persistent Bottom Sheet (342pt width logic in CSS/Mobile view) */}
             {selectedRecipe && !showAddModal && (
@@ -195,7 +269,6 @@ export function RecipeView() {
                             borderRadius: '2px',
                             margin: '0 auto 2rem auto'
                         }} />
-                        Drum
                         <div style={{ position: 'relative', height: '300px', borderRadius: '20px', overflow: 'hidden', marginBottom: '2rem' }}>
                             <img
                                 src={selectedRecipe.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800'}
@@ -236,11 +309,28 @@ export function RecipeView() {
                             <p style={{ color: '#f87171', fontSize: '0.8rem', marginBottom: '1rem' }}>{photoError}</p>
                         )}
 
-                        <h2 className="title-display tracking-tight font-bold text-zinc-50" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+                        <h2 className="title-display tracking-tight font-bold text-zinc-50" style={{ fontSize: '2.5rem', marginBottom: selectedRecipe.creator ? '0.35rem' : '1rem' }}>
                             {selectedRecipe.title || selectedRecipe.name || 'Untitled Recipe'}
                         </h2>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+                        {selectedRecipe.creator && (
+                            <p className="t-caption" style={{ marginBottom: '1rem' }}>by {selectedRecipe.creator}</p>
+                        )}
+
+                        {getDisplayTags(selectedRecipe, 4).length > 0 && (
+                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                                {getDisplayTags(selectedRecipe, 4).map((tag) => (
+                                    <span key={tag} className="tag">{tag}</span>
+                                ))}
+                            </div>
+                        )}
+
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: selectedRecipe.difficulty ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+                            gap: '1rem',
+                            marginBottom: '2rem',
+                        }}>
                             <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>PREP</div>
                                 <div style={{ fontWeight: 800 }}>{selectedRecipe.time || selectedRecipe.cook_time || '20m'}</div>
@@ -249,10 +339,12 @@ export function RecipeView() {
                                 <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>SERVINGS</div>
                                 <div style={{ fontWeight: 800 }}>{selectedRecipe.baseServings || selectedRecipe.servings || '2'}</div>
                             </div>
-                            <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>MACROS</div>
-                                <div style={{ fontWeight: 800 }}>Clean</div>
-                            </div>
+                            {selectedRecipe.difficulty && (
+                                <div className="glass-panel" style={{ padding: '1rem', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>DIFFICULTY</div>
+                                    <div style={{ fontWeight: 800 }}>{selectedRecipe.difficulty}</div>
+                                </div>
+                            )}
                         </div>
 
                         <h4 style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.8rem', color: 'rgba(var(--active-glow), 1)', marginBottom: '1rem' }}>Ingredients Matrix</h4>
@@ -267,12 +359,9 @@ export function RecipeView() {
                                         padding: '1rem',
                                         background: 'rgba(255,255,255,0.05)',
                                         borderRadius: '12px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
                                         border: '1px solid rgba(0,0,0,0.05)'
                                     }}>
                                         <span>{displayText}</span>
-                                        <span style={{ opacity: 0.4 }}>Capture Active</span>
                                     </li>
                                 );
                             })}

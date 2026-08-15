@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, Flame, Utensils } from 'lucide-react';
+import { getDisplayTags } from '../lib/recipeSearch';
 
 export function RecipeCard({ recipe, onClick, index }) {
     const [imageError, setImageError] = useState(false);
@@ -11,6 +12,7 @@ export function RecipeCard({ recipe, onClick, index }) {
     const image = recipe.image_url; // STRICT: Only use image_url (backfilled by hook)
     const time = recipe.time || recipe.cook_time || recipe.prep_time;
     const difficulty = recipe.difficulty || recipe.level;
+    const displayTags = getDisplayTags(recipe, 2);
 
     // Trigger error if image is empty string or null
     const hasImage = image && image.length > 0;
@@ -18,12 +20,13 @@ export function RecipeCard({ recipe, onClick, index }) {
 
     return (
         <div
-            className="relative w-full aspect-[4/5] overflow-hidden rounded-3xl cursor-pointer animate-squish"
+            className="relative w-full aspect-[4/5] overflow-hidden cursor-pointer animate-squish"
             onClick={onClick}
             style={{
                 animation: `fadeIn 0.8s var(--spring-easing) ${index * 0.1}s forwards`,
                 opacity: 0,
-                border: '1px solid rgba(255,255,255,0.05)'
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: 'var(--radius-md)',
             }}
         >
             {/* Background Layer */}
@@ -42,9 +45,7 @@ export function RecipeCard({ recipe, onClick, index }) {
                     <img
                         src={image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800'}
                         alt={title}
-                        onError={(e) => {
-                            setImageError(true);
-                        }}
+                        onError={() => setImageError(true)}
                         className="absolute inset-0 w-full h-full object-cover z-[-2] transition-transform duration-500 ease-[var(--spring-easing)]"
                     />
                     {/* Gradient Overlay for Text Readability */}
@@ -66,7 +67,11 @@ export function RecipeCard({ recipe, onClick, index }) {
                         {title}
                     </h3>
 
-                    <div className="flex gap-3 text-xs opacity-90 text-zinc-200">
+                    {recipe.creator && (
+                        <p className="text-[0.65rem] text-zinc-300 opacity-80 mb-1 truncate">by {recipe.creator}</p>
+                    )}
+
+                    <div className="flex gap-3 text-xs opacity-90 text-zinc-200 mb-2">
                         {time && (
                             <div className="flex items-center gap-1">
                                 <Clock size={12} strokeWidth={2} />
@@ -80,6 +85,14 @@ export function RecipeCard({ recipe, onClick, index }) {
                             </div>
                         )}
                     </div>
+
+                    {displayTags.length > 0 && (
+                        <div className="flex gap-1 flex-wrap">
+                            {displayTags.map((tag) => (
+                                <span key={tag} className="tag">{tag}</span>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
