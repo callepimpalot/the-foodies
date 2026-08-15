@@ -43,7 +43,7 @@ Last updated: Aug 6, 2026 — POC loop built and live in production.
 
 - Recipe database: 400 family recipes from Epicurious pipeline + user-captured recipes (`is_personal: true`, `tags: ['captured']`), live in Supabase.
 - Local fallback: `final_recipes.json` at project root — used when Supabase is paused/unreachable. Uses an older ingredient shape (`{item, amount, unit}`) than the live schema (`{name, quantity, unit}`) — `src/lib/consolidateIngredients.js`'s `normalizeIngredient()` is the canonical way to handle both, reuse it rather than re-deriving.
-- RLS on `recipes`: SELECT and INSERT policies exist (both `to public`, unconditional). **UPDATE policy is still missing** — needed for the "add/change photo later" feature in RecipeView and for any future in-place recipe edits.
+- RLS on `recipes`: SELECT, INSERT, and UPDATE policies all exist (`to public`, unconditional). Dish-photo save-through (both at Capture time and edit-later from RecipeView) is fully working.
 - Storage bucket `recipe-images`: exists, public, with an INSERT policy for the public role. No SELECT/UPDATE/DELETE policies on `storage.objects` yet — not blocking today's features (uploads always create new files, never overwrite), but would matter if photo cleanup/replacement-in-place is ever wanted.
 
 ---
