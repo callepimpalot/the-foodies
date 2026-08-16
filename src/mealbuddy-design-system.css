@@ -1,971 +1,375 @@
-/* ============================================================
-   MEAL BUDDY — ZINC DESIGN SYSTEM
-   Complete implementation guide for Gemini/Antigravity
-   
-   HOW TO USE THIS FILE:
-   1. CSS Variables → paste into your global CSS :root {}
-   2. Typography → paste Google Fonts link into index.html <head>
-   3. Component Classes → paste into your global CSS file
-   4. Component Patterns → reference when building each component
-   5. Rules → follow these when Gemini generates any new UI
-   ============================================================ */
-
-
-/* ============================================================
-   1. GOOGLE FONTS — paste into index.html <head>
-   ============================================================ */
-
-/*
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-*/
-
-
-/* ============================================================
-   2. CSS CUSTOM PROPERTIES — paste into :root {}
-   ============================================================ */
+/* =========================================================
+   MEAL BUDDY — "THE CHIT RAIL" DESIGN SYSTEM
+   A kitchen order-ticket rail: dark chalkboard shell holding
+   warm kraft-paper ticket cards. One deliberate dark visual
+   world — not a light/dark toggle.
+   ========================================================= */
 
 :root {
+  /* ---- board (shell / chrome) ---- */
+  --board: #14211B;
+  --board-2: #1C2C24;
+  --line: #33493B;
+  --chalk: #EDE7D8;
+  --chalk-dim: #93A395;
 
-  /* ── BACKGROUNDS & SURFACES ── */
-  --zinc-950: #09090b;   /* App background — the base of everything */
-  --zinc-900: #18181b;   /* Card background */
-  --zinc-800: #27272a;   /* Elevated surfaces, modals, bottom sheets */
-  --zinc-700: #3f3f46;   /* Borders, dividers, separators */
+  /* ---- ticket (card surface) ---- */
+  --ticket: #F1E7CC;
+  --ticket-2: #EADFBE;
+  --ticket-shadow: #D8C495;
+  --ink: #251C10;
+  --ink-dim: #6B5D45;
 
-  /* ── TEXT HIERARCHY ── */
-  --zinc-50:  #fafafa;   /* Hero headings — maximum contrast */
-  --zinc-200: #e4e4e7;   /* Primary body text */
-  --zinc-400: #a1a1aa;   /* Secondary text, metadata */
-  --zinc-500: #71717a;   /* Placeholder, muted, captions */
-  --zinc-600: #52525b;   /* Disabled states */
+  /* ---- marks (used sparingly) ---- */
+  --stamp: #C1442C;
+  --stamp-ink: #9C3620;
+  --stamp-tint: rgba(193, 68, 44, 0.14);
+  --grease: #B98523;
+  --grease-tint: rgba(185, 133, 35, 0.16);
+  --done: #5C7A4E;
+  --done-tint: rgba(92, 122, 78, 0.16);
+  --destructive: #D8735E;
+  --destructive-tint: rgba(216, 115, 94, 0.12);
 
-  /* ── ACCENT COLORS ── */
-  --gold:      #c9a96e;  /* Culinary gold — hero labels, CTAs, active states */
-  --gold-dim:  #7a6240;  /* Muted gold for secondary use */
-  --gold-bg:   rgba(201, 169, 110, 0.08);  /* Gold tint background */
-  --gold-border: rgba(201, 169, 110, 0.25); /* Gold tint border */
-  --cream:     #f5f0e8;  /* Off-white for text overlaid on food images */
-  --slate:     #475569;  /* Tags, time badges, secondary UI elements */
+  /* ---- type ---- */
+  --f-display: 'Anton', sans-serif;
+  --f-head: 'Zilla Slab', serif;
+  --f-body: 'IBM Plex Sans', sans-serif;
+  --f-mono: 'IBM Plex Mono', monospace;
 
-  /* ── SEMANTIC / FUNCTIONAL ── */
-  --success:     #4ade80;  /* Bought / confirmed / complete */
-  --warning:     #f59e0b;  /* Low stock nudge */
-  --destructive: #ef4444;  /* Delete / remove actions */
+  /* ---- spacing (unchanged rhythm) ---- */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px;
 
-  /* ── TYPOGRAPHY ── */
-  --font-display: 'Playfair Display', serif;  /* Names, titles, headings */
-  --font-ui:      'DM Sans', sans-serif;      /* Everything else */
-  --font-mono:    'DM Mono', monospace;       /* Numbers, data, timestamps */
+  /* ---- radius — restrained, cut-paper, not soft plastic ---- */
+  --r-xs: 3px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
 
-  /* ── SPACING SCALE ── */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
-  --space-10: 40px;
-  --space-12: 48px;
+  /* ---- motion ---- */
+  --t-fast: 150ms ease;
+  --t-normal: 250ms ease;
+  --t-slow: 400ms ease;
 
-  /* ── BORDER RADIUS ── */
-  --radius-sm:   10px;   /* Small elements: tags, badges, checkboxes */
-  --radius-md:   14px;   /* Recipe cards, grid items */
-  --radius-lg:   18px;   /* Main cards, modals */
-  --radius-xl:   24px;   /* Hero cards, bottom sheets */
-  --radius-pill: 999px;  /* Buttons, tags, nav bar */
-
-  /* ── TRANSITIONS ── */
-  --transition-fast:   150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow:   400ms ease;
-
-  /* ── SHADOWS ── */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-hero: 0 8px 40px rgba(0, 0, 0, 0.6);
+  /* ---- shadows ---- */
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-hero: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
+/* =========================================================
+   BASE
+   ========================================================= */
 
-/* ============================================================
-   3. GLOBAL RESETS & BASE STYLES
-   ============================================================ */
-
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+html, body, #root {
+  background: var(--board);
+  color: var(--chalk);
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background-color: var(--zinc-950);  /* THE KEY CHANGE — dark base everywhere */
-  color: var(--zinc-200);
-  font-family: var(--font-ui);
-  font-size: 14px;
-  line-height: 1.5;
-  min-height: 100vh;
-}
-
-/* Remove default button styles */
-button {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-family: var(--font-ui);
-}
-
-/* Remove default input styles */
-input, textarea {
-  font-family: var(--font-ui);
-  background: var(--zinc-800);
-  border: 1px solid var(--zinc-700);
-  color: var(--zinc-200);
-  border-radius: var(--radius-sm);
-}
-
-input::placeholder, textarea::placeholder {
-  color: var(--zinc-500);
-}
-
-
-/* ============================================================
-   4. TYPOGRAPHY CLASSES
-   The one rule: Playfair for NAMES, DM Sans for EVERYTHING ELSE
-   ============================================================ */
-
-/* Display — screen titles, greetings */
-.t-display {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 8vw, 48px);
-  font-weight: 900;
-  color: var(--zinc-50);
-  line-height: 1.02;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--f-head);
+  font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-/* Display italic — editorial moments like "Magazine" */
-.t-display-italic {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 7vw, 42px);
-  font-weight: 400;
-  font-style: italic;
-  color: var(--zinc-500);
-  line-height: 1.05;
-}
-
-/* Heading — recipe names, card titles */
-.t-heading {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--zinc-50);
-  line-height: 1.1;
-}
-
-/* Heading medium — planning HQ section titles */
-.t-heading-md {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--zinc-200);
-  line-height: 1.2;
-}
-
-/* Eyebrow — section labels like "CURATED DISCOVERY" */
-.t-eyebrow {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-/* Body large — subtitles, descriptions */
-.t-body-lg {
-  font-family: var(--font-ui);
-  font-size: 16px;
-  font-weight: 300;
-  color: var(--zinc-400);
-  line-height: 1.6;
-}
-
-/* Body — standard copy */
-.t-body {
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--zinc-400);
-  line-height: 1.5;
-}
-
-/* Label — tags, buttons, navigation */
-.t-label {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--zinc-400);
-  letter-spacing: 0.02em;
-}
-
-/* Caption — timestamps, secondary metadata */
-.t-caption {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 400;
-  color: var(--zinc-500);
-}
-
-/* Mono — numbers, quantities, kcal, timestamps */
-.t-mono {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--zinc-500);
-}
-
-/* Recipe card title — on image overlay */
-.t-recipe-card {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--cream);
-  line-height: 1.2;
-}
-
-/* Hero recipe title — large card on home screen */
-.t-hero-recipe {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--zinc-50);
-  line-height: 1.1;
-}
-
-
-/* ============================================================
-   5. SURFACE & CARD CLASSES
-   ============================================================ */
-
-/* Base card */
-.card {
-  background: var(--zinc-900);
-  border: 1px solid var(--zinc-700);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-/* Elevated card — modals, bottom sheets */
-.card-elevated {
-  background: var(--zinc-800);
-  border: 1px solid var(--zinc-700);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-}
-
-/* Hero card — the big UP NEXT card on home */
-.card-hero {
-  background: var(--zinc-900);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  position: relative;
-  box-shadow: var(--shadow-hero);
-}
-
-/* Recipe grid card — two column layout */
-.card-recipe {
-  background: var(--zinc-800);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  position: relative;
-  aspect-ratio: 1 / 1;
-  cursor: pointer;
-  transition: transform var(--transition-fast);
-}
-
-.card-recipe:hover {
-  transform: scale(1.02);
-}
-
-/* Essential item card */
-.card-essential {
-  background: var(--zinc-800);
-  border: 1px solid var(--zinc-700);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3) var(--space-2);
-  text-align: center;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  user-select: none;
-}
-
-.card-essential:active {
-  transform: scale(0.96);
-}
-
-/* Essential item — flagged state */
-.card-essential.flagged {
-  background: var(--gold-bg);
-  border-color: var(--gold-border);
-}
-
-.card-essential.flagged .essential-name {
-  color: var(--gold);
-}
-
-
-/* ============================================================
-   6. IMAGE OVERLAY PATTERNS
-   Always use these for food images — never raw images
-   ============================================================ */
-
-/* Standard gradient overlay for recipe cards */
-.img-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(9, 9, 11, 0.90) 0%,
-    rgba(9, 9, 11, 0.40) 50%,
-    rgba(9, 9, 11, 0.10) 100%
-  );
-}
-
-/* Hero card overlay — stronger at bottom */
-.img-overlay-hero {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(9, 9, 11, 0.95) 0%,
-    rgba(9, 9, 11, 0.50) 40%,
-    rgba(9, 9, 11, 0.10) 100%
-  );
-}
-
-/* Cinematic side-light glow — adds moody depth to food cards */
-.img-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse at 70% 30%,
-    rgba(201, 169, 110, 0.12) 0%,
-    transparent 65%
-  );
-  pointer-events: none;
-}
-
-/* Fallback when image fails to load — never a black broken box */
-.img-fallback {
-  background: linear-gradient(135deg, var(--zinc-900) 0%, var(--zinc-800) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
-}
-
-.img-fallback-title {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--zinc-500);
-  text-align: center;
-}
-
-
-/* ============================================================
-   7. BADGE & TAG CLASSES
-   ============================================================ */
-
-/* Base tag — used for DINNER, ⏱ 20m, 600 kcal */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--zinc-400);
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  white-space: nowrap;
-}
-
-/* Gold badge — UP NEXT, active states */
-.badge-gold {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-ui);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gold);
-  background: var(--gold-bg);
-  border: 1px solid var(--gold-border);
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-}
-
-/* Count badge — shortlist counter "3 saved" */
-.badge-count {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--zinc-500);
-}
-
-
-/* ============================================================
-   8. BUTTON CLASSES
-   ============================================================ */
-
-/* Primary CTA — Lock This Week */
-.btn-primary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 16px var(--space-6);
-  background: var(--zinc-50);
-  color: var(--zinc-950);
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: var(--radius-pill);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.btn-primary:active {
-  transform: scale(0.98);
-  background: var(--zinc-200);
-}
-
-/* Secondary button — done, cancel, clear */
-.btn-secondary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px var(--space-5);
-  background: var(--zinc-800);
-  color: var(--zinc-200);
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid var(--zinc-700);
-  border-radius: var(--radius-pill);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.btn-secondary:active {
-  transform: scale(0.97);
-  background: var(--zinc-700);
-}
-
-/* Ghost button — understated actions */
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 14px;
-  color: var(--zinc-400);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 400;
-  border-radius: var(--radius-pill);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.btn-ghost:hover {
-  color: var(--zinc-200);
-  background: var(--zinc-800);
-}
-
-/* Destructive — delete, remove */
-.btn-destructive {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px var(--space-4);
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--destructive);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-
-/* ============================================================
-   9. NAVIGATION BAR
-   ============================================================ */
-
-.nav-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--zinc-900);
-  border-top: 1px solid var(--zinc-800);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 12px var(--space-6) 28px; /* 28px bottom for safe area */
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 100;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-  min-width: 56px;
-}
-
-.nav-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 18px;
-  transition: all var(--transition-fast);
-}
-
-.nav-label {
-  font-family: var(--font-ui);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: var(--zinc-600);
-  text-transform: uppercase;
-}
-
-/* Active nav item */
-.nav-item.active .nav-icon {
-  background: var(--zinc-800);
-}
-
-.nav-item.active .nav-label {
-  color: var(--zinc-200);
-}
-
-
-/* ============================================================
-   10. LAYOUT HELPERS
-   ============================================================ */
-
-/* Page wrapper — accounts for nav bar height */
-.page {
-  padding: 0 0 100px 0; /* bottom padding for nav bar */
-  min-height: 100vh;
-  background: var(--zinc-950);
-}
-
-/* Page header */
-.page-header {
-  padding: var(--space-8) var(--space-6) var(--space-5);
-}
-
-/* Standard section padding */
-.section {
-  padding: var(--space-5) var(--space-6);
-}
-
-/* Section header row — title left, "View All" right */
-.section-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-/* Two column grid — recipe cards, essentials */
-.grid-2col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-}
-
-/* Three column grid — essentials items within category */
-.grid-3col {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2);
-}
-
-/* Horizontal scroll row — shortlisted recipes, day cards */
-.scroll-row {
-  display: flex;
-  gap: var(--space-3);
-  overflow-x: auto;
-  padding-bottom: var(--space-2);
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.scroll-row::-webkit-scrollbar {
-  display: none;
-}
-
-/* Divider */
-.divider {
-  height: 1px;
-  background: var(--zinc-800);
-  margin: var(--space-5) 0;
-}
-
-
-/* ============================================================
-   11. SWIPE CARD SPECIFIC STYLES
-   ============================================================ */
-
-/* Swipe stack container */
-.swipe-stack {
-  position: relative;
-  width: 100%;
-  height: 480px; /* adjust to your card height */
-}
-
-/* Individual swipe card */
-.swipe-card {
-  position: absolute;
-  inset: 0;
-  background: var(--zinc-900);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-hero);
-  /* Hardware accelerated — transform only, no layout triggers */
-  will-change: transform, opacity;
-  transform: translateX(0) rotate(0deg);
-  transition: none; /* JS handles transitions during swipe */
-}
-
-/* Swipe card when animating out right (shortlist) */
-.swipe-card.exit-right {
-  transition: transform 300ms ease, opacity 200ms ease;
-  transform: translateX(120%) rotate(8deg);
-  opacity: 0;
-}
-
-/* Swipe card when animating out left (pass) */
-.swipe-card.exit-left {
-  transition: transform 300ms ease, opacity 200ms ease;
-  transform: translateX(-120%) rotate(-8deg);
-  opacity: 0;
-}
-
-/* Peek card behind the top card */
-.swipe-card-peek {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-xl);
-  background: var(--zinc-800);
-  transform: scale(0.95) translateY(12px);
-  z-index: -1;
-}
-
-/* Right swipe tint — very subtle green bleed */
-.swipe-tint-right {
-  position: absolute;
-  inset: 0;
-  background: rgba(74, 222, 128, 0.12);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition-fast);
-  z-index: 10;
-}
-
-/* Left swipe tint — subtle zinc bleed */
-.swipe-tint-left {
-  position: absolute;
-  inset: 0;
-  background: rgba(82, 82, 91, 0.20);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition-fast);
-  z-index: 10;
-}
-
-/* Swipe card content area */
-.swipe-card-content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: var(--space-6);
-  z-index: 5;
-}
-
-
-/* ============================================================
-   12. PLANNING HQ — DAY CARD
-   ============================================================ */
-
-.day-card {
-  background: var(--zinc-900);
-  border: 1px solid var(--zinc-700);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  min-width: 140px;
-  flex-shrink: 0;
-}
-
-/* Day card — has allocated recipe */
-.day-card.has-recipe {
-  border-color: var(--zinc-600);
-}
-
-.day-name {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--zinc-500);
-  margin-bottom: 2px;
-}
-
-.day-number {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--zinc-200);
-  line-height: 1;
-  margin-bottom: var(--space-3);
-}
-
-/* Empty meal slot */
-.meal-slot-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px dashed var(--zinc-700);
-  border-radius: var(--radius-sm);
-  color: var(--zinc-600);
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  margin-bottom: var(--space-2);
-}
-
-.meal-slot-empty:hover {
-  border-color: var(--zinc-500);
-  color: var(--zinc-400);
-}
-
-/* Meal slot — selected (tap-to-place active) */
-.meal-slot-empty.selected {
-  border-color: var(--gold);
-  border-style: solid;
-  color: var(--gold);
-  background: var(--gold-bg);
-}
-
-/* Filled meal slot */
-.meal-slot-filled {
-  position: relative;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  height: 60px;
-  margin-bottom: var(--space-2);
-  cursor: pointer;
-}
-
-.meal-slot-filled-title {
-  position: absolute;
-  bottom: var(--space-2);
-  left: var(--space-2);
-  right: var(--space-2);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--cream);
-  z-index: 2;
-  line-height: 1.2;
-}
-
-
-/* ============================================================
-   13. SHOPPING LIST STYLES
-   ============================================================ */
-
-/* Shopping list item */
-.shopping-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--zinc-800);
-}
-
-.shopping-item:last-child {
-  border-bottom: none;
-}
-
-/* Checkbox circle */
-.check-circle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1.5px solid var(--zinc-700);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.check-circle.checked {
-  background: var(--success);
-  border-color: var(--success);
-  color: #000;
-  font-size: 11px;
-}
-
-/* Checked item text */
-.shopping-item-name.checked {
-  text-decoration: line-through;
-  color: var(--zinc-600);
-}
-
-/* Category section header */
-.shopping-category {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--zinc-500);
-  padding: var(--space-4) 0 var(--space-2);
-}
-
-
-/* ============================================================
-   14. EMPTY STATES
-   All empty states must feel calm and premium, never broken
-   ============================================================ */
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-12) var(--space-6);
-  text-align: center;
-  gap: var(--space-3);
-}
-
-.empty-state-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  font-style: italic;
-  color: var(--zinc-500);
-}
-
-.empty-state-body {
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 300;
-  color: var(--zinc-600);
-  max-width: 260px;
-  line-height: 1.6;
-}
-
-
-/* ============================================================
-   15. DESIGN RULES FOR GEMINI
-   Follow these when generating any new component or screen
-   ============================================================ */
-
+  color: var(--chalk);
+}
+
+/* =========================================================
+   COMPONENTS
+   ========================================================= */
+
+@layer components {
+
+  /* ---- cards ---- */
+  .card {
+    background: var(--ticket);
+    color: var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .card-hero {
+    background: var(--ticket);
+    color: var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-hero);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-board {
+    background: var(--board-2);
+    color: var(--chalk);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+  }
+
+  /* torn-ticket top edge, for hero/plan cards */
+  .card-torn {
+    clip-path: polygon(
+      0% 10px, 2% 0%, 5% 8px, 8% 0%, 11% 8px, 14% 0%, 17% 8px, 20% 0%, 23% 8px, 26% 0%,
+      29% 8px, 32% 0%, 35% 8px, 38% 0%, 41% 8px, 44% 0%, 47% 8px, 50% 0%, 53% 8px, 56% 0%,
+      59% 8px, 62% 0%, 65% 8px, 68% 0%, 71% 8px, 74% 0%, 77% 8px, 80% 0%, 83% 8px, 86% 0%,
+      89% 8px, 92% 0%, 95% 8px, 98% 0%, 100% 10px,
+      100% 100%, 0% 100%
+    );
+  }
+
+  .card-punch {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--board);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ---- buttons ---- */
+  .btn-primary {
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 22px;
+    border-radius: var(--r-sm);
+    background: var(--stamp);
+    color: var(--ticket);
+    border: 1px solid var(--stamp-ink);
+    transition: background var(--t-fast), transform var(--t-fast);
+  }
+  .btn-primary:hover { background: var(--stamp-ink); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-secondary {
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 22px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--chalk);
+    border: 1px solid var(--line);
+    transition: border-color var(--t-fast);
+  }
+  .btn-secondary:hover { border-color: var(--chalk-dim); }
+
+  .btn-ghost {
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 18px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--chalk-dim);
+  }
+  .btn-ghost:hover { color: var(--chalk); }
+
+  .btn-destructive {
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 22px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--destructive);
+    border: 1px solid rgba(216, 115, 94, 0.35);
+  }
+
+  .btn-stamp {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--stamp);
+    color: var(--ticket);
+    border: 2px solid var(--stamp-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--f-mono);
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--chalk-dim);
+    transition: color var(--t-fast), border-color var(--t-fast);
+  }
+  .icon-btn:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+
+  /* ---- typography ---- */
+  .t-display {
+    font-family: var(--f-display);
+    font-weight: 400;
+    letter-spacing: 0.005em;
+  }
+  .t-heading-lg { font-family: var(--f-head); font-weight: 700; font-size: 26px; }
+  .t-heading-md { font-family: var(--f-head); font-weight: 700; font-size: 21px; }
+  .t-heading-sm { font-family: var(--f-head); font-weight: 600; font-size: 17px; }
+  .t-body { font-family: var(--f-body); font-weight: 400; font-size: 14px; }
+  .t-label { font-family: var(--f-body); font-weight: 600; font-size: 12px; }
+  .t-eyebrow {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .t-mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---- tags / badges ---- */
+  .tag {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: var(--r-xs);
+    border: 1px solid var(--line);
+    color: var(--chalk-dim);
+  }
+
+  .badge-stamp {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--r-xs);
+    background: var(--stamp);
+    color: var(--ticket);
+  }
+
+  .badge-grease {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: var(--r-xs);
+    background: var(--grease-tint);
+    border: 1px solid var(--grease);
+    color: var(--ink);
+  }
+
+  /* ---- nav bar — full width, screen-anchored, not a floating pill ---- */
+  .nav-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: var(--sp-3) var(--sp-2) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+    background: var(--board-2);
+    border-top: 1px solid var(--line);
+    z-index: 40;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--f-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--chalk-dim);
+  }
+
+  .nav-item-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+
+  .nav-item.active { color: var(--chalk); }
+  .nav-item.active .nav-item-dot {
+    background: var(--stamp);
+    color: var(--ticket);
+  }
+
+  /* ---- forms / inputs ---- */
+  .input {
+    font-family: var(--f-body);
+    font-size: 14px;
+    background: var(--board-2);
+    color: var(--chalk);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+  }
+  .input::placeholder { color: var(--chalk-dim); }
+  .input:focus { outline: 2px solid var(--stamp); outline-offset: 1px; }
+
+  /* ---- list rows (shopping / menu) ---- */
+  .list-ticket {
+    background: var(--ticket);
+    border-radius: var(--r-lg);
+    padding: 0 var(--sp-5);
+  }
+  .list-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px dashed var(--ticket-shadow);
+  }
+  .list-row:last-child { border-bottom: none; }
+
+  /* ---- empty states ---- */
+  .empty-state {
+    text-align: center;
+    font-family: var(--f-head);
+    font-style: italic;
+    color: var(--chalk-dim);
+  }
+}
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+
+/* =========================================================
+   DESIGN RULES (for future agents / contributors)
+   ========================================================= */
 /*
-  RULE 1 — BACKGROUND
-  Never use white or light backgrounds anywhere in the app.
-  Every screen, every card, every modal starts from --zinc-950.
-  The only light colors in the app are text and accent elements.
-
-  RULE 2 — TYPOGRAPHY
-  Playfair Display = anything with a NAME (recipe titles, screen
-  headings, greetings, hero text). Use weights 700 or 900.
-  DM Sans = everything else (tags, labels, body, buttons, meta,
-  captions, navigation). Use weights 300, 400, 500, or 600.
-  DM Mono = numbers only (kcal, quantities, timestamps, counts).
-  Never mix these up.
-
-  RULE 3 — ACCENT COLOR
-  The only accent color is --gold (#c9a96e).
-  Remove all teal, cyan, or bright green accents from the codebase.
-  Replace every instance of teal with --gold for active/highlight
-  states, or --zinc-500 for neutral secondary elements.
-  Gold is used sparingly — badges, active states, eyebrows, flagged
-  items. Not for backgrounds or large areas.
-
-  RULE 4 — IMAGES
-  Every food image must have an overlay gradient applied on top.
-  Use .img-overlay for recipe grid cards.
-  Use .img-overlay-hero for the home hero card.
-  Add .img-glow for the cinematic side-light effect on hero cards.
-  If an image fails to load, use .img-fallback with the recipe
-  title in Playfair italic. Never show a broken image icon.
-
-  RULE 5 — BORDERS & DIVIDERS
-  Use --zinc-700 for borders on cards and inputs.
-  Use --zinc-800 for dividers between list items.
-  Never use a border brighter than --zinc-700.
-
-  RULE 6 — TRANSITIONS
-  All interactive transitions use transform and opacity only.
-  Never animate width, height, top, left, margin, or padding.
-  This keeps everything hardware accelerated and smooth.
-  Use --transition-fast (150ms) for taps and toggles.
-  Use --transition-normal (250ms) for card reveals and slides.
-
-  RULE 7 — SPECIAL CHARACTERS
-  Never interpolate user-generated strings (recipe names, item
-  names) into raw innerHTML or template literals.
-  Always use JSX rendering or textContent assignment.
-  This prevents the ampersand (&) fragility noted in the soul doc.
-
-  RULE 8 — ONE-HANDED USE
-  All primary interactive targets minimum 44x44px touch area.
-  Primary CTAs (Lock This Week, Done) full width pill buttons.
-  Destructive actions (delete, remove) never the primary button.
-  Confirm before destructive where data loss is possible.
-
-  RULE 9 — NO EMOJI IN UI CHROME
-  Emoji are allowed in essentials items and recipe metadata.
-  Never use emoji icons in navigation, buttons, or empty states
-  in place of proper SVG icons or clean typographic solutions.
-  The shopping list empty state currently uses emoji icons —
-  replace with either nothing, or a minimal line icon.
-
-  RULE 10 — SPACING
-  Use the --space-* variables for all padding and margin.
-  Page horizontal padding is always --space-6 (24px).
-  Card internal padding is always --space-4 (16px) minimum.
-  Never use arbitrary pixel values for spacing.
+  - Single deliberate dark visual world. Do not add a light theme.
+  - Ground: --board. Elevated chrome (header/nav): --board-2.
+  - Content lives on --ticket cards, never directly on --board.
+  - Stamp red is the ONE primary-action color per screen. Do not
+    scatter it as decoration.
+  - Every number (kcal, minutes, servings, quantities, timestamps)
+    renders in --f-mono, tabular-nums. Never in body or heading type.
+  - rounded-full is reserved for the stamp mark only. Everything
+    else uses the --r-xs/sm/md/lg scale.
+  - No emoji in UI chrome — use Lucide icons, 1.5px stroke, 20px,
+    colored via currentColor against --chalk-dim / --chalk.
 */

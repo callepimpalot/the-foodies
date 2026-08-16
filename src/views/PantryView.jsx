@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { Inventory } from '../components/Inventory';
 import { PantryCheckSession } from '../components/PantryCheckSession';
+import { Button } from '../components/ui/Button';
+import { TicketCard } from '../components/ui/TicketCard';
 
 export function PantryView() {
     const [isChecking, setIsChecking] = useState(false);
@@ -10,20 +13,25 @@ export function PantryView() {
     }
 
     return (
-        <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                    <h3 style={{ margin: 0 }}>Home Reset</h3>
-                    <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7 }}>Get your home ready for the week</p>
+        <div className="w-full max-w-[800px] mx-auto h-full flex flex-col gap-8">
+            <TicketCard torn eyebrow="Weekly Ritual">
+                <div className="flex items-center justify-between gap-4 flex-wrap" style={{ marginTop: '4px' }}>
+                    <div>
+                        <h3 className="t-heading-md">Home Reset</h3>
+                        <p className="t-body" style={{ color: 'var(--ink-dim)', marginTop: '4px' }}>
+                            Get your home ready for the week
+                        </p>
+                    </div>
+                    <Button
+                        variant="primary"
+                        onClick={() => setIsChecking(true)}
+                        className="flex items-center gap-2 shrink-0"
+                    >
+                        Start Household Check
+                        <ArrowRight size={16} />
+                    </Button>
                 </div>
-                <button
-                    className="btn-primary"
-                    onClick={() => setIsChecking(true)}
-                    style={{ padding: '0.75rem 1.5rem', boxShadow: '0 4px 12px rgba(var(--active-glow), 0.2)' }}
-                >
-                    Start Household Check ➔
-                </button>
-            </div>
+            </TicketCard>
             <Inventory />
         </div>
     );

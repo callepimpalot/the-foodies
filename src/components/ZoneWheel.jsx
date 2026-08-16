@@ -35,14 +35,14 @@ export function ZoneWheel({ categories, currentCategoryInfo, onZoneClick, catego
             <div style={{
                 position: 'absolute',
                 left: 0, top: 0, bottom: 0, width: '20%',
-                background: 'linear-gradient(to right, var(--color-bg), transparent)',
+                background: 'linear-gradient(to right, var(--board), transparent)',
                 zIndex: 10,
                 pointerEvents: 'none'
             }} />
             <div style={{
                 position: 'absolute',
                 right: 0, top: 0, bottom: 0, width: '20%',
-                background: 'linear-gradient(to left, var(--color-bg), transparent)',
+                background: 'linear-gradient(to left, var(--board), transparent)',
                 zIndex: 10,
                 pointerEvents: 'none'
             }} />
@@ -80,17 +80,15 @@ export function ZoneWheel({ categories, currentCategoryInfo, onZoneClick, catego
                             key={cat.id}
                             ref={el => apiRef.current[cat.id] = el}
                             onClick={() => onZoneClick(cat.id)}
+                            className={isActive ? 't-heading-sm' : 't-body'}
                             style={{
                                 scrollSnapAlign: 'center',
                                 flexShrink: 0,
                                 cursor: 'pointer',
                                 transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                                opacity: isActive ? 1 : 0.4,
-                                transform: isActive ? 'scale(1.2)' : 'scale(0.9)',
-                                color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                                fontWeight: isActive ? 800 : 500,
-                                fontSize: isActive ? '1.2rem' : '1rem',
-                                letterSpacing: isActive ? '-0.02em' : 'normal',
+                                opacity: isActive ? 1 : 0.45,
+                                transform: isActive ? 'scale(1.15)' : 'scale(0.9)',
+                                color: isActive ? 'var(--stamp)' : 'var(--chalk-dim)',
                                 textAlign: 'center',
                                 whiteSpace: 'nowrap'
                             }}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, Flame, Utensils } from 'lucide-react';
 import { getDisplayTags } from '../lib/recipeSearch';
+import { Chip } from './ui/Chip';
 
 export function RecipeCard({ recipe, onClick, index }) {
     const [imageError, setImageError] = useState(false);
@@ -20,23 +21,27 @@ export function RecipeCard({ recipe, onClick, index }) {
 
     return (
         <div
-            className="relative w-full aspect-[4/5] overflow-hidden cursor-pointer animate-squish"
+            className="relative w-full aspect-[4/5] overflow-hidden cursor-pointer"
             onClick={onClick}
             style={{
-                animation: `fadeIn 0.8s var(--spring-easing) ${index * 0.1}s forwards`,
+                animation: `fadeIn 0.6s ease-out ${index * 0.08}s forwards`,
                 opacity: 0,
-                border: '1px solid rgba(255,255,255,0.05)',
-                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--board-2)',
             }}
         >
             {/* Background Layer */}
             {showFallback ? (
-                // Playfair Fallback Zinc Gradient with Logo
-                <div className="absolute inset-0 z-[-1] flex flex-col items-center justify-center text-zinc-300 bg-gradient-to-br from-zinc-900 to-zinc-950 px-4 text-center">
-                    <h3 className="font-serif italic text-2xl mb-2 text-zinc-100">{title}</h3>
-                    <div className="flex items-center gap-1 opacity-50">
+                // Fallback panel with title, board gradient
+                <div
+                    className="absolute inset-0 z-[-1] flex flex-col items-center justify-center px-4 text-center"
+                    style={{ background: 'linear-gradient(160deg, var(--board-2), var(--board))', color: 'var(--chalk-dim)' }}
+                >
+                    <h3 className="t-heading-sm mb-2" style={{ color: 'var(--chalk)', fontStyle: 'italic' }}>{title}</h3>
+                    <div className="flex items-center gap-1 opacity-70">
                         <Utensils size={14} />
-                        <span className="text-[0.6rem] font-bold tracking-[0.2em] uppercase">Foodies</span>
+                        <span className="t-eyebrow">Foodies</span>
                     </div>
                 </div>
             ) : (
@@ -46,42 +51,44 @@ export function RecipeCard({ recipe, onClick, index }) {
                         src={image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800'}
                         alt={title}
                         onError={() => setImageError(true)}
-                        className="absolute inset-0 w-full h-full object-cover z-[-2] transition-transform duration-500 ease-[var(--spring-easing)]"
+                        className="absolute inset-0 w-full h-full object-cover z-[-2] transition-transform duration-500 ease-out"
                     />
                     {/* Gradient Overlay for Text Readability */}
-                    <div className="absolute inset-0 z-[-1] bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0 z-[-1]" style={{ background: 'linear-gradient(to top, rgba(20,33,27,0.9), transparent 60%)' }} />
                 </>
             )}
 
             {/* Content Overlay - Bottom 30% */}
             <div className="absolute bottom-0 left-0 w-full p-4 flex flex-col justify-end">
-                <div style={{
-                    backdropFilter: 'blur(8px)', // Reduced Blur
-                    padding: '0.75rem', // Reduced Padding
-                    borderRadius: '16px',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: '#fff',
-                }}>
-                    <h3 className="font-bold text-lg leading-tight mb-1 text-white shadow-sm line-clamp-2 tracking-tight">
+                <div
+                    style={{
+                        backdropFilter: 'blur(8px)',
+                        padding: '0.75rem',
+                        borderRadius: 'var(--r-sm)',
+                        background: 'rgba(20, 33, 27, 0.55)',
+                        border: '1px solid var(--line)',
+                        color: 'var(--chalk)',
+                    }}
+                >
+                    <h3 className="t-heading-sm leading-tight mb-1 line-clamp-2" style={{ color: 'var(--chalk)' }}>
                         {title}
                     </h3>
 
                     {recipe.creator && (
-                        <p className="text-[0.65rem] text-zinc-300 opacity-80 mb-1 truncate">by {recipe.creator}</p>
+                        <p className="t-body mb-1 truncate" style={{ color: 'var(--chalk-dim)', fontSize: '11px', opacity: 0.85 }}>by {recipe.creator}</p>
                     )}
 
-                    <div className="flex gap-3 text-xs opacity-90 text-zinc-200 mb-2">
+                    <div className="flex gap-3 mb-2" style={{ color: 'var(--chalk-dim)' }}>
                         {time && (
                             <div className="flex items-center gap-1">
                                 <Clock size={12} strokeWidth={2} />
-                                <span>{time}</span>
+                                <span className="t-mono" style={{ fontSize: '11px' }}>{time}</span>
                             </div>
                         )}
                         {difficulty && (
                             <div className="flex items-center gap-1">
                                 <Flame size={12} strokeWidth={2} />
-                                <span>{difficulty}</span>
+                                <span className="t-body" style={{ fontSize: '11px' }}>{difficulty}</span>
                             </div>
                         )}
                     </div>
@@ -89,7 +96,7 @@ export function RecipeCard({ recipe, onClick, index }) {
                     {displayTags.length > 0 && (
                         <div className="flex gap-1 flex-wrap">
                             {displayTags.map((tag) => (
-                                <span key={tag} className="tag">{tag}</span>
+                                <Chip key={tag} variant="tag" label={tag} />
                             ))}
                         </div>
                     )}

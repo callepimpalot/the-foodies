@@ -1,311 +1,231 @@
-# 🎨 DESIGN_SYSTEM.md — Meal Buddy / The Foodies
-# Version 2.0 — Zinc Design System
+# 🎫 DESIGN_SYSTEM.md — Meal Buddy / The Foodies
+# Version 3.0 — The Chit Rail
 # Source of Truth for all visual and component decisions.
 # All agents derive design values from this file. Never hardcode values.
+# CSS lives in src/mealbuddy-design-system.css. Tailwind tokens live in tailwind.config.js.
+# Shared React primitives live in src/components/ui/ (Button, TicketCard, Sheet, Chip) — use them.
 
 ---
 
 ## 1. DESIGN PHILOSOPHY
 
-**Style:** Cinematic Zinc — Premium Glassmorphism meets Editorial Magazine
-**Mood:** Dark, moody, high-contrast. Like a high-end restaurant shot with a single side-light.
-**Reference:** A digital culinary magazine that happens to be interactive. Not a utility app.
-**Anti-pattern:** No bright hospital cafeteria lighting. No foodie oranges or bright greens in UI chrome. No generic "AI slop" layouts.
+**Style:** The Chit Rail — a kitchen order ticket, clipped above a line cook's station.
+**Mood:** A tool, not a mood board. Warm because it's useful, not because it's trying to be a magazine.
+**Reference:** Dark chalkboard-green shell holding warm kraft-paper "ticket" cards — like tickets pinned to a rail above the stove.
+**Anti-pattern:** Not a "premium coffee-table cookbook." No full-bleed photo-card grids as the primary pattern. No pill-shaped buttons except the one stamp mark. No emoji in UI chrome.
 
 **The one-sentence brief for any agent:**
-"Every screen should feel like flipping through a premium coffee-table cookbook in a dark room."
+"One dad, a phone propped against a spice rack — a ticket rail earns its warmth by being useful first."
+
+**Note on history:** v2.0 ("Cinematic Zinc," dark/gold/Playfair) was documented but never actually implemented — the shipped app was a plain light zinc/white theme, and this file didn't match reality. v3.0 is a full rebuild: the tokens below are the actual live CSS and Tailwind config, not an aspiration. If you change a value, change it in `src/mealbuddy-design-system.css` / `tailwind.config.js` first, then update this file to match — never the other way around.
 
 ---
 
 ## 2. COLOR PALETTE
 
-### Backgrounds & Surfaces
-| Token | Hex | Usage |
-|---|---|---|
-| --zinc-950 | #09090b | App background — the base of everything |
-| --zinc-900 | #18181b | Card background |
-| --zinc-800 | #27272a | Elevated surfaces, modals, bottom sheets |
-| --zinc-700 | #3f3f46 | Borders, dividers, separators |
+### The board — shell & chrome
+| Token | Hex | Tailwind | Usage |
+|---|---|---|---|
+| --board | #14211B | `bg-board` | App background. Chalkboard green-black — a real hue, not neutral gray. |
+| --board-2 | #1C2C24 | `bg-board2` | Header, nav bar, elevated chrome panels. |
+| --line | #33493B | `border-line` | Hairlines, dividers, resting borders. |
+| --chalk | #EDE7D8 | `text-chalk` | Primary text on the board. Warm, never pure white. |
+| --chalk-dim | #93A395 | `text-chalkDim` | Secondary text, captions, muted labels, inactive nav. |
 
-### Text Hierarchy
-| Token | Hex | Usage |
-|---|---|---|
-| --zinc-50 | #fafafa | Hero headings — maximum contrast |
-| --zinc-200 | #e4e4e7 | Primary body text |
-| --zinc-400 | #a1a1aa | Secondary text, metadata |
-| --zinc-500 | #71717a | Placeholder, muted, captions |
-| --zinc-600 | #52525b | Disabled states |
+### The ticket — card surface
+| Token | Hex | Tailwind | Usage |
+|---|---|---|---|
+| --ticket | #F1E7CC | `bg-ticket` | Card surface. Kraft paper, not white. |
+| --ticket-2 | #EADFBE | `bg-ticket2` | Secondary ticket surface (nested chips/rows). |
+| --ticket-shadow | #D8C495 | `border-ticketShadow` | Fold lines, dashed dividers, card drop. |
+| --ink | #251C10 | `text-ink` | Primary text on ticket surfaces. |
+| --ink-dim | #6B5D45 | `text-inkDim` | Secondary text on ticket surfaces. |
 
-### Accent Colors
-| Token | Hex | Usage |
-|---|---|---|
-| --gold | #c9a96e | Primary accent — hero labels, CTAs, active states, eyebrows |
-| --gold-dim | #7a6240 | Secondary gold — muted use only |
-| --gold-bg | rgba(201,169,110,0.08) | Gold tint background |
-| --gold-border | rgba(201,169,110,0.25) | Gold tint border |
-| --cream | #f5f0e8 | Off-white for text overlaid directly on food images |
-| --slate | #475569 | Tags, time badges, secondary UI elements |
+### The marks — used sparingly
+| Token | Hex | Tailwind | Usage |
+|---|---|---|---|
+| --stamp | #C1442C | `bg-stamp` | **The one primary action per screen.** Rubber-stamp red. |
+| --stamp-ink | #9C3620 | `border-stampInk` | Stamp hover/border-darken state. |
+| --grease | #B98523 | `bg-grease` | Tags, difficulty, in-progress badges. Grease-pencil ochre. |
+| --done | #5C7A4E | `bg-done` | Checked off, cooked, fired. Success state. |
+| --destructive | #D8735E | — | Delete / remove actions only. |
 
-### Semantic / Functional
-| Token | Hex | Usage |
-|---|---|---|
-| --success | #4ade80 | Bought / confirmed / complete |
-| --warning | #f59e0b | Low stock nudge |
-| --destructive | #ef4444 | Delete / remove actions |
-
-### Forbidden Colors
-- No teal or cyan anywhere in UI chrome — remove all legacy instances
-- No bright greens in UI (success green only for functional states)
-- No white or near-white backgrounds on any screen
-- No orange, red, or "foodie" warm tones in UI chrome
+### Forbidden
+- No light/white app background anywhere — this is one deliberate dark visual world, not a light/dark toggle.
+- No `rounded-full` buttons or cards — reserved for the one stamp mark only.
+- No emoji in UI chrome (icons, buttons, nav, empty states). Emoji stay confined to user-facing pantry item data (`src/data/commonItems.js`) — that's product data, not UI chrome.
+- Stamp red is not decorative. If more than one element per screen uses it, that's a bug, not a style choice.
 
 ---
 
 ## 3. TYPOGRAPHY
 
-### Font Stack
+### Font Stack — four faces, four jobs, self-hosted via @fontsource
 ```css
---font-display: 'Playfair Display', serif;   /* Names, titles, headings */
---font-ui:      'DM Sans', sans-serif;        /* Everything else */
---font-mono:    'DM Mono', monospace;         /* Numbers, data, timestamps */
+--f-display: 'Anton', sans-serif;        /* Rare big numbers / stamps only */
+--f-head:    'Zilla Slab', serif;        /* Recipe names, screen/section titles */
+--f-body:    'IBM Plex Sans', sans-serif;/* Everything else: labels, copy, buttons, nav */
+--f-mono:    'IBM Plex Mono', monospace; /* Every number, always */
 ```
-
-### Google Fonts Import (paste into index.html <head>)
-```html
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-```
+No Google Fonts `<link>` needed — installed as npm packages (`@fontsource/anton`, `@fontsource/zilla-slab`, `@fontsource/ibm-plex-sans`, `@fontsource/ibm-plex-mono`), imported in `src/index.css`.
 
 ### The One Rule
-**Playfair Display = anything with a NAME.**
-**DM Sans = everything else.**
+**Every number renders in IBM Plex Mono, tabular.** Kcal, minutes, servings, quantities, timestamps, counts — no exceptions, never in body or heading type. This is the rule most worth enforcing in review: a kcal or time value in the wrong font is the single most common regression in this codebase's history.
 
-If it's a recipe title, screen heading, or greeting → Playfair Display.
-If it's a tag, label, button, metadata, body copy, or caption → DM Sans.
-If it's a number, quantity, kcal, or timestamp → DM Mono.
-They never compete. They divide the work.
+**Zilla Slab = anything with a NAME.** Recipe titles, screen headings, section titles.
+**IBM Plex Sans = everything else.** Tags, labels, buttons, metadata, body copy, captions.
+**Anton is rare on purpose.** Reserve it for a handful of big stat callouts (e.g. "128 RECIPES") — if it shows up more than once or twice per screen, pull it back.
 
 ### Type Scale
-| Role | Font | Size | Weight | Notes |
+| Role | Font | Size | Weight | Class |
 |---|---|---|---|---|
-| Display | Playfair Display | clamp(32px, 8vw, 48px) | 900 | Screen titles, greetings |
-| Display Italic | Playfair Display | clamp(28px, 7vw, 42px) | 400 italic | Editorial moments e.g. "Magazine" |
-| Heading | Playfair Display | 22px | 700 | Recipe names, card titles |
-| Heading MD | Playfair Display | 18px | 700 | Section titles |
-| Eyebrow | DM Sans | 10px | 600 | Letter-spacing 0.2em, uppercase, gold color |
-| Body LG | DM Sans | 16px | 300 | Subtitles, descriptions |
-| Body | DM Sans | 14px | 400 | Standard copy |
-| Label | DM Sans | 12px | 500 | Tags, buttons, nav |
-| Caption | DM Sans | 11px | 400 | Timestamps, secondary meta |
-| Mono | DM Mono | 12px | 400 | Kcal, quantities, timestamps |
-| Recipe Card | Playfair Display | 14px | 700 | On image overlays — use --cream color |
-| Hero Recipe | Playfair Display | 26px | 700 | Large home screen card |
+| Display | Anton | clamp(34px, 5vw, 64px) | 400 | `.t-display` |
+| Heading LG | Zilla Slab | 26px | 700 | `.t-heading-lg` |
+| Heading MD | Zilla Slab | 21px | 700 | `.t-heading-md` |
+| Heading SM | Zilla Slab | 17px | 600 | `.t-heading-sm` |
+| Body | IBM Plex Sans | 14px | 400 | `.t-body` |
+| Label | IBM Plex Sans | 12px | 600 | `.t-label` |
+| Eyebrow | IBM Plex Mono | 10.5px | 400 | `.t-eyebrow` — uppercase, 0.1em tracking |
+| Mono / data | IBM Plex Mono | context-dependent | 400–600 | `.t-mono` — always `tabular-nums` |
 
 ### Typography Rules
-- Recipe titles never truncate with ellipsis — reduce font size instead
-- `tracking-tight` on all display and heading sizes
-- `font-bold` on hero titles
-- Eyebrow labels always gold (#c9a96e), always uppercase, always letter-spacing 0.2em
+- Recipe titles never truncate with ellipsis — reduce font size instead.
+- Eyebrow labels always mono, always uppercase, always 0.1em tracking.
+- Numbers never share a text node with prose — give them their own `<span className="t-mono">`.
 
 ---
 
 ## 4. SPACING & LAYOUT
 
-### Spacing Scale
+### Spacing Scale (unchanged from v2.0 — this was never the problem)
 ```css
---space-1:  4px;
---space-2:  8px;
---space-3:  12px;
---space-4:  16px;
---space-5:  20px;
---space-6:  24px;
---space-8:  32px;
---space-10: 40px;
---space-12: 48px;
+--sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+--sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px;
 ```
 
 ### Layout Rules
-- Global horizontal page padding: 24px (--space-6)
-- Card internal padding: 16px minimum (--space-4)
-- Vertical section gaps: 40px (--space-10)
-- Global gutters: 20px
-- Vertical rhythm grid: 4px base unit
+- Global horizontal page padding: 24px (--sp-6)
+- Card internal padding: 16–20px
+- Vertical section gaps: 32–40px
 - Never use arbitrary pixel values — always use scale tokens
 
 ### Grid System
-- Recipe feeds: strictly 2-column grid, gap-4
-- Essentials grid: 3-column within category sections
-- Horizontal scroll rows: no scrollbar visible, scroll-snap where appropriate
+- Recipe feeds: 2-column grid
+- Horizontal scroll rows: no visible scrollbar, scroll-snap where appropriate
 
 ### Mobile Rules
-- Use 100dvh for full-height layouts — prevents jumping dock
+- Use 100dvh for full-height layouts
 - GPU-accelerated transforms only for animations
-- All interactive touch targets minimum 44x44px
-- Bottom nav safe area: 28px bottom padding minimum
+- All interactive touch targets minimum 44×44px
+- Nav bar respects `env(safe-area-inset-bottom)`
 - One-handed thumb reach: primary actions bottom-anchored
 
 ---
 
 ## 5. BORDER RADIUS
+
+Deliberately restrained — cut paper, not soft plastic.
+
 ```css
---radius-sm:   10px;   /* Tags, badges, small elements */
---radius-md:   14px;   /* Recipe cards, grid items */
---radius-lg:   18px;   /* Main cards */
---radius-xl:   24px;   /* Hero cards, bottom sheets, modals */
---radius-pill: 999px;  /* Buttons, tags, nav bar */
+--r-xs: 3px;   /* tags, badges, small chips */
+--r-sm: 6px;   /* buttons, inputs */
+--r-md: 10px;  /* cards */
+--r-lg: 14px;  /* modals, sheets, hero cards */
 ```
+
+**`rounded-full` is reserved for the stamp mark only** (`.btn-stamp` / `StampButton`). Not buttons, not nav pills, not cards. If you reach for `rounded-full` anywhere else, you're reverting to the old (pre-v3.0) shipped theme by habit — stop and use the scale above instead.
 
 ---
 
 ## 6. TRANSITIONS & ANIMATION
 
 ```css
---transition-fast:   150ms ease;   /* Taps, toggles */
---transition-normal: 250ms ease;   /* Card reveals, slides */
---transition-slow:   400ms ease;   /* Page transitions */
+--t-fast:   150ms ease;   /* Taps, toggles */
+--t-normal: 250ms ease;   /* Card reveals, slides */
+--t-slow:   400ms ease;   /* Page transitions */
 ```
 
-### Animation Rules
-- **Hardware-accelerated only:** transform and opacity exclusively
-- **Never animate:** width, height, top, left, margin, padding — these trigger layout
-- Swipe card physics: JS handles during drag, CSS transition on release only
-- Tap feedback: scale(0.96-0.98) on active state, returns on release
-- All transitions feel instant at 150ms, deliberate at 250ms
+- Hardware-accelerated only: `transform` and `opacity`.
+- Never animate `width`/`height`/`top`/`left`/`margin`/`padding`.
+- Tap feedback: `scale(0.96–0.98)` on active state.
+- Sheets/modals slide up via `.animate-slide-up`.
 
 ---
 
 ## 7. SHADOWS
+
 ```css
---shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
---shadow-hero: 0 8px 40px rgba(0, 0, 0, 0.6);
+--shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+--shadow-hero: 0 8px 32px rgba(0, 0, 0, 0.5);
 ```
 
 ---
 
 ## 8. IMAGE TREATMENT
 
-All food images must have an overlay applied. Raw images are never shown directly.
-
-### Overlay Patterns
-```css
-/* Standard recipe card overlay */
-.img-overlay {
-  background: linear-gradient(
-    to top,
-    rgba(9,9,11,0.90) 0%,
-    rgba(9,9,11,0.40) 50%,
-    rgba(9,9,11,0.10) 100%
-  );
-}
-
-/* Hero card overlay — stronger */
-.img-overlay-hero {
-  background: linear-gradient(
-    to top,
-    rgba(9,9,11,0.95) 0%,
-    rgba(9,9,11,0.50) 40%,
-    rgba(9,9,11,0.10) 100%
-  );
-}
-
-/* Cinematic side-light glow — adds moody depth */
-.img-glow {
-  background: radial-gradient(
-    ellipse at 70% 30%,
-    rgba(201,169,110,0.12) 0%,
-    transparent 65%
-  );
-}
-```
+Recipe photography is secondary to the ticket, not the whole card. Where a photo is used (recipe grid, discover feed), treat it as a small pinned "photo tag" (square, slightly rotated, clipped to the card corner) rather than a full-bleed background — this is a deliberate point of view, not a placeholder-image workaround.
 
 ### Image Fallback (mandatory — no broken images ever)
-When imageUrl returns 404 or fails to load:
-- Background: `linear-gradient(135deg, #18181b 0%, #09090b 100%)`
-- Centered recipe title in Playfair Display italic, --zinc-500 color
-- Never show a broken image icon
-- Never show a black box
-- Do not mutate the recipe record — handle fallback in UI layer only
+When `image_url` returns 404 or fails to load:
+- Background: a two-color gradient built from `--grease`/`--done`/`--stamp` (rotate through the marks per card, per `RecipeCard.jsx`)
+- Never show a broken image icon or a black box
+- Do not mutate the recipe record — handle fallback in the UI layer only
 
 ---
 
 ## 9. COMPONENT STANDARDS
 
-### Recipe Cards (Grid)
-- Layout: 2-column grid, gap-4, strictly enforced
-- Aspect ratio: aspect-[4/5] for all vertical cards
-- Image: full bleed with .img-overlay gradient
-- Title: Playfair Display 700, 14px, --cream color, bottom-left
-- Meta: DM Sans 400, 10px, --zinc-400
-- Fallback: zinc gradient + centered Playfair italic title
-- Hover: scale(1.02), transition-fast
-- Tap: scale(0.98) active state
+### Cards
+- Base: `.card` — ticket surface, `--r-lg`, `--shadow-card`
+- Hero/plan cards: add `.card-torn` (zigzag torn top edge) + `.card-punch` (center punch-hole dot) — use the `TicketCard` primitive with `torn`
+- Chrome panels that sit on the board itself (not content cards): `.card-board` / `BoardCard`
 
-### Hero Card (Home Screen)
-- Full width, border-radius --radius-xl
-- Min-height: 200px
-- Image: full bleed with .img-overlay-hero + .img-glow
-- UP NEXT badge: gold eyebrow badge, top-left
-- Recipe title: Playfair Display 700, 24px, --zinc-50
-- Tags row: DM Sans 500, 10px, semi-transparent pill tags
-- Shadow: --shadow-hero
+### Buttons — `src/components/ui/Button.jsx`
+- Primary: `.btn-primary` — stamp fill, ticket text. One per screen.
+- Secondary: `.btn-secondary` — outline, chalk text
+- Ghost: `.btn-ghost` — no border, dim text
+- Destructive: `.btn-destructive` — outline, muted red
+- Stamp mark: `.btn-stamp` / `StampButton` — the only round element in the system
 
-### Essential Item Cards
-- 3-column grid within category
-- Neutral state: --zinc-800 background, --zinc-700 border
-- Flagged state: --gold-bg background, --gold-border border, --gold text
-- Emoji: 20px, centered above name
-- Name: DM Sans 400, 11px
-- Tap: instant toggle, scale(0.96) active, transition-fast
-- No confirmation dialog — single tap toggles
+### Sheets / Modals — `src/components/ui/Sheet.jsx`
+Every bottom sheet and modal uses the shared `Sheet` component (`surface="ticket"` for content, `surface="board"` for app chrome). Do not hand-roll a new overlay+panel implementation — that's how the pre-v3.0 app ended up with eight different modal patterns.
 
-### Day Cards (Planning HQ)
-- Min-width: 140px, horizontal scroll row
-- Background: --zinc-900, border --zinc-700
-- Day name: DM Sans 600, 10px, uppercase, --zinc-500
-- Day number: Playfair Display 900, 28px, --zinc-200
-- Empty slot: dashed --zinc-700 border, --zinc-600 text
-- Selected slot: solid --gold border, --gold-bg background
-- Filled slot: recipe thumbnail with overlay, Playfair title bottom-left
+### Tags & Badges — `src/components/ui/Chip.jsx`
+- Static tag: `.tag`
+- Interactive filter: `Chip variant="filter"`
+- Stamp badge (e.g. "UP NEXT" eyebrow on a hero card): `.badge-stamp`
+- Grease badge (e.g. difficulty): `.badge-grease`
 
-### Buttons
-- Primary CTA: full-width pill, --zinc-50 background, --zinc-950 text, Playfair Display 700 16px
-- Secondary: --zinc-800 background, --zinc-200 text, --zinc-700 border, DM Sans 500
-- Ghost: transparent, --zinc-400 text, hover reveals --zinc-800 background
-- Destructive: rgba(239,68,68,0.1) background, --destructive text, matching border
+### Navigation Bar — `src/components/BottomNav.jsx`
+- Full-width, screen-anchored (`left: 0; right: 0; bottom: 0`) — **not a floating inset pill.**
+- Background `--board-2`, `border-top: 1px solid var(--line)`
+- 6 items: Home, Capture, Plan, Recipes, Shop, Pantry
+- Active item: `--stamp` icon-dot background, `--chalk` label
+- Inactive: transparent, `--chalk-dim` label
+- Respects `env(safe-area-inset-bottom)`
 
-### Tags & Badges
-- Standard tag: rgba(255,255,255,0.07) background, rgba(255,255,255,0.10) border, --zinc-400 text, pill
-- Gold badge: --gold-bg background, --gold-border border, --gold text, uppercase, tracking-wide
-- Count badge: DM Mono 11px, --zinc-500
-
-### Navigation Bar
-- Background: --zinc-900
-- Border-top: 1px solid --zinc-800
-- Border-radius: top corners --radius-xl only
-- Bottom padding: 28px for safe area
-- Active item: --zinc-800 icon background, --zinc-200 label
-- Inactive: transparent background, --zinc-600 label
-- Label: DM Sans 500, 9px, uppercase
+### Lists (shopping list, menus) — `.list-ticket` / `.list-row`
+- Ticket-paper container, dashed divider between rows (`--ticket-shadow`)
+- Checked-off items: `--done` color + strikethrough — never just disappear
 
 ### Empty States
-- Never broken, never clinical
-- Title: Playfair Display italic, 20px, --zinc-500
-- Body: DM Sans 300, 14px, --zinc-600, max-width 260px
-- No emoji icons in empty states — typographic solutions only
+- Title: Zilla Slab italic, `--chalk-dim`
+- Body: IBM Plex Sans, `--chalk-dim`, max-width ~260px
+- No emoji icons — typographic solutions only
 
 ---
 
 ## 10. ICONOGRAPHY
 - Library: Lucide icons exclusively
-- Stroke weight: 1.5px
-- Size: 20px standard
-- Color: inherits from context (--zinc-400 default, --zinc-200 active)
+- Stroke weight: 1.5–2.25px (heavier when active)
+- Size: 18–20px standard
+- Color: `currentColor`, driven by `--chalk-dim` (default) / `--chalk` (active) / `--ink-dim` (on ticket surfaces)
 
 ---
 
 ## 11. HEADERS & NAVIGATION
-- Backdrop blur: backdrop-blur-md on sticky headers
-- Feathered mask-image transitions for smooth scroll depth
-- Frosted glass effect on fixed headers over content
+- Backdrop blur on sticky headers over scrolling content
+- Header chrome uses `--board-2`, not a translucent overlay on `--board`
 
 ---
 
@@ -320,5 +240,6 @@ When imageUrl returns 404 or fails to load:
 ## 13. CHANGELOG
 | Date | Change | Reason |
 |---|---|---|
-| Feb 20 | v2.0 — Full Zinc system documented | Design system was critically thin; rebuilt from scratch |
+| Aug 15 | v3.0 — Full rebuild to "The Chit Rail," implemented end-to-end (not just documented) | v2.0 described a system that was never actually shipped; user wanted a genuine rebrand after seeing the Chit Rail exploration artifact |
+| Feb 20 | v2.0 — Full Zinc system documented (never fully implemented) | Design system was critically thin; rebuilt from scratch |
 | Feb 10 | v1.0 — Migrated to Tailwind Zinc palette | Initial design system migration |

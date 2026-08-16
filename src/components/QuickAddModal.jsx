@@ -1,18 +1,21 @@
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Check } from 'lucide-react';
 import { commonItems } from '../data/commonItems';
+import { Sheet } from './ui/Sheet';
+import { Button } from './ui/Button';
+import { Chip } from './ui/Chip';
 
 export function QuickAddModal({ onClose, onAdd }) {
     const [selectedItems, setSelectedItems] = useState([]);
     const [activeCategory, setActiveCategory] = useState(commonItems[0].category);
 
     const toggleSelection = (item) => {
-        if (selectedItems.find(i => i.name === item.name)) {
-            setSelectedItems(selectedItems.filter(i => i.name !== item.name));
-        } else {
-            setSelectedItems([...selectedItems, item]);
-        }
+        setSelectedItems(prev =>
+            prev.find(i => i.name === item.name)
+                ? prev.filter(i => i.name !== item.name)
+                : [...prev, item]
+        );
     };
 
     const handleAdd = () => {
@@ -23,114 +26,79 @@ export function QuickAddModal({ onClose, onAdd }) {
     const currentCategoryItems = commonItems.find(c => c.category === activeCategory)?.items || [];
 
     return (
-        <div style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'flex-end', // Bottom sheet style
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(5px)'
-        }}>
-            <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                style={{
-                    width: '100%',
-                    maxWidth: '800px', // Match main container
-                    height: '85vh',
-                    background: 'rgba(9, 9, 11, 0.95)',
-                    backdropFilter: 'blur(24px)',
-                    color: '#fff',
-                    borderRadius: '24px 24px 0 0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    boxShadow: '0 -10px 40px rgba(0,0,0,0.2)'
-                }}
-            >
-                {/* Header */}
-                <div style={{ padding: '1.5rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Quick Add</h2>
-                        <p style={{ margin: 0, color: '#888', fontSize: '0.9rem' }}>Tap items to add to inventory</p>
-                    </div>
-                    <button onClick={onClose} style={{ background: '#f5f5f5', border: 'none', width: '36px', height: '36px', borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
-                </div>
+        <Sheet
+            onClose={onClose}
+            title="Quick Add"
+            footer={
+                <Button
+                    variant="primary"
+                    disabled={selectedItems.length === 0}
+                    onClick={handleAdd}
+                    className="w-full"
+                    style={{ opacity: selectedItems.length === 0 ? 0.5 : 1 }}
+                >
+                    Add <span className="t-mono">{selectedItems.length}</span>&nbsp;
+                    {selectedItems.length === 1 ? 'Item' : 'Items'}
+                </Button>
+            }
+        >
+            <p className="t-body" style={{ color: 'var(--ink-dim)', marginTop: '-8px', marginBottom: '16px' }}>
+                Tap items to add to inventory
+            </p>
 
-                {/* Category Tabs */}
-                <div style={{ display: 'flex', gap: '8px', padding: '1rem', overflowX: 'auto', borderBottom: '1px solid #f0f0f0' }}>
-                    {commonItems.map(cat => (
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide" style={{ marginBottom: '18px', paddingBottom: '4px' }}>
+                {commonItems.map(cat => (
+                    <Chip
+                        key={cat.category}
+                        variant="filter"
+                        active={activeCategory === cat.category}
+                        label={cat.category}
+                        onClick={() => setActiveCategory(cat.category)}
+                    />
+                ))}
+            </div>
+
+            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))' }}>
+                {currentCategoryItems.map(item => {
+                    const isSelected = !!selectedItems.find(i => i.name === item.name);
+                    return (
                         <button
-                            key={cat.category}
-                            onClick={() => setActiveCategory(cat.category)}
+                            key={item.name}
+                            onClick={() => toggleSelection(item)}
                             style={{
-                                padding: '8px 16px',
-                                borderRadius: '100px',
-                                border: 'none',
-                                background: activeCategory === cat.category ? 'var(--color-primary)' : '#f5f5f5',
-                                color: activeCategory === cat.category ? 'white' : '#666',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                aspectRatio: '1',
+                                background: isSelected ? 'var(--stamp-tint)' : 'var(--ticket-2)',
+                                border: `1.5px solid ${isSelected ? 'var(--stamp)' : 'var(--ticket-shadow)'}`,
+                                borderRadius: 'var(--r-md)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                                position: 'relative',
+                                color: 'var(--ink)',
+                                transition: 'background var(--t-fast), border-color var(--t-fast)',
                             }}
                         >
-                            {cat.category}
+                            <div style={{ fontSize: '1.75rem' }}>{item.emoji}</div>
+                            <div className="t-body" style={{ fontSize: '11px', textAlign: 'center', fontWeight: 600, lineHeight: 1.2 }}>
+                                {item.name}
+                            </div>
+
+                            {isSelected && (
+                                <div style={{
+                                    position: 'absolute', top: '4px', right: '4px',
+                                    width: '18px', height: '18px', borderRadius: 'var(--r-xs)',
+                                    background: 'var(--stamp)', color: 'var(--ticket)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                    <Check size={12} strokeWidth={3} />
+                                </div>
+                            )}
                         </button>
-                    ))}
-                </div>
-
-                {/* Grid */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: '12px' }}>
-                        {currentCategoryItems.map(item => {
-                            const isSelected = !!selectedItems.find(i => i.name === item.name);
-                            return (
-                                <motion.div
-                                    key={item.name}
-                                    onClick={() => toggleSelection(item)}
-                                    layout
-                                    style={{
-                                        aspectRatio: '1',
-                                        background: isSelected ? 'rgba(16, 185, 129, 0.1)' : '#f9f9f9',
-                                        border: isSelected ? '2px solid #10b981' : '1px solid #eee',
-                                        borderRadius: '16px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        position: 'relative'
-                                    }}
-                                >
-                                    <div style={{ fontSize: '2rem', marginBottom: '4px' }}>{item.emoji}</div>
-                                    <div style={{ fontSize: '0.8rem', textAlign: 'center', fontWeight: 500, lineHeight: 1.2 }}>{item.name}</div>
-
-                                    {isSelected && (
-                                        <div style={{ position: 'absolute', top: '4px', right: '4px', background: '#10b981', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.8rem' }}>✓</div>
-                                    )}
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Footer Action */}
-                <div style={{ padding: '1rem', borderTop: '1px solid #eee', background: 'white' }}>
-                    <button
-                        className="btn-primary"
-                        disabled={selectedItems.length === 0}
-                        onClick={handleAdd}
-                        style={{ width: '100%', opacity: selectedItems.length === 0 ? 0.5 : 1 }}
-                    >
-                        Add {selectedItems.length} Items
-                    </button>
-                </div>
-            </motion.div>
-        </div>
+                    );
+                })}
+            </div>
+        </Sheet>
     );
 }

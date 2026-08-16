@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
+import { Package, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { SwipeDeck } from './SwipeDeck';
 
 import { ZoneWheel } from './ZoneWheel';
+import { Button } from './ui/Button';
 
 export function PantryCheckSession({ onComplete }) {
     const inventory = useInventory();
 
     // Safety check for context
-    if (!inventory) return <div>Error: No Inventory Context</div>;
+    if (!inventory) return <div className="t-body" style={{ color: 'var(--chalk)', padding: '2rem' }}>Error: No Inventory Context</div>;
 
     const { items = [], categories = [], toggleToBuy, updateItem, categoryOrder = [] } = inventory;
 
@@ -59,18 +61,6 @@ export function PantryCheckSession({ onComplete }) {
         setProcessedIds(prev => new Set(prev).add(id));
     };
 
-    // Safe Emoji
-    const getEmoji = (name) => {
-        if (!name) return '📦';
-        const n = String(name).toLowerCase();
-        if (n.includes('chicken')) return '🍗';
-        if (n.includes('rice')) return '🍚';
-        if (n.includes('broccoli')) return '🥦';
-        if (n.includes('egg')) return '🥚';
-        if (n.includes('pasta')) return '🍝';
-        return '📦';
-    };
-
     // Navigation Logic
     const currentItem = masterItems[currentIndex];
 
@@ -107,48 +97,56 @@ export function PantryCheckSession({ onComplete }) {
 
     const renderCard = (item) => {
         if (!item) return null;
-        // const categoryName = categories?.find(c => c.id === item.category)?.name || 'Misc';
+        const categoryInfo = categories.find(c => c.id === item.category);
         const isAlreadyProcessed = processedIds.has(item.id);
 
         return (
-            <div className="glass-panel" style={{
+            <div className="card card-torn" style={{
+                position: 'relative',
                 height: '100%',
+                padding: '30px 24px 22px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '2rem',
                 textAlign: 'center',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                position: 'relative'
             }}>
-                {isAlreadyProcessed && (
-                    <div style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: 'rgba(255,255,255,0.2)',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.7rem'
-                    }}>
-                        Already Checked
-                    </div>
+                <div className="card-punch" />
+
+                {categoryInfo && (
+                    <span className="t-eyebrow" style={{ position: 'absolute', top: '24px', left: '22px', color: 'var(--ink-dim)' }}>
+                        {categoryInfo.name}
+                    </span>
                 )}
 
-                <div style={{ fontSize: '4rem', marginBottom: '1.5rem', marginTop: '2rem' }}>
-                    {getEmoji(item.name)}
-                </div>
-                <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{item.name}</h3>
+                {isAlreadyProcessed && (
+                    <span className="badge-grease" style={{ position: 'absolute', top: '20px', right: '18px' }}>
+                        Checked
+                    </span>
+                )}
 
-                <div style={{ margin: '1rem 0', padding: '8px 16px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>
-                    <strong>{item.quantity || 0}</strong> / <strong>{item.targetQuantity || 1}</strong>
+                <Package size={52} strokeWidth={1.5} style={{ color: 'var(--ink-dim)', marginBottom: '18px' }} />
+
+                <h3 className="t-heading-lg" style={{ marginBottom: '14px', color: 'var(--ink)' }}>{item.name}</h3>
+
+                <div className="t-mono" style={{
+                    fontSize: '13px',
+                    padding: '6px 14px',
+                    background: 'var(--ticket-2)',
+                    border: '1px solid var(--ticket-shadow)',
+                    borderRadius: 'var(--r-sm)',
+                    color: 'var(--ink-dim)',
+                }}>
+                    {item.quantity || 0} / {item.targetQuantity || 1}
                 </div>
 
-                <div style={{ marginTop: 'auto', display: 'flex', gap: '2rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                    <div style={{ color: '#ff4757' }}>👈 Got It</div>
-                    <div style={{ color: '#10C26D' }}>Need It 👉</div>
+                <div style={{ marginTop: 'auto', display: 'flex', gap: '32px', paddingTop: '20px' }}>
+                    <div className="t-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--ink-dim)' }}>
+                        <ArrowLeft size={14} /> Got It
+                    </div>
+                    <div className="t-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--stamp)' }}>
+                        Need It <ArrowRight size={14} />
+                    </div>
                 </div>
             </div>
         );
@@ -156,18 +154,25 @@ export function PantryCheckSession({ onComplete }) {
 
     if (masterItems.length === 0) {
         return (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2>No Essentials Found</h2>
-                <button onClick={onComplete}>Back</button>
+            <div style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
+                <h2 className="t-heading-md" style={{ marginBottom: '0.5rem' }}>No Essentials Found</h2>
+                <p className="t-body" style={{ color: 'var(--chalk-dim)', marginBottom: '1.5rem' }}>
+                    Mark items as essential to include them in the household check.
+                </p>
+                <Button variant="secondary" onClick={onComplete}>Back</Button>
             </div>
         );
     }
 
     if (isFinished) {
         return (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2>Done!</h2>
-                <button onClick={onComplete}>Back</button>
+            <div style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
+                <CheckCircle2 size={48} strokeWidth={1.5} style={{ color: 'var(--done)', marginBottom: '1rem' }} />
+                <h2 className="t-heading-md" style={{ marginBottom: '0.5rem' }}>All Set</h2>
+                <p className="t-body" style={{ color: 'var(--chalk-dim)', marginBottom: '1.5rem' }}>
+                    Household check complete.
+                </p>
+                <Button variant="secondary" onClick={onComplete}>Back</Button>
             </div>
         );
     }
@@ -178,7 +183,7 @@ export function PantryCheckSession({ onComplete }) {
 
     return (
         <div style={{ padding: '2rem 0', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <h2 className="title-display" style={{ textAlign: 'center', marginBottom: '1rem' }}>Household Check</h2>
+            <h2 className="t-heading-lg" style={{ textAlign: 'center', marginBottom: '1rem' }}>Household Check</h2>
 
             <div style={{ flex: 1, position: 'relative' }}>
                 <SwipeDeck
@@ -200,7 +205,7 @@ export function PantryCheckSession({ onComplete }) {
                 categoryOrder={categoryOrder}
             />
 
-            <div style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.8rem', marginBottom: '1rem' }}>
+            <div className="t-mono" style={{ textAlign: 'center', color: 'var(--chalk-dim)', fontSize: '12px', marginBottom: '1rem' }}>
                 {masterItems.length - processedIds.size} items remaining
             </div>
         </div>

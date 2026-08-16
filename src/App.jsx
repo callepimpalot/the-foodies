@@ -28,18 +28,16 @@ function AppContent() {
   };
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
-      <div className="ambient-background" />
-
+    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col bg-board">
       {/* Scrollable Content Area */}
       <main
         className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
-        style={{ paddingBottom: '8rem' }} // Extra safety padding for dock
+        style={{ paddingBottom: '6rem' }} // Safety padding for the full-width nav bar
       >
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: 'var(--spacing-container)',
+          padding: '0 var(--sp-6)',
           paddingTop: '0',
           minHeight: '100%',
         }}>

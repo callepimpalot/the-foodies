@@ -2,7 +2,7 @@ import React from 'react';
 import { usePlan } from '../context/PlanContext';
 import { DayCard } from './DayCard';
 
-export function WeeklyCalendar({ onDayClick }) {
+export function WeeklyCalendar({ onDayClick, onViewRecipe }) {
     const { isPlanConfirmed, clearDay, resolveDay } = usePlan();
 
     // Generate next 7 days
@@ -20,7 +20,7 @@ export function WeeklyCalendar({ onDayClick }) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            <div className="flex-1 w-full overflow-x-auto no-scrollbar scroll-smooth pl-[24px] pr-[24px] pb-6 pt-2">
+            <div className="flex-1 w-full overflow-x-auto scrollbar-hide scroll-smooth pl-[24px] pr-[24px] pb-6 pt-2">
                 <div className="flex gap-[12px] h-full min-w-max pb-[88px] snap-x snap-mandatory">
                     {days.map((day) => {
                         const isToday = day.dateStr === todayStr;
@@ -37,6 +37,7 @@ export function WeeklyCalendar({ onDayClick }) {
                                 resolved={resolveDay(day.dateStr)}
                                 onDayClick={() => onDayClick(day.dateStr)}
                                 onRemove={() => clearDay(day.dateStr)}
+                                onViewRecipe={onViewRecipe}
                                 isPlanConfirmed={isPlanConfirmed}
                             />
                         );

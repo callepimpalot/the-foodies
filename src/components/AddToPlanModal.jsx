@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Sheet } from './ui/Sheet';
+import { Button } from './ui/Button';
 
 export function AddToPlanModal({ recipe, onClose, onConfirm }) {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -9,8 +11,8 @@ export function AddToPlanModal({ recipe, onClose, onConfirm }) {
         date.setDate(date.getDate() + i);
         return {
             date: date.toISOString().split('T')[0],
-            label: date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }),
-            fullLabel: date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+            weekday: date.toLocaleDateString('en-US', { weekday: 'short' }),
+            day: date.getDate(),
         };
     });
 
@@ -19,73 +21,42 @@ export function AddToPlanModal({ recipe, onClose, onConfirm }) {
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div
-                className="card animate-slide-up"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                    width: '100%',
-                    maxWidth: '400px',
-                    padding: '24px',
-                    margin: '16px',
-                    background: 'rgba(9, 9, 11, 0.95)',
-                    backdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: '#fff'
-                }}
-            >
-                <h2 className="title-lg" style={{ marginBottom: '24px', textAlign: 'center' }}>
-                    Add to Plan
-                </h2>
-
-                <div style={{ marginBottom: '24px' }}>
-                    <label className="title-md" style={{ display: 'block', marginBottom: '12px' }}>
-                        Select Day
-                    </label>
-                    <div className="section-scroll" style={{ padding: '4px 0 12px 0', margin: '0' }}>
-                        {next7Days.map((day) => (
-                            <button
-                                key={day.date}
-                                onClick={() => setSelectedDate(day.date)}
-                                style={{
-                                    minWidth: '70px',
-                                    padding: '12px 8px',
-                                    borderRadius: '12px',
-                                    border: selectedDate === day.date ? '2px solid var(--color-primary)' : '1px solid var(--color-surface-dim)',
-                                    background: selectedDate === day.date ? 'var(--color-primary-dim)' : 'var(--color-surface)',
-                                    color: selectedDate === day.date ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    flexShrink: 0
-                                }}
-                            >
-                                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{day.label.split(' ')[0]}</span>
-                                <span style={{ fontSize: '1rem', fontWeight: 700 }}>{day.label.split(' ')[1]}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-                    <button
-                        className="btn-primary"
-                        style={{ flex: 1, background: 'var(--color-surface-dim)', color: 'var(--color-text-secondary)', boxShadow: 'none' }}
-                        onClick={onClose}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        className="btn-primary"
-                        style={{ flex: 2 }}
-                        onClick={handleConfirm}
-                    >
-                        Confirm
-                    </button>
-                </div>
+        <Sheet
+            title="Add to Plan"
+            onClose={onClose}
+            footer={
+                <>
+                    <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
+                    <Button variant="primary" className="flex-[2]" onClick={handleConfirm}>Confirm</Button>
+                </>
+            }
+        >
+            <p className="t-label" style={{ color: 'var(--ink-dim)', marginBottom: '12px' }}>
+                Select Day
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {next7Days.map((d) => {
+                    const active = selectedDate === d.date;
+                    return (
+                        <button
+                            key={d.date}
+                            onClick={() => setSelectedDate(d.date)}
+                            className="flex flex-col items-center gap-1 shrink-0 transition-colors"
+                            style={{
+                                minWidth: '62px',
+                                padding: '12px 8px',
+                                borderRadius: 'var(--r-md)',
+                                border: `1px solid ${active ? 'var(--stamp)' : 'var(--ticket-shadow)'}`,
+                                background: active ? 'var(--stamp-tint)' : 'transparent',
+                                color: active ? 'var(--stamp)' : 'var(--ink-dim)',
+                            }}
+                        >
+                            <span className="t-label" style={{ letterSpacing: '0.04em' }}>{d.weekday}</span>
+                            <span className="t-mono" style={{ fontSize: '16px', fontWeight: 700 }}>{d.day}</span>
+                        </button>
+                    );
+                })}
             </div>
-        </div>
+        </Sheet>
     );
 }

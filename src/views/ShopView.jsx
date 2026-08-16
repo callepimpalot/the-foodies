@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
 import { usePlan } from '../context/PlanContext';
 import { buildShoppingList, CATEGORY_ORDER } from '../lib/consolidateIngredients';
+import { BoardCard } from '../components/ui/TicketCard';
 
 export function ShopView() {
     const { weeklyPlan, isPlanConfirmed } = usePlan();
@@ -33,58 +34,55 @@ export function ShopView() {
     const allChecked = items.length > 0 && checkedKeys.size === items.length;
 
     return (
-        <div className="min-h-full bg-[#09090b] text-[#e4e4e7] px-[24px] pt-[32px] pb-[24px]">
-            <div className="flex flex-col items-start gap-1 mb-[24px]">
-                <span className="font-sans font-semibold text-[10px] uppercase text-[#c9a96e] tracking-[0.12em]">
-                    SHOP
-                </span>
-                <h2 className="font-display font-black text-[clamp(28px,7vw,36px)] text-[#fafafa] leading-none">
-                    Shopping List
-                </h2>
+        <div className="min-h-full bg-board text-chalk px-6 pt-8 pb-6">
+            <div className="flex flex-col items-start gap-1 mb-6">
+                <span className="t-eyebrow text-chalkDim">Shop</span>
+                <h2 className="t-heading-lg">Shopping List</h2>
             </div>
 
             {!isPlanConfirmed && (
-                <div className="rounded-[18px] border border-dashed border-[#3f3f46] bg-[#18181b] p-[24px] text-center">
-                    <p className="font-display italic text-[18px] text-[#71717a]">Your plan is still in draft.</p>
-                    <p className="font-sans font-light text-[13px] text-[#52525b] mt-[8px] max-w-[280px] mx-auto">
+                <BoardCard className="border-dashed text-center">
+                    <p className="empty-state text-lg">Your plan is still in draft.</p>
+                    <p className="t-body text-chalkDim mt-2 max-w-[280px] mx-auto">
                         Confirm your week in the Plan tab to lock in your meals and generate your list.
                     </p>
-                </div>
+                </BoardCard>
             )}
 
             {isPlanConfirmed && items.length === 0 && (
-                <div className="rounded-[18px] border border-[#3f3f46] bg-[#18181b] p-[24px] text-center">
-                    <p className="font-display italic text-[18px] text-[#71717a]">Nothing to shop for.</p>
-                    <p className="font-sans font-light text-[13px] text-[#52525b] mt-[8px]">
+                <BoardCard className="text-center">
+                    <p className="empty-state text-lg">Nothing to shop for.</p>
+                    <p className="t-body text-chalkDim mt-2">
                         Your locked days don't have any recipes with ingredients yet.
                     </p>
-                </div>
+                </BoardCard>
             )}
 
             {isPlanConfirmed && items.length > 0 && !allChecked && (
-                <div className="flex flex-col gap-[24px]">
+                <div className="flex flex-col gap-6">
                     {grouped.map(({ category, items: catItems }) => (
-                        <div key={category} className="flex flex-col gap-[8px]">
-                            <span className="font-sans font-semibold text-[10px] uppercase text-[#71717a] tracking-[0.12em]">
-                                {category}
-                            </span>
-                            <div className="flex flex-col rounded-[14px] border border-[#3f3f46] overflow-hidden">
-                                {catItems.map((item, idx) => {
+                        <div key={category} className="flex flex-col gap-2">
+                            <span className="t-eyebrow text-chalkDim">{category}</span>
+                            <div className="list-ticket">
+                                {catItems.map((item) => {
                                     const checked = checkedKeys.has(item.key);
                                     return (
                                         <button
                                             key={item.key}
                                             onClick={() => toggleChecked(item.key)}
-                                            className={`flex items-center gap-[12px] p-[14px] min-h-[44px] text-left bg-[#18181b] ${idx !== catItems.length - 1 ? 'border-b border-[#27272a]' : ''}`}
+                                            className="list-row w-full text-left bg-transparent cursor-pointer"
                                         >
-                                            <span className={`w-[22px] h-[22px] rounded-full border flex items-center justify-center shrink-0 ${checked ? 'bg-[#4ade80] border-[#4ade80]' : 'border-[#3f3f46]'}`}>
-                                                {checked && <Check size={13} strokeWidth={3} className="text-[#09090b]" />}
+                                            <span
+                                                className={`w-5 h-5 rounded-xs border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-done border-done' : 'border-ticketShadow'
+                                                    }`}
+                                            >
+                                                {checked && <Check size={12} strokeWidth={3} className="text-ticket" />}
                                             </span>
-                                            <span className={`flex-1 font-sans text-[14px] ${checked ? 'text-[#52525b] line-through' : 'text-[#e4e4e7]'}`}>
+                                            <span className={`flex-1 t-body ${checked ? 'text-done line-through' : 'text-ink'}`}>
                                                 {item.name}
                                             </span>
                                             {item.quantity != null && (
-                                                <span className="font-mono text-[12px] text-[#71717a]">
+                                                <span className="t-mono text-xs text-inkDim">
                                                     {Math.round(item.quantity * 10) / 10}{item.unit ?? ''}
                                                 </span>
                                             )}
@@ -98,10 +96,10 @@ export function ShopView() {
             )}
 
             {isPlanConfirmed && allChecked && (
-                <div className="rounded-[18px] border border-[#3f3f46] bg-[#18181b] p-[24px] text-center">
-                    <p className="font-display italic text-[20px] text-[#fafafa]">Shop complete.</p>
-                    <p className="font-sans font-light text-[13px] text-[#71717a] mt-[8px]">Great week ahead.</p>
-                </div>
+                <BoardCard className="text-center">
+                    <p className="t-heading-md italic text-chalk">Shop complete.</p>
+                    <p className="t-body text-chalkDim mt-2">Great week ahead.</p>
+                </BoardCard>
             )}
         </div>
     );

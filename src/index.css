@@ -3,42 +3,31 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@import "@fontsource/geist-sans";
+@import "@fontsource/anton";
+@import "@fontsource/zilla-slab/600.css";
+@import "@fontsource/zilla-slab/700.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 
 @layer base {
   :root {
-    /* Mapping legacy vars to new Design System */
-    --color-bg: theme('colors.zinc.50');
-    --color-surface: theme('colors.white');
-    --color-surface-dim: theme('colors.zinc.100');
-
     /* Mobile Stability */
     min-height: 100dvh;
-
-    --color-text-primary: theme('colors.zinc.900');
-    --color-text-secondary: theme('colors.zinc.500');
-    --color-text-tertiary: theme('colors.zinc.400');
-
-    /* Brand Colors - Adjusted to Zinc/Neutral for high-end feel, 
-       but keeping some semantic colors if needed or overriding them */
-    --color-primary: theme('colors.zinc.900');
-    --color-primary-dim: theme('colors.zinc.100');
-
-    /* Spacing & Radii updates */
-    --radius-lg: theme('borderRadius.2xl');
-    /* 1rem per config */
-    --radius-full: theme('borderRadius.full');
 
     --ease-smooth: theme('transitionTimingFunction.out');
 
     /* Archetype glow colors — no UI entry point exists to switch archetypes,
-       so TRAINING (the default) is the only one users ever see. Its glow is
-       gold (design-system accent), not the original teal, per DESIGN_SYSTEM.md
-       "no teal or cyan anywhere in UI chrome". */
-    --glow-training: 201, 169, 110;
-    --glow-family: 251, 191, 36;
-    --glow-student: 16, 185, 129;
-    --glow-minimalist: 244, 114, 182;
+       so TRAINING (the default) is the only one users ever see. Its glow now
+       matches the Chit Rail stamp accent rather than the old gold. */
+    --glow-training: 193, 68, 44;
+    --glow-family: 185, 133, 35;
+    --glow-student: 92, 122, 78;
+    --glow-minimalist: 216, 115, 94;
     --active-glow: var(--glow-training);
 
     --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -52,7 +41,7 @@
     padding: 0;
     overflow: hidden;
     /* Prevent window scroll */
-    @apply bg-zinc-50 text-zinc-900 font-sans antialiased;
+    @apply bg-board text-chalk font-body antialiased;
   }
 
   h1,
@@ -61,41 +50,14 @@
   h4,
   h5,
   h6 {
-    @apply font-bold tracking-tight text-zinc-900;
+    @apply font-head font-bold tracking-tight text-chalk;
   }
 }
 
 @layer components {
-  /* Refactoring Legacy Components to Strict Design System */
-
-  .btn-primary {
-    @apply bg-zinc-900 text-white rounded-full px-6 py-3 font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.98];
-  }
-
-  .card {
-    @apply bg-white rounded-2xl border border-zinc-200/50 shadow-sm overflow-hidden transition-all duration-200 hover:scale-[1.005];
-  }
-
-  /* Utilities */
+  /* Utilities that don't belong to a single component */
   .section-scroll {
     @apply flex gap-4 overflow-x-auto pb-4 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide;
-  }
-
-  .icon-btn {
-    @apply w-11 h-11 rounded-full flex items-center justify-center bg-white border border-zinc-200/50 text-zinc-700 transition-all duration-200 hover:bg-zinc-50 hover:scale-[1.05] hover:border-zinc-300;
-  }
-
-  /* Typography Utilities */
-  .title-xl {
-    @apply text-3xl tracking-tight font-bold text-zinc-900;
-  }
-
-  .title-lg {
-    @apply text-2xl tracking-tight font-bold text-zinc-900;
-  }
-
-  .text-body {
-    @apply text-base text-zinc-500 leading-relaxed;
   }
 }
 

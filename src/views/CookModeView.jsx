@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useView } from '../context/ViewContext';
-import { ArrowLeft, Check, ChevronRight, ChevronLeft, Minus, Plus, ListChecks, Timer as TimerIcon, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, ChevronLeft, Minus, Plus, ListChecks, Timer as TimerIcon } from 'lucide-react';
 import { normalizeIngredient, getServingsRatio } from '../lib/consolidateIngredients';
+import { Button, IconButton } from '../components/ui/Button';
+import { TicketCard } from '../components/ui/TicketCard';
+import { Sheet } from '../components/ui/Sheet';
 
 export function CookModeView() {
     const { setCurrentView, VIEWS, viewData } = useView();
@@ -29,99 +32,104 @@ export function CookModeView() {
     const progress = ((activeStep + 1) / stepsToRender.length) * 100;
     const ratio = getServingsRatio(recipe, servings);
     const scaledIngredients = (recipe.ingredients || []).map(normalizeIngredient);
+    const isLastStep = activeStep === stepsToRender.length - 1;
 
     return (
-        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-xl text-zinc-50 flex flex-col h-[100dvh]">
-            {/* Header / Progress */}
-            <div className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-10">
-                <button
-                    onClick={() => setCurrentView(VIEWS.DASHBOARD)}
-                    className="p-3 bg-zinc-900/50 backdrop-blur-md rounded-full text-zinc-400 hover:text-white transition-colors"
-                >
-                    <ArrowLeft size={24} />
-                </button>
-                <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Step {activeStep + 1} of {stepsToRender.length}</span>
-                    <h3 className="text-sm font-bold tracking-tight">{recipe.title}</h3>
-                </div>
-            </div>
-
+        <div className="fixed inset-0 z-50 bg-board text-chalk flex flex-col h-[100dvh]">
             {/* Progress Bar */}
-            <div className="absolute top-0 left-0 h-1 bg-zinc-800 w-full">
+            <div className="fixed top-0 left-0 right-0 h-1 bg-line z-20">
                 <div
-                    className="h-full bg-emerald-500 transition-all duration-300 ease-out"
+                    className="h-full bg-grease transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                 />
             </div>
 
+            {/* Header */}
+            <div className="fixed top-0 left-0 right-0 pt-6 px-6 pb-16 flex justify-between items-start bg-gradient-to-b from-board via-board/80 to-transparent z-10">
+                <IconButton onClick={() => setCurrentView(VIEWS.DASHBOARD)} aria-label="Back to dashboard">
+                    <ArrowLeft size={20} strokeWidth={1.75} />
+                </IconButton>
+                <div className="flex flex-col items-end gap-1">
+                    <span className="t-eyebrow text-chalkDim">Step {activeStep + 1} of {stepsToRender.length}</span>
+                    <h3 className="t-heading-sm text-chalk text-right">{recipe.title}</h3>
+                </div>
+            </div>
+
             {/* Utility row: servings + ingredients + timer */}
-            <div className="fixed top-[76px] left-0 right-0 px-6 flex items-center justify-between gap-3 z-10">
-                <div className="flex items-center gap-2 bg-zinc-900/70 backdrop-blur-md rounded-full px-3 py-1.5">
-                    <button onClick={() => setServings(s => Math.max(1, s - 1))} className="text-zinc-400 hover:text-white p-1">
+            <div className="fixed top-[84px] left-0 right-0 px-6 flex items-center justify-between gap-3 z-10">
+                <div className="flex items-center gap-2 bg-board2 border border-line rounded-sm px-3 py-1.5">
+                    <button
+                        onClick={() => setServings((s) => Math.max(1, s - 1))}
+                        className="text-chalkDim hover:text-chalk p-1"
+                        aria-label="Decrease servings"
+                    >
                         <Minus size={14} strokeWidth={2} />
                     </button>
-                    <span className="text-xs font-bold text-zinc-200 w-[70px] text-center">{servings} servings</span>
-                    <button onClick={() => setServings(s => Math.min(20, s + 1))} className="text-zinc-400 hover:text-white p-1">
+                    <span className="text-xs text-chalk w-[74px] text-center">
+                        <span className="t-mono">{servings}</span> servings
+                    </span>
+                    <button
+                        onClick={() => setServings((s) => Math.min(20, s + 1))}
+                        className="text-chalkDim hover:text-chalk p-1"
+                        aria-label="Increase servings"
+                    >
                         <Plus size={14} strokeWidth={2} />
                     </button>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setShowIngredients(true)}
-                        className="p-2.5 bg-zinc-900/70 backdrop-blur-md rounded-full text-zinc-400 hover:text-white"
-                    >
+                    <IconButton onClick={() => setShowIngredients(true)} aria-label="Show ingredients">
                         <ListChecks size={16} strokeWidth={1.75} />
-                    </button>
-                    <button
-                        onClick={() => setShowTimer(true)}
-                        className="p-2.5 bg-zinc-900/70 backdrop-blur-md rounded-full text-zinc-400 hover:text-white"
-                    >
+                    </IconButton>
+                    <IconButton onClick={() => setShowTimer(true)} aria-label="Show timer">
                         <TimerIcon size={16} strokeWidth={1.75} />
-                    </button>
+                    </IconButton>
                 </div>
             </div>
 
-            {/* Main Content - Centered Text */}
-            <div className="flex-1 flex items-center justify-center p-8 relative">
-                <div className="max-w-2xl w-full animate-fade-in-up text-center">
-                    <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight mb-8 text-zinc-50">
-                        {stepsToRender[activeStep]}
-                    </h1>
-                </div>
-            </div>
-
-            {/* Controls - Thumb Friendly Bottom Bar */}
-            <div className="p-6 pb-12 bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800/50 flex gap-4 items-center justify-between">
-                <button
-                    disabled={activeStep === 0}
-                    onClick={() => setActiveStep(p => Math.max(0, p - 1))}
-                    className={`flex-1 p-6 rounded-3xl font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-95 ${activeStep === 0
-                        ? 'bg-zinc-900 text-zinc-600 opacity-50'
-                        : 'bg-zinc-900 text-zinc-50 hover:bg-zinc-800'
-                        }`}
+            {/* Main Content — current step on a ticket card */}
+            <div className="flex-1 flex items-center justify-center px-6 pt-[160px] pb-[168px]">
+                <TicketCard
+                    torn
+                    eyebrow={`Step ${activeStep + 1} of ${stepsToRender.length}`}
+                    className="w-full max-w-2xl text-center animate-fade-in"
                 >
-                    <ChevronLeft size={24} /> Back
-                </button>
+                    <p className="font-head font-bold text-ink text-[26px] md:text-[34px] leading-snug">
+                        {stepsToRender[activeStep]}
+                    </p>
+                </TicketCard>
+            </div>
 
-                <button
+            {/* Controls — thumb-friendly bottom bar */}
+            <div
+                className="fixed bottom-0 left-0 right-0 p-6 bg-board2 border-t border-line flex gap-4 items-center justify-between z-10"
+                style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}
+            >
+                <Button
+                    variant="secondary"
+                    disabled={activeStep === 0}
+                    onClick={() => setActiveStep((p) => Math.max(0, p - 1))}
+                    className={`flex-1 flex items-center justify-center gap-2 ${activeStep === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                    <ChevronLeft size={20} strokeWidth={1.75} /> Back
+                </Button>
+
+                <Button
+                    variant="primary"
                     onClick={() => {
-                        if (activeStep < stepsToRender.length - 1) {
-                            setActiveStep(p => p + 1);
+                        if (!isLastStep) {
+                            setActiveStep((p) => p + 1);
                         } else {
                             setCurrentView(VIEWS.DASHBOARD);
                         }
                     }}
-                    className={`flex-[2] p-6 rounded-3xl font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg ${activeStep === stepsToRender.length - 1
-                        ? 'bg-zinc-100 text-zinc-900 hover:bg-white shadow-white/10'
-                        : 'bg-zinc-800 text-zinc-50 hover:bg-zinc-700 shadow-black/20'
-                        }`}
+                    className="flex-[2] flex items-center justify-center gap-2"
                 >
-                    {activeStep === stepsToRender.length - 1 ? (
-                        <>Finish Cooking <Check size={24} /></>
+                    {isLastStep ? (
+                        <>Finish Cooking <Check size={20} strokeWidth={1.75} /></>
                     ) : (
-                        <>Next Step <ChevronRight size={24} /></>
+                        <>Next Step <ChevronRight size={20} strokeWidth={1.75} /></>
                     )}
-                </button>
+                </Button>
             </div>
 
             {showIngredients && (
@@ -139,31 +147,24 @@ export function CookModeView() {
 
 function IngredientsSheet({ ingredients, ratio, onClose }) {
     return (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
-            <div
-                className="w-full max-w-[500px] max-h-[70vh] overflow-y-auto bg-zinc-900 border-t border-zinc-800 rounded-t-[24px] p-6 pb-10 flex flex-col gap-3"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold text-zinc-50">Ingredients</h3>
-                    <button onClick={onClose} className="text-zinc-500"><X size={20} /></button>
-                </div>
+        <Sheet onClose={onClose} title="Ingredients" surface="ticket">
+            <div className="flex flex-col">
                 {ingredients.length === 0 && (
-                    <p className="text-zinc-500 text-sm">No ingredients listed for this recipe.</p>
+                    <p className="t-body italic text-inkDim text-center py-4">No ingredients listed for this recipe.</p>
                 )}
                 {ingredients.map((ing, idx) => {
                     const scaledQty = ing.quantity != null ? Math.round(ing.quantity * ratio * 10) / 10 : null;
                     return (
-                        <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
-                            <span className="text-zinc-200 text-sm">{ing.name}</span>
+                        <div key={idx} className="list-row">
+                            <span className="flex-1 t-body text-ink">{ing.name}</span>
                             {scaledQty != null && (
-                                <span className="text-zinc-500 text-xs font-mono">{scaledQty}{ing.unit ?? ''}</span>
+                                <span className="t-mono text-xs text-inkDim">{scaledQty}{ing.unit ?? ''}</span>
                             )}
                         </div>
                     );
                 })}
             </div>
-        </div>
+        </Sheet>
     );
 }
 
@@ -204,45 +205,37 @@ function TimerSheet({ onClose }) {
     const isDone = totalSeconds != null && remaining === 0;
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
-            <div
-                className="w-full max-w-[500px] bg-zinc-900 border-t border-zinc-800 rounded-t-[24px] p-6 pb-10 flex flex-col items-center gap-6"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between w-full">
-                    <h3 className="text-lg font-bold text-zinc-50">Timer</h3>
-                    <button onClick={onClose} className="text-zinc-500"><X size={20} /></button>
-                </div>
-
+        <Sheet onClose={onClose} title="Timer" surface="ticket">
+            <div className="flex flex-col items-center gap-6 py-2">
                 {totalSeconds == null ? (
                     <div className="flex gap-3 flex-wrap justify-center">
                         {TIMER_PRESETS.map((m) => (
                             <button
                                 key={m}
                                 onClick={() => start(m)}
-                                className="px-5 py-3 rounded-full bg-zinc-800 text-zinc-200 font-bold text-sm hover:bg-zinc-700"
+                                className="px-5 py-3 rounded-sm bg-ticket2 text-ink font-semibold text-sm hover:bg-ticketShadow transition-colors"
                             >
-                                {m} min
+                                <span className="t-mono">{m}</span> min
                             </button>
                         ))}
                     </div>
                 ) : (
                     <>
-                        <div className={`text-6xl font-black tabular-nums ${isDone ? 'text-emerald-400' : 'text-zinc-50'}`}>
+                        <div className={`t-mono text-6xl font-bold ${isDone ? 'text-done' : 'text-ink'}`}>
                             {mm}:{ss}
                         </div>
                         {isDone ? (
-                            <p className="text-emerald-400 font-bold text-sm">Time's up!</p>
+                            <p className="t-label text-done">Time's up!</p>
                         ) : null}
                         <button
                             onClick={cancel}
-                            className="px-6 py-3 rounded-full bg-zinc-800 text-zinc-400 font-medium text-sm hover:bg-zinc-700"
+                            className="t-label text-inkDim hover:text-ink px-6 py-3"
                         >
                             Cancel
                         </button>
                     </>
                 )}
             </div>
-        </div>
+        </Sheet>
     );
 }

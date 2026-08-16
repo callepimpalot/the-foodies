@@ -1,10 +1,13 @@
 
 import React, { useState } from 'react';
+import { Package, Heart, Plus, Trash2, ChevronDown, X, Map as MapIcon } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { useArchetype } from '../context/ArchetypeContext';
-import { motion, AnimatePresence } from 'framer-motion';
 import { QuickAddModal } from './QuickAddModal';
 import { RoutePlannerModal } from './RoutePlannerModal';
+import { Chip } from './ui/Chip';
+import { Button, IconButton } from './ui/Button';
+import { TicketCard } from './ui/TicketCard';
 
 
 export function Inventory() {
@@ -52,67 +55,47 @@ export function Inventory() {
         <div style={{ padding: '0 0 100px 0', width: '100%' }}>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', padding: '0 0.5rem' }}>
-                <button
+            <div className="flex gap-2" style={{ marginBottom: '1.5rem' }}>
+                <Chip
+                    variant="filter"
+                    active={activeTab === 'ALL'}
                     onClick={() => setActiveTab('ALL')}
-                    style={{
-                        flex: 1,
-                        padding: '12px',
-                        borderRadius: '16px',
-                        border: 'none',
-                        background: activeTab === 'ALL' ? 'var(--color-primary)' : 'rgba(255,255,255,0.5)',
-                        color: activeTab === 'ALL' ? 'white' : 'var(--color-text-secondary)',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        boxShadow: activeTab === 'ALL' ? '0 4px 12px rgba(var(--active-glow), 0.3)' : 'none',
-                        transition: 'all 0.2s',
-                        cursor: 'pointer'
-                    }}
+                    className="flex-1 flex items-center justify-center gap-2"
+                    style={{ padding: '12px 14px' }}
                 >
-                    📦 All Items
-                </button>
-                <button
+                    <Package size={14} /> All Items
+                </Chip>
+                <Chip
+                    variant="filter"
+                    active={activeTab === 'ESSENTIALS'}
                     onClick={() => setActiveTab('ESSENTIALS')}
-                    style={{
-                        flex: 1,
-                        padding: '12px',
-                        borderRadius: '16px',
-                        border: 'none',
-                        background: activeTab === 'ESSENTIALS' ? 'var(--color-primary)' : 'rgba(255,255,255,0.5)',
-                        color: activeTab === 'ESSENTIALS' ? 'white' : 'var(--color-text-secondary)',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        boxShadow: activeTab === 'ESSENTIALS' ? '0 4px 12px rgba(var(--active-glow), 0.3)' : 'none',
-                        transition: 'all 0.2s',
-                        cursor: 'pointer'
-                    }}
+                    className="flex-1 flex items-center justify-center gap-2"
+                    style={{ padding: '12px 14px' }}
                 >
-                    ❤️ Essentials
-                </button>
+                    <Heart size={14} /> Essentials
+                </Chip>
             </div>
 
-            <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-                <h2 className="title-md" style={{ marginBottom: '1rem' }}>Add to Pantry</h2>
+            <TicketCard style={{ marginBottom: '1.5rem' }}>
+                <h2 className="t-heading-sm" style={{ marginBottom: '1rem' }}>Add to Pantry</h2>
                 <form onSubmit={handleAddItem} style={{ display: 'flex', gap: '0.5rem' }}>
                     <input
                         type="text"
+                        className="input"
                         value={newItemName}
                         onChange={(e) => setNewItemName(e.target.value)}
                         placeholder="e.g. Milk, Bread, Apples..."
-                        style={{
-                            flex: 1,
-                            padding: '12px',
-                            borderRadius: '12px',
-                            border: '1px solid rgba(0,0,0,0.1)',
-                            background: 'rgba(255,255,255,0.5)',
-                            fontSize: '1rem'
-                        }}
+                        style={{ flex: 1, background: 'var(--ticket-2)', borderColor: 'var(--ticket-shadow)', color: 'var(--ink)' }}
                     />
-                    <button className="btn-primary" type="submit" style={{ borderRadius: '12px', padding: '0 20px' }}>
-                        +
-                    </button>
+                    <IconButton
+                        type="submit"
+                        style={{ borderColor: 'var(--ticket-shadow)', color: 'var(--ink-dim)', width: '44px', height: '44px' }}
+                        aria-label="Add item"
+                    >
+                        <Plus size={18} />
+                    </IconButton>
                 </form>
-            </div>
+            </TicketCard>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {sortedCategories.map(category => {
@@ -120,20 +103,17 @@ export function Inventory() {
                     if (categoryItems.length === 0 && category.id !== 'other') return null; // Hide empty categories except Unsorted
 
                     return (
-                        <div
-                            key={category.id}
-                            className="glass-panel"
-                            style={{ padding: '1rem' }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                <h3 className="title-sm" style={{ display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'capitalize' }}>
-                                    <span>{category.icon}</span>
+                        <TicketCard key={category.id}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: categoryItems.length ? '0.5rem' : 0 }}>
+                                <h3 className="t-heading-sm" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                                     {category.name === 'Other' ? 'Unsorted' : category.name}
-                                    <span style={{ fontSize: '0.8rem', opacity: 0.5, fontWeight: 400 }}>({categoryItems.length})</span>
+                                    <span className="t-mono" style={{ fontSize: '12px', color: 'var(--ink-dim)', fontWeight: 400 }}>
+                                        ({categoryItems.length})
+                                    </span>
                                 </h3>
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div>
                                 {categoryItems.map(item => (
                                     <PantryItemRow
                                         key={item.id}
@@ -146,38 +126,39 @@ export function Inventory() {
                                     />
                                 ))}
                                 {categoryItems.length === 0 && category.id === 'other' && (
-                                    <div
-                                        style={{ textAlign: 'center', padding: '20px', fontSize: '0.9rem', opacity: 0.5 }}
-                                    >
+                                    <div className="empty-state" style={{ color: 'var(--ink-dim)', padding: '16px 0 4px' }}>
                                         No unsorted items. Great job!
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </TicketCard>
                     );
                 })}
 
                 {/* Add Category Section */}
-                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
                     {!isAddingCategory ? (
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={() => setIsAddingCategory(true)}
-                            style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer' }}
+                            className="inline-flex items-center gap-2"
                         >
-                            + Create New Category
-                        </button>
+                            <Plus size={14} /> Create New Category
+                        </Button>
                     ) : (
-                        <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <form onSubmit={handleAddCategory} className="flex items-center justify-center gap-2">
                             <input
                                 autoFocus
                                 type="text"
+                                className="input"
                                 placeholder="Category Name"
                                 value={newCategoryName}
                                 onChange={e => setNewCategoryName(e.target.value)}
-                                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #ccc' }}
                             />
-                            <button type="submit" className="btn-primary" style={{ padding: '8px 16px' }}>Add</button>
-                            <button type="button" onClick={() => setIsAddingCategory(false)} style={{ background: 'none', border: 'none', color: '#666' }}>X</button>
+                            <Button type="submit" variant="secondary">Add</Button>
+                            <IconButton type="button" onClick={() => setIsAddingCategory(false)} aria-label="Cancel">
+                                <X size={16} />
+                            </IconButton>
                         </form>
                     )}
                 </div>
@@ -187,22 +168,19 @@ export function Inventory() {
             <div style={{ position: 'fixed', bottom: '100px', right: '20px', zIndex: 100 }}>
                 <button
                     onClick={() => setShowQuickAdd(true)}
+                    className="flex items-center justify-center"
                     style={{
                         width: '56px',
                         height: '56px',
-                        borderRadius: '50%',
-                        background: 'var(--color-primary)',
-                        color: 'white',
-                        border: 'none',
-                        fontSize: '2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                        cursor: 'pointer'
+                        borderRadius: 'var(--r-md)',
+                        background: 'var(--board-2)',
+                        color: 'var(--chalk)',
+                        border: '1px solid var(--line)',
+                        boxShadow: 'var(--shadow-card)',
                     }}
+                    aria-label="Quick add"
                 >
-                    +
+                    <Plus size={24} />
                 </button>
             </div>
 
@@ -210,39 +188,34 @@ export function Inventory() {
             <div style={{ position: 'fixed', bottom: '100px', left: '20px', zIndex: 100 }}>
                 <button
                     onClick={() => setShowRoutePlanner(true)}
+                    className="flex items-center justify-center"
                     style={{
                         width: '48px',
                         height: '48px',
-                        borderRadius: '50%',
-                        background: 'white',
-                        color: '#666',
-                        border: '1px solid #ddd',
-                        fontSize: '1.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        cursor: 'pointer'
+                        borderRadius: 'var(--r-md)',
+                        background: 'var(--board-2)',
+                        color: 'var(--chalk-dim)',
+                        border: '1px solid var(--line)',
+                        boxShadow: 'var(--shadow-card)',
                     }}
                     title="Plan Route"
+                    aria-label="Plan route"
                 >
-                    🗺️
+                    <MapIcon size={20} />
                 </button>
             </div>
 
-            <AnimatePresence>
-                {showQuickAdd && (
-                    <QuickAddModal
-                        onClose={() => setShowQuickAdd(false)}
-                        onAdd={(items) => items.forEach(i => addItem(i))}
-                    />
-                )}
-                {showRoutePlanner && (
-                    <RoutePlannerModal
-                        onClose={() => setShowRoutePlanner(false)}
-                    />
-                )}
-            </AnimatePresence>
+            {showQuickAdd && (
+                <QuickAddModal
+                    onClose={() => setShowQuickAdd(false)}
+                    onAdd={(items) => items.forEach(i => addItem(i))}
+                />
+            )}
+            {showRoutePlanner && (
+                <RoutePlannerModal
+                    onClose={() => setShowRoutePlanner(false)}
+                />
+            )}
         </div>
     );
 }
@@ -251,66 +224,51 @@ function PantryItemRow({ item, categories, updateItem, removeItem, toggleEssenti
     const [isEditingCat, setIsEditingCat] = useState(false);
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px',
-                background: 'rgba(255,255,255,0.6)',
-                borderRadius: '12px',
-                border: '1px solid rgba(0,0,0,0.05)',
-                position: 'relative'
-            }}
-        >
+        <div className="list-row" style={{ alignItems: 'center' }}>
             {/* Delete - Left Side */}
-            <button
+            <IconButton
                 onClick={() => removeItem(item.id)}
                 style={{
-                    border: 'none',
-                    background: 'rgba(255, 71, 87, 0.1)', // Light red background
-                    color: '#ff4757',
-                    cursor: 'pointer',
+                    borderColor: 'rgba(216, 115, 94, 0.35)',
+                    color: 'var(--destructive)',
                     width: '32px',
                     height: '32px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem',
-                    transition: 'all 0.2s',
-                    flexShrink: 0
+                    flexShrink: 0,
                 }}
+                aria-label={`Remove ${item.name}`}
             >
-                ✕
-            </button>
+                <Trash2 size={15} />
+            </IconButton>
 
             {/* Content (Flex 1) - Middle Left */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', opacity: item.inPantry ? 1 : 0.5 }}>
-                <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', opacity: item.inPantry ? 1 : 0.6, minWidth: 0 }}>
+                <div className="t-body" style={{ fontWeight: 600, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     {item.name}
                     {!item.inPantry && (
-                        <span style={{ fontSize: '0.7rem', background: '#ff4757', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>TO BUY</span>
+                        <span className="badge-stamp">To Buy</span>
                     )}
                 </div>
                 {/* Category Picker */}
                 <div style={{ position: 'relative', display: 'inline-block', marginTop: '4px' }}>
                     <div
                         onClick={() => setIsEditingCat(!isEditingCat)}
+                        className="t-eyebrow"
                         style={{
-                            fontSize: '0.75rem',
-                            color: 'var(--color-text-secondary)',
+                            color: 'var(--ink-dim)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
                             cursor: 'pointer',
-                            background: 'rgba(0,0,0,0.05)',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            width: 'fit-content'
+                            background: 'var(--ticket-2)',
+                            padding: '3px 8px',
+                            borderRadius: 'var(--r-xs)',
+                            width: 'fit-content',
+                            textTransform: 'none',
+                            letterSpacing: 'normal',
                         }}
                     >
-                        {categories.find(c => c.id === item.category)?.name || 'Unsorted'} ▾
+                        {categories.find(c => c.id === item.category)?.name || 'Unsorted'}
+                        <ChevronDown size={12} />
                     </div>
 
                     {/* Simple Dropdown for Category Switch */}
@@ -320,14 +278,14 @@ function PantryItemRow({ item, categories, updateItem, removeItem, toggleEssenti
                             top: '100%',
                             left: 0,
                             zIndex: 100,
-                            background: 'white',
-                            border: '1px solid #eee',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            background: 'var(--ticket)',
+                            border: '1px solid var(--ticket-shadow)',
+                            borderRadius: 'var(--r-sm)',
+                            boxShadow: 'var(--shadow-card)',
                             maxHeight: '200px',
                             overflowY: 'auto',
                             width: '180px',
-                            padding: '4px'
+                            padding: '4px',
                         }}>
                             {categories.map(cat => (
                                 <div
@@ -336,19 +294,18 @@ function PantryItemRow({ item, categories, updateItem, removeItem, toggleEssenti
                                         updateItem(item.id, { category: cat.id });
                                         setIsEditingCat(false);
                                     }}
+                                    className="t-body"
                                     style={{
                                         padding: '8px',
-                                        fontSize: '0.85rem',
+                                        fontSize: '13px',
                                         cursor: 'pointer',
-                                        borderRadius: '4px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px'
+                                        borderRadius: 'var(--r-xs)',
+                                        color: 'var(--ink)',
                                     }}
-                                    onMouseEnter={(e) => e.target.style.background = '#f5f5f5'}
-                                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ticket-2)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                 >
-                                    <span>{cat.icon}</span> {cat.name}
+                                    {cat.name}
                                 </div>
                             ))}
                         </div>
@@ -357,87 +314,60 @@ function PantryItemRow({ item, categories, updateItem, removeItem, toggleEssenti
             </div>
 
             {/* Quantity Controls - Middle Right */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.03)', padding: '4px', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                 {isEssentialView ? (
                     <>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#aaa', textTransform: 'uppercase', marginRight: '4px' }}>Target</div>
-                        <button
+                        <span className="t-eyebrow" style={{ color: 'var(--ink-dim)', marginRight: '2px' }}>Target</span>
+                        <IconButton
                             onClick={() => updateItem(item.id, { targetQuantity: Math.max(1, (item.targetQuantity || 1) - 1) })}
-                            style={{
-                                border: 'none',
-                                background: 'white',
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >-</button>
-                        <span style={{
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
-                            minWidth: '20px',
-                            textAlign: 'center'
-                        }}>{item.targetQuantity || 1}</span>
-                        <button
+                            style={{ borderColor: 'var(--ticket-shadow)', color: 'var(--ink-dim)', width: '28px', height: '28px' }}
+                        >-</IconButton>
+                        <span className="t-mono" style={{ minWidth: '20px', textAlign: 'center', color: 'var(--ink)' }}>
+                            {item.targetQuantity || 1}
+                        </span>
+                        <IconButton
                             onClick={() => updateItem(item.id, { targetQuantity: (item.targetQuantity || 1) + 1 })}
-                            style={{ border: 'none', background: 'white', width: '28px', height: '28px', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >+</button>
+                            style={{ borderColor: 'var(--ticket-shadow)', color: 'var(--ink-dim)', width: '28px', height: '28px' }}
+                        >+</IconButton>
                     </>
                 ) : (
                     <>
-                        <button
+                        <IconButton
                             onClick={() => updateItem(item.id, { quantity: Math.max(0, (item.quantity ?? 1) - 1) })}
                             disabled={item.quantity === 0}
                             style={{
-                                border: 'none',
-                                background: 'white',
+                                borderColor: 'var(--ticket-shadow)',
+                                color: 'var(--ink-dim)',
                                 width: '28px',
                                 height: '28px',
-                                borderRadius: '6px',
-                                cursor: item.quantity === 0 ? 'default' : 'pointer',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                opacity: item.quantity === 0 ? 0.5 : 1
+                                opacity: item.quantity === 0 ? 0.4 : 1,
                             }}
-                        >-</button>
-                        <span style={{
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
-                            minWidth: '20px',
-                            textAlign: 'center',
-                            color: item.quantity === 0 ? '#ff4757' : 'inherit' // Red if 0
-                        }}>{item.quantity ?? 1}</span>
-                        <button
+                        >-</IconButton>
+                        <span className="t-mono" style={{ minWidth: '20px', textAlign: 'center', color: item.quantity === 0 ? 'var(--stamp)' : 'var(--ink)' }}>
+                            {item.quantity ?? 1}
+                        </span>
+                        <IconButton
                             onClick={() => updateItem(item.id, { quantity: (item.quantity || 0) + 1, inPantry: true })}
-                            style={{ border: 'none', background: 'white', width: '28px', height: '28px', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >+</button>
+                            style={{ borderColor: 'var(--ticket-shadow)', color: 'var(--ink-dim)', width: '28px', height: '28px' }}
+                        >+</IconButton>
                     </>
                 )}
             </div>
 
             {/* Essential Heart Toggle */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                <button
-                    onClick={() => toggleEssential(item.id)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '1.5rem',
-                        cursor: 'pointer',
-                        filter: item.isMaster ? 'grayscale(0)' : 'grayscale(100%) opacity(0.3)',
-                        transition: 'all 0.2s',
-                        transform: item.isMaster ? 'scale(1.1)' : 'scale(1)'
-                    }}
-                >
-                    ❤️
-                </button>
-            </div>
+            <IconButton
+                onClick={() => toggleEssential(item.id)}
+                style={{
+                    borderColor: item.isMaster ? 'var(--grease)' : 'var(--ticket-shadow)',
+                    color: item.isMaster ? 'var(--grease)' : 'var(--ink-dim)',
+                    width: '32px',
+                    height: '32px',
+                    flexShrink: 0,
+                }}
+                aria-label={item.isMaster ? 'Remove from essentials' : 'Mark as essential'}
+            >
+                <Heart size={15} fill={item.isMaster ? 'var(--grease)' : 'none'} />
+            </IconButton>
         </div>
     );
 }
