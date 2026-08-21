@@ -357,6 +357,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
 
+/* "Picked up" state for the week-planner's tap-to-swap day cards — a small persistent wiggle so
+   the picked-up card is unmistakable while a second tap (on the swap target) is pending. */
+@keyframes cardShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-1deg); }
+  75% { transform: rotate(1deg); }
+}
+.shake-pending { animation: cardShake 0.28s ease-in-out infinite; }
+
 /* =========================================================
    DESIGN RULES (for future agents / contributors)
    ========================================================= */

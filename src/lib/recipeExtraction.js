@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { normalizeImage, fileToBase64 } from './imageUtils';
+import { unitSystemInstruction } from './unitPreference';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
@@ -59,7 +60,8 @@ Rules:
 - ingredients: split into clean {name, quantity, unit} — name should never include the quantity.
 - steps: each entry is one complete instruction, not a sentence fragment.
 - kcal: estimate per serving if not stated; use your best judgement, do not leave null unless truly impossible to estimate.
-- base_servings: the number of people the recipe serves as written.`;
+- base_servings: the number of people the recipe serves as written.
+- units: {{UNIT_INSTRUCTION}}`;
 
 const REFINE_SCHEMA = {
     type: 'object',
@@ -81,7 +83,8 @@ Rules:
   the replacement; removing an ingredient also removes or rewrites any step that specifically calls
   for it.
 - Keep everything else identical to the current recipe unless the request requires changing it.
-- changeSummary should be short and human, e.g. "Scaled to 4 servings and swapped carrots for cucumbers."`;
+- changeSummary should be short and human, e.g. "Scaled to 4 servings and swapped carrots for cucumbers."
+- units: {{UNIT_INSTRUCTION}} Apply this even if the request itself isn't about units.`;
 
 export function cleanJson(text) {
     return (text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
@@ -104,7 +107,7 @@ export async function extractRecipe({ text, images = [] } = {}) {
         throw new Error('Add some text or at least one photo before extracting.');
     }
 
-    let promptText = EXTRACTION_PROMPT;
+    let promptText = EXTRACTION_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
     if (hasText) promptText += `\n\nPASTED TEXT:\n${text.trim()}`;
     if (hasImages) promptText += `\n\n(${images.length} image${images.length > 1 ? 's are' : ' is'} attached below.)`;
 
@@ -143,11 +146,12 @@ export async function refineRecipe(currentRecipe, instruction) {
         throw new Error('Describe what you want to change.');
     }
 
+    const refinePrompt = REFINE_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
     let response;
     try {
         response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `${REFINE_PROMPT}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
+            contents: `${refinePrompt}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: REFINE_SCHEMA,

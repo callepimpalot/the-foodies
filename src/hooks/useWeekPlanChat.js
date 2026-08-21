@@ -34,6 +34,12 @@ export function useWeekPlanChat(scopeDates) {
             // Gemini's response define the date set.
             const targetDates = previousByDate.size > 0 ? [...previousByDate.keys()] : [...nextByDate.keys()];
 
+            // The model's "library" recipeId is never trusted either — with 400+ recipes in the
+            // shortlist it can hallucinate or garble an id, which used to surface as a dead-end
+            // "Unknown recipe" row that says "Couldn't find that recipe" when tapped. A reference
+            // that isn't actually in what we gave it degrades to a clean empty day instead.
+            const validLibraryIds = new Set((libraryShortlist ?? []).map((r) => r.id));
+
             const merged = targetDates
                 .map((date) => {
                     // Days locked for this turn are never trusted from the model — always the
@@ -44,7 +50,11 @@ export function useWeekPlanChat(scopeDates) {
                     // Unlocked: use Gemini's version if it provided one for this date, otherwise
                     // fall back to the pre-turn version so a dropped date can never mean lost data.
                     const next = nextByDate.get(date);
-                    return next ? { ...next, locked: lockedDates.has(date) } : previousByDate.get(date);
+                    if (!next) return previousByDate.get(date);
+                    if (next.type === 'recipe' && next.source === 'library' && !validLibraryIds.has(next.recipeId)) {
+                        return { date, type: 'empty', locked: false };
+                    }
+                    return { ...next, locked: lockedDates.has(date) };
                 })
                 .filter(Boolean);
 
@@ -135,6 +145,29 @@ export function useWeekPlanChat(scopeDates) {
         setLockedDates((prev) => new Set(prev).add(date));
     };
 
+    // Seeds the proposal from a curated pool of already-accepted dishes (Phase 1 of the planner)
+    // instead of one big whole-week AI response — fills the given dates in order, one dish per date,
+    // leaving any remaining dates as "empty" placeholders for leftovers/notes/manual picks via the
+    // existing empty-day sheet. A dish that was modified during curation (has its own .recipe, even
+    // if it started as a library pick) carries that edit through as a recipeOverride, exactly like
+    // RecipeDaySheet's per-day customization already does.
+    const seedFromDishes = (dishes, dates) => {
+        const seeded = dates.map((date, i) => {
+            const dish = dishes[i];
+            if (!dish) return { date, type: 'empty', locked: false };
+            if (dish.source === 'library') {
+                return {
+                    date, type: 'recipe', source: 'library', recipeId: dish.recipeId,
+                    ...(dish.recipe ? { recipeOverride: dish.recipe } : {}),
+                    locked: false,
+                };
+            }
+            return { date, type: 'recipe', source: 'generated', recipe: dish.recipe, locked: false };
+        });
+        setDays(seeded);
+        setStatus('ready');
+    };
+
     // The date right after the latest one currently in the proposal — what "Add a day" would add.
     const lastDate = days.length > 0 ? days.reduce((max, d) => (d.date > max ? d.date : max), days[0].date) : null;
     const nextAddableDate = lastDate ? addDaysToDateStr(lastDate, 1) : null;
@@ -159,6 +192,6 @@ export function useWeekPlanChat(scopeDates) {
     return {
         status, error, days, chatLog, send, sendSingleDay, toggleLock, swapDays,
         setLeftoverSource, setDayAsLibraryRecipe, setDayAsLeftover, setDayAsNote,
-        setDayRecipeCustomization, addDay, nextAddableDate, reset,
+        setDayRecipeCustomization, seedFromDishes, addDay, nextAddableDate, reset,
     };
 }

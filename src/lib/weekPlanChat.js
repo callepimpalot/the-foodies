@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { RECIPE_SCHEMA, cleanJson, describeApiError } from './recipeExtraction';
+import { unitSystemInstruction } from './unitPreference';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
@@ -11,7 +12,7 @@ const DAY_SCHEMA = {
         type: { type: 'string', enum: ['recipe', 'leftover', 'note', 'empty'] },
         locked: { type: 'boolean' },
         source: { type: 'string', enum: ['library', 'generated'], nullable: true },
-        recipeId: { type: 'string', nullable: true },
+        libraryIndex: { type: 'integer', nullable: true },
         recipe: { ...RECIPE_SCHEMA, nullable: true },
         sourceDate: { type: 'string', nullable: true },
         note: { type: 'string', nullable: true },
@@ -33,8 +34,9 @@ with a meal-planning friend before committing to a real plan. You'll be given JS
 - scopeDates: every date currently visible in the planner (YYYY-MM-DD), in order
 - currentProposal: the plan as it stands so far (empty array on the very first turn) — each entry has a
   "locked" flag
-- libraryShortlist: a condensed list of the user's existing recipe library ({id, title, meal_type,
-  tags, kcal, difficulty}) to match suggestions against
+- libraryShortlist: a condensed, 0-indexed array of the user's existing recipe library ({id, title,
+  meal_type, tags, kcal, difficulty}) to match suggestions against — you'll reference an entry by its
+  position in this array (see libraryIndex below), never by copying its id
 - instruction: the user's latest message
 
 There are two different modes depending on whether currentProposal is empty:
@@ -58,11 +60,13 @@ Rules (both modes):
   leave that day's entry unchanged in your response and mention in the summary that it's locked and
   can't be changed until unlocked.
 - type "recipe": prefer source "library" — pick the best match from libraryShortlist for the stated
-  constraint (protein, diet, cuisine, meal_type, etc.) and reference it via recipeId (must be an id that
-  actually appears in libraryShortlist). Only use source "generated" — inventing a brand-new dish with a
+  constraint (protein, diet, cuisine, meal_type, etc.) and reference it via libraryIndex, the integer
+  position of that entry in the libraryShortlist array (0 for the first entry, 1 for the second, etc.)
+  — never invent an index, only use one that's actually within libraryShortlist's length. Only use
+  source "generated" — inventing a brand-new dish with a
   full recipe body (title, description, cook_time_minutes, difficulty, kcal, base_servings, meal_type,
   ingredients, steps) — when nothing in the library reasonably fits, or the user explicitly asks for
-  something new/different from their library.
+  something new/different from their library. For any "generated" recipe's ingredients: {{UNIT_INSTRUCTION}}
 - type "leftover": set sourceDate to another date in your response whose entry is type "recipe" — never
   point to a leftover or note day, and never to a date that isn't in your response.
 - type "note": short free text, e.g. "eating out", "takeaway", "mum's house".
@@ -86,6 +90,18 @@ export function addDaysToDateStr(dateStr, n) {
     return `${yyyy}-${mm}-${dd}`;
 }
 
+// currentProposal is stored (and used elsewhere in the app) with recipeId — translate to the same
+// index space the model is asked to respond in, so "copy this locked/unchanged day through" doesn't
+// require the model to echo a raw id back either.
+function toIndexedProposal(currentProposal, libraryShortlist) {
+    return (currentProposal ?? []).map((d) => {
+        if (d.type !== 'recipe' || d.source !== 'library') return d;
+        const libraryIndex = (libraryShortlist ?? []).findIndex((r) => r.id === d.recipeId);
+        const { recipeId: _recipeId, ...rest } = d;
+        return { ...rest, libraryIndex: libraryIndex >= 0 ? libraryIndex : null };
+    });
+}
+
 function assertConfigured() {
     if (!ai) {
         throw new Error('Week planner chat is not configured — missing VITE_GEMINI_API_KEY.');
@@ -103,16 +119,17 @@ export async function planWeek({ instruction, scopeDates, currentProposal, libra
 
     const payload = {
         scopeDates,
-        currentProposal,
+        currentProposal: toIndexedProposal(currentProposal, libraryShortlist),
         libraryShortlist,
         instruction: instruction.trim(),
     };
 
+    const planPrompt = PLAN_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
     let response;
     try {
         response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `${PLAN_PROMPT}\n\nDATA:\n${JSON.stringify(payload)}`,
+            contents: `${planPrompt}\n\nDATA:\n${JSON.stringify(payload)}`,
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: WEEK_PLAN_SCHEMA,
@@ -126,5 +143,17 @@ export async function planWeek({ instruction, scopeDates, currentProposal, libra
     const raw = cleanJson(response.text);
     if (!raw) throw new Error('Gemini returned an empty response.');
     const parsed = JSON.parse(raw);
-    return { days: parsed.days ?? [], summary: parsed.summary ?? '' };
+
+    // Translate the model's libraryIndex back into a real recipeId by direct array lookup —
+    // correct by construction, unlike asking the model to reproduce a 36-character id from memory.
+    // An out-of-range index resolves to recipeId: null, which useWeekPlanChat.js's own validation
+    // catches as a final backstop and degrades to an empty day rather than a broken "Unknown recipe."
+    const days = (parsed.days ?? []).map((d) => {
+        if (d.type === 'recipe' && d.source === 'library') {
+            return { ...d, recipeId: libraryShortlist?.[d.libraryIndex]?.id ?? null };
+        }
+        return d;
+    });
+
+    return { days, summary: parsed.summary ?? '' };
 }
