@@ -94,13 +94,15 @@ h1{font-family:var(--f-head);font-weight:700;font-size:clamp(28px,5vw,42px);line
 .st{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
   border-radius:var(--r-xs);padding:3px 7px;white-space:nowrap;font-weight:600}
 .st-open{background:var(--ticket-2);color:var(--ink-dim);border:1px solid var(--ticket-shadow)}
-.st-running{background:var(--grease);color:var(--ticket)}
+.st-running,.st-queued{background:var(--grease);color:var(--ticket)}
+.st-needsyou{background:var(--board-2);color:var(--chalk);border:1px solid var(--stamp)}
 .st-built{background:var(--stamp);color:var(--ticket)}
 .st-verified,.st-shipped{background:var(--done);color:var(--ticket)}
 /* a built ticket carries a coloured spine so status reads at a glance */
 .st-card-built{border-left:3px solid var(--stamp)}
 .st-card-verified,.st-card-shipped{border-left:3px solid var(--done)}
-.st-card-running{border-left:3px solid var(--grease)}
+.st-card-running,.st-card-queued{border-left:3px solid var(--grease)}
+.st-card-needsyou{border-left:3px dashed var(--stamp)}
 .tests{display:flex;flex-direction:column;gap:5px;margin-bottom:var(--sp-2)}
 .tst{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink);cursor:pointer;
   background:var(--ticket-2);border:1px solid var(--ticket-shadow);border-radius:var(--r-xs);padding:7px 9px}
@@ -173,11 +175,12 @@ h1{font-family:var(--f-head);font-weight:700;font-size:clamp(28px,5vw,42px);line
   <p class="sub">Fifteen tasks pulled from the Gemini competitor report, cross-checked on the web, and grounded against the live codebase. Tap a ticket to see the evidence. Adding one builds a running order in the tray at the bottom — this board is for choosing, it doesn't run anything.</p>
   <div class="counts">
     <div class="count c-built"><span class="n mono" id="n-built">0</span><span class="l">Built · test it</span></div>
-    <div class="count c-open"><span class="n mono" id="n-open">0</span><span class="l">Not started</span></div>
+    <div class="count c-next"><span class="n mono" id="n-queued">0</span><span class="l">Queued · auto</span></div>
+    <div class="count c-open"><span class="n mono" id="n-needs">0</span><span class="l">Needs you</span></div>
     <div class="count c-done"><span class="n mono" id="n-done">0</span><span class="l">Verified</span></div>
     <div class="count"><span class="n mono" id="n-tests">0/0</span><span class="l">Hand-tests ticked</span></div>
   </div>
-  <p class="branchline">Four tasks committed on <span class="mono">feat/tier-1-batch</span>, awaiting your hand-tests. Four more in flight now: 03+04+09 (shopping list) and 08 (URL capture). Nothing merged or deployed yet.</p>
+  <p class="branchline">Everything lives on <span class="mono">feat/tier-1-batch</span>, pushed. Four tasks are committed and waiting on your hand-tests. Four more are queued for the scheduled agent, which runs at 18:00, 20:00, 22:00 and midnight and pushes its own work. Nothing is merged and nothing is deployed — Netlify only builds from <span class="mono">main</span>.</p>
 </header>
 
 <div class="findings">
@@ -198,6 +201,8 @@ h1{font-family:var(--f-head);font-weight:700;font-size:clamp(28px,5vw,42px);line
 <div class="bar">
   <button class="fbtn" data-f="all" aria-pressed="true">All 15</button>
   <button class="fbtn" data-f="built" aria-pressed="false">Built · needs testing</button>
+  <button class="fbtn" data-f="queued" aria-pressed="false">Queued · running tonight</button>
+  <button class="fbtn" data-f="needsyou" aria-pressed="false">Needs your decision</button>
   <button class="fbtn" data-f="open" aria-pressed="false">Not started</button>
   <button class="fbtn" data-f="now" aria-pressed="false">Now</button>
   <button class="fbtn" data-f="next" aria-pressed="false">Next</button>
@@ -352,8 +357,8 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","05":"built","06":"built","03":"running","04":"running","08":"running","09":"running"};
-const SLABEL={open:"Open",running:"Running",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
+const STATUS={"01":"built","02":"built","05":"built","06":"built","03":"queued","04":"queued","08":"queued","09":"queued","07":"needsyou","11":"needsyou","12":"needsyou","15":"needsyou"};
+const SLABEL={open:"Open",queued:"Queued · auto",running:"Running",needsyou:"Needs you",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.
    Ticking these is stored in your browser, not in the file. */
@@ -397,6 +402,8 @@ function match(t){
   if(filt==="bug")return t.bug===1;
   if(filt==="fam")return t.fam===2;
   if(filt==="built")return stOf(t.id)==="built";
+  if(filt==="needsyou")return stOf(t.id)==="needsyou";
+  if(filt==="queued")return stOf(t.id)==="queued";
   if(filt==="open")return stOf(t.id)==="open";
   return t.h===filt;
 }
@@ -508,7 +515,8 @@ function counts(){
   const by=s=>T.filter(t=>stOf(t.id)===s).length;
   const total=Object.values(TESTS).reduce((a,v)=>a+v.length,0);
   document.getElementById("n-built").textContent=by("built");
-  document.getElementById("n-open").textContent=by("open");
+  document.getElementById("n-queued").textContent=by("queued");
+  document.getElementById("n-needs").textContent=by("needsyou");
   document.getElementById("n-done").textContent=by("verified")+by("shipped");
   document.getElementById("n-tests").textContent=`${tested.size}/${total}`;
 }
