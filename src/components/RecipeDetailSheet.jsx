@@ -50,23 +50,31 @@ export function RecipeDetailSheet({ recipe, onClose, onRecipeUpdated, onAddToPla
     return (
         <Sheet
             onClose={onClose}
-            surface="ticket"
+            surface="board"
             footer={
                 (onAddToPlan || onCookNow) && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)', width: '100%' }}>
+                    <>
                         {onAddToPlan && (
-                            <Button variant="secondary" onClick={onAddToPlan} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Button
+                                variant="secondary"
+                                onClick={onAddToPlan}
+                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                            >
                                 <Calendar size={16} strokeWidth={2} />
                                 Add to Plan
                             </Button>
                         )}
                         {onCookNow && (
-                            <Button variant="primary" onClick={onCookNow} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Button
+                                variant="primary"
+                                onClick={onCookNow}
+                                style={{ flex: onAddToPlan ? 1.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                            >
                                 <ChefHat size={16} strokeWidth={2} />
                                 Cook Now
                             </Button>
                         )}
-                    </div>
+                    </>
                 )
             }
         >
@@ -102,12 +110,12 @@ export function RecipeDetailSheet({ recipe, onClose, onRecipeUpdated, onAddToPla
                 <p className="t-body" style={{ color: 'var(--destructive)', marginBottom: 'var(--sp-3)' }}>{photoError}</p>
             )}
 
-            <h2 className="t-heading-lg" style={{ color: 'var(--ink)', marginBottom: current.creator ? '4px' : 'var(--sp-3)' }}>
+            <h2 className="t-heading-lg" style={{ color: 'var(--chalk)', marginBottom: current.creator ? '4px' : 'var(--sp-3)' }}>
                 {current.title || current.name || 'Untitled Recipe'}
             </h2>
 
             {current.creator && (
-                <p className="t-eyebrow" style={{ color: 'var(--ink-dim)', marginBottom: 'var(--sp-3)' }}>by {current.creator}</p>
+                <p className="t-eyebrow" style={{ color: 'var(--chalk-dim)', marginBottom: 'var(--sp-3)' }}>by {current.creator}</p>
             )}
 
             {tags.length > 0 && (
@@ -124,37 +132,53 @@ export function RecipeDetailSheet({ recipe, onClose, onRecipeUpdated, onAddToPla
                 gap: 'var(--sp-3)',
                 marginBottom: 'var(--sp-6)',
             }}>
-                <div style={{ padding: 'var(--sp-3)', textAlign: 'center', background: 'var(--ticket-2)', borderRadius: 'var(--r-sm)' }}>
-                    <div className="t-eyebrow" style={{ color: 'var(--ink-dim)' }}>Prep</div>
-                    <div className="t-mono" style={{ fontWeight: 600, color: 'var(--ink)', marginTop: '2px' }}>{current.time || current.cook_time || '20m'}</div>
+                <div style={{ padding: 'var(--sp-3)', textAlign: 'center', background: 'var(--board-2)', borderRadius: 'var(--r-sm)' }}>
+                    <div className="t-eyebrow" style={{ color: 'var(--chalk-dim)' }}>Prep</div>
+                    <div className="t-mono" style={{ fontWeight: 600, color: 'var(--chalk)', marginTop: '2px' }}>{current.time || current.cook_time || '20m'}</div>
                 </div>
-                <div style={{ padding: 'var(--sp-3)', textAlign: 'center', background: 'var(--ticket-2)', borderRadius: 'var(--r-sm)' }}>
-                    <div className="t-eyebrow" style={{ color: 'var(--ink-dim)' }}>Servings</div>
-                    <div className="t-mono" style={{ fontWeight: 600, color: 'var(--ink)', marginTop: '2px' }}>{current.baseServings || current.servings || '2'}</div>
+                <div style={{ padding: 'var(--sp-3)', textAlign: 'center', background: 'var(--board-2)', borderRadius: 'var(--r-sm)' }}>
+                    <div className="t-eyebrow" style={{ color: 'var(--chalk-dim)' }}>Servings</div>
+                    <div className="t-mono" style={{ fontWeight: 600, color: 'var(--chalk)', marginTop: '2px' }}>{current.baseServings || current.servings || '2'}</div>
                 </div>
                 {current.difficulty && (
-                    <div style={{ padding: 'var(--sp-3)', textAlign: 'center', background: 'var(--ticket-2)', borderRadius: 'var(--r-sm)' }}>
-                        <div className="t-eyebrow" style={{ color: 'var(--ink-dim)' }}>Difficulty</div>
-                        <div className="t-body" style={{ fontWeight: 600, color: 'var(--ink)', marginTop: '2px' }}>{current.difficulty}</div>
+                    <div style={{ padding: 'var(--sp-3)', textAlign: 'center', background: 'var(--board-2)', borderRadius: 'var(--r-sm)' }}>
+                        <div className="t-eyebrow" style={{ color: 'var(--chalk-dim)' }}>Difficulty</div>
+                        <div className="t-body" style={{ fontWeight: 600, color: 'var(--chalk)', marginTop: '2px' }}>{current.difficulty}</div>
                     </div>
                 )}
             </div>
 
-            <h4 className="t-eyebrow" style={{ color: 'var(--stamp)', marginBottom: 'var(--sp-3)' }}>Ingredients</h4>
-            <div className="list-ticket" style={{ background: 'var(--ticket-2)' }}>
+            <h4 className="t-eyebrow" style={{ color: 'var(--stamp)', marginBottom: 'var(--sp-2)' }}>Ingredients</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)', marginBottom: 'var(--sp-6)' }}>
                 {(current.ingredients || []).map((ing, i) => {
-                    const displayText = typeof ing === 'object' && ing !== null
-                        ? `${ing.quantity ?? ing.amount ?? ''} ${ing.unit || ''} ${ing.name || ing.item || ''}`.trim()
-                        : ing;
+                    const isObj = typeof ing === 'object' && ing !== null;
+                    const qty = isObj ? `${ing.quantity ?? ing.amount ?? ''} ${ing.unit ?? ''}`.trim() : '';
+                    const name = isObj ? (ing.name ?? ing.item ?? '') : ing;
 
                     return (
-                        <div key={i} className="list-row">
-                            <span style={{ color: 'var(--stamp)' }}>&bull;</span>
-                            <span className="t-body" style={{ color: 'var(--ink)' }}>{displayText}</span>
+                        <div key={i} style={{ display: 'flex', gap: 'var(--sp-3)' }}>
+                            {qty && (
+                                <span className="t-mono" style={{ color: 'var(--stamp)', minWidth: '68px', flexShrink: 0 }}>{qty}</span>
+                            )}
+                            <span className="t-body" style={{ color: 'var(--chalk)' }}>{name}</span>
                         </div>
                     );
                 })}
             </div>
+
+            {Array.isArray(current.steps) && current.steps.length > 0 && (
+                <>
+                    <h4 className="t-eyebrow" style={{ color: 'var(--stamp)', marginBottom: 'var(--sp-2)' }}>Steps</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+                        {current.steps.map((step, i) => (
+                            <div key={i} style={{ display: 'flex', gap: 'var(--sp-3)' }}>
+                                <span className="t-mono" style={{ color: 'var(--chalk-dim)', fontWeight: 600, flexShrink: 0 }}>{i + 1}</span>
+                                <span className="t-body" style={{ color: 'var(--chalk)' }}>{typeof step === 'string' ? step : step?.text || step?.instruction}</span>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
         </Sheet>
     );
 }

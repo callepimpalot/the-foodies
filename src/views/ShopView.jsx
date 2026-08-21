@@ -34,7 +34,7 @@ export function ShopView() {
     const allChecked = items.length > 0 && checkedKeys.size === items.length;
 
     return (
-        <div className="min-h-full bg-board text-chalk px-6 pt-8 pb-6">
+        <div className="min-h-full bg-board text-chalk pt-6 pb-6">
             <div className="flex flex-col items-start gap-1 mb-6">
                 <span className="t-eyebrow text-chalkDim">Shop</span>
                 <h2 className="t-heading-lg">Shopping List</h2>

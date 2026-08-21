@@ -107,7 +107,7 @@ export function HomeView() {
                 <div className="h-[52px]" />
 
                 <div
-                    className="mx-4 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-4 pb-4 px-1"
+                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide space-x-4 pb-4"
                     onScroll={handleScroll}
                 >
                     {nextDays.map((day) => {
@@ -202,7 +202,7 @@ export function HomeView() {
             </section>
 
             {/* PANTRY ACCESS */}
-            <section className="mt-5 px-4">
+            <section className="mt-5">
                 <BoardCard
                     onClick={() => setCurrentView(VIEWS.PANTRY)}
                     className="cursor-pointer active:scale-[0.99] transition-transform flex items-center justify-between"
@@ -229,7 +229,7 @@ export function HomeView() {
 
             {/* DISCOVER MEALS */}
             <section className="mt-5">
-                <div className="flex justify-between items-center mb-4 px-6">
+                <div className="flex justify-between items-center mb-4">
                     <h2 className="t-heading-md" style={{ color: 'var(--chalk)' }}>Discover</h2>
                     <button
                         onClick={() => setCurrentView(VIEWS.RECIPES)}

@@ -70,7 +70,7 @@ export function CaptureView() {
     };
 
     return (
-        <div className="flex flex-col min-h-full bg-board text-chalk px-[24px] pt-[32px] pb-[24px]">
+        <div className="flex flex-col min-h-full bg-board text-chalk pt-[24px] pb-[24px]">
             <div className="flex flex-col items-start gap-[14px] mb-[24px]">
                 <div className="flex flex-col items-start gap-1">
                     <span className="t-eyebrow text-grease">
@@ -101,8 +101,8 @@ export function CaptureView() {
             </div>
 
             {status === 'idle' && (
-                <div className="flex flex-col gap-[16px]">
-                    <BoardCard style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="flex flex-col flex-1 min-h-0 gap-[16px]">
+                    <BoardCard style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, minHeight: 0 }}>
                         {images.length > 0 && (
                             <div className="flex gap-[8px] flex-wrap">
                                 {images.map((img, idx) => (
@@ -124,8 +124,8 @@ export function CaptureView() {
                             onChange={(e) => setPastedText(e.target.value)}
                             onPaste={handlePaste}
                             placeholder="Paste a screenshot (Ctrl/Cmd+V) and/or type or paste recipe text here..."
-                            rows={6}
-                            className="input w-full resize-none"
+                            className="input w-full resize-none flex-1"
+                            style={{ minHeight: '120px' }}
                         />
 
                         <div className="flex gap-[8px]">

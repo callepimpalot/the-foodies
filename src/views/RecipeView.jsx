@@ -48,7 +48,7 @@ export function RecipeView() {
     // Board skeleton loader
     if (loading) {
         return (
-            <div className="animate-fade-in" style={{ paddingBottom: '8rem', maxWidth: '1200px', margin: '0 auto', padding: '0 20px', background: 'var(--board)', minHeight: '100%' }}>
+            <div className="animate-fade-in" style={{ paddingBottom: '8rem', maxWidth: '1200px', margin: '0 auto', background: 'var(--board)', minHeight: '100%' }}>
                 <header style={{ textAlign: 'left', paddingTop: '2rem', marginBottom: '2.5rem' }}>
                     <div style={{ height: '3.5rem', width: '60%', borderRadius: 'var(--r-md)', marginBottom: '1rem', background: 'var(--board-2)' }} />
                     <div style={{ height: '1.5rem', width: '40%', borderRadius: 'var(--r-sm)', background: 'var(--board-2)' }} />
@@ -91,7 +91,6 @@ export function RecipeView() {
                 paddingBottom: '8rem',
                 maxWidth: '1200px',
                 margin: '0 auto',
-                padding: '0 20px',
                 background: 'var(--board)',
                 minHeight: '100%',
             }}

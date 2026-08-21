@@ -37,9 +37,9 @@ function AppContent() {
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 var(--sp-6)',
+          padding: '0 var(--sp-4)',
           paddingTop: '0',
-          minHeight: '100%',
+          height: '100%',
         }}>
           {renderView()}
         </div>

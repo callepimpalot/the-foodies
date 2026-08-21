@@ -104,9 +104,9 @@ No Google Fonts `<link>` needed — installed as npm packages (`@fontsource/anto
 ```
 
 ### Layout Rules
-- Global horizontal page padding: 24px (--sp-6)
+- **Global horizontal page padding: 16px (--sp-4), owned by `src/App.jsx` alone.** Every normal-flow view renders inside App.jsx's single padded container — views must NOT add their own `px-*` page-edge padding on top of it. (v2.0 had views re-adding `px-6` on top of App.jsx's own padding, silently doubling the margin to 40–48px on every screen — that's the bug this rule exists to prevent.) A view only needs its own horizontal inset if it renders as `fixed inset-0` and therefore escapes App.jsx's container (e.g. `CookModeView.jsx`).
 - Card internal padding: 16–20px
-- Vertical section gaps: 32–40px
+- Vertical section gaps: 24–32px — v2.0 said 40px, which read as too generous once every screen was reviewed together
 - Never use arbitrary pixel values — always use scale tokens
 
 ### Grid System

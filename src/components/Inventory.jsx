@@ -165,7 +165,7 @@ export function Inventory() {
             </div>
 
             {/* Quick Add FAB */}
-            <div style={{ position: 'fixed', bottom: '100px', right: '20px', zIndex: 100 }}>
+            <div style={{ position: 'fixed', bottom: '100px', right: '16px', zIndex: 100 }}>
                 <button
                     onClick={() => setShowQuickAdd(true)}
                     className="flex items-center justify-center"
@@ -185,7 +185,7 @@ export function Inventory() {
             </div>
 
             {/* Route Planner Button (Bottom Left) */}
-            <div style={{ position: 'fixed', bottom: '100px', left: '20px', zIndex: 100 }}>
+            <div style={{ position: 'fixed', bottom: '100px', left: '16px', zIndex: 100 }}>
                 <button
                     onClick={() => setShowRoutePlanner(true)}
                     className="flex items-center justify-center"

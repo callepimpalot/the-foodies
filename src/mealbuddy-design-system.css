@@ -323,8 +323,8 @@ h1, h2, h3, h4, h5, h6 {
   .list-row {
     display: flex;
     align-items: center;
-    gap: var(--sp-4);
-    padding: var(--sp-4) 0;
+    gap: var(--sp-3);
+    padding: var(--sp-3) 0;
     border-bottom: 1px dashed var(--ticket-shadow);
   }
   .list-row:last-child { border-bottom: none; }
