@@ -1,0 +1,590 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#article",
+      "isPartOf": {
+        "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/"
+      },
+      "author": {
+        "name": "Karina Carrel",
+        "@id": "https://cafedelites.com/#/schema/person/41fb006b06c4b8e6baf2d320ebc85292"
+      },
+      "headline": "Creamy Garlic Chicken Breasts",
+      "datePublished": "2018-12-23T11:01:18+00:00",
+      "dateModified": "2025-11-19T03:57:59+00:00",
+      "wordCount": 1146,
+      "commentCount": 283,
+      "publisher": {
+        "@id": "https://cafedelites.com/#organization"
+      },
+      "image": {
+        "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#primaryimage"
+      },
+      "thumbnailUrl": "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-55.jpg",
+      "keywords": [
+        "breast",
+        "chicken",
+        "creamy",
+        "dinner",
+        "garlic"
+      ],
+      "articleSection": [
+        "Chicken",
+        "Dinner"
+      ],
+      "inLanguage": "en-US",
+      "potentialAction": [
+        {
+          "@type": "CommentAction",
+          "name": "Comment",
+          "target": [
+            "https://cafedelites.com/creamy-garlic-chicken-breasts/#respond"
+          ]
+        }
+      ]
+    },
+    {
+      "@type": [
+        "WebPage",
+        "FAQPage"
+      ],
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/",
+      "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/",
+      "name": "Creamy Garlic Chicken Breasts - Cafe Delites",
+      "isPartOf": {
+        "@id": "https://cafedelites.com/#website"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#primaryimage"
+      },
+      "image": {
+        "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#primaryimage"
+      },
+      "thumbnailUrl": "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-55.jpg",
+      "datePublished": "2018-12-23T11:01:18+00:00",
+      "dateModified": "2025-11-19T03:57:59+00:00",
+      "description": "Golden pan fried Chicken Breasts in an irresistible garlic sauce filled with caramelized onions and garlic! Easy and delicious comfort food!",
+      "breadcrumb": {
+        "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#breadcrumb"
+      },
+      "mainEntity": [
+        {
+          "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#faq-question-1761199598201"
+        },
+        {
+          "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#faq-question-1761199602513"
+        }
+      ],
+      "inLanguage": "en-US",
+      "potentialAction": [
+        {
+          "@type": "ReadAction",
+          "target": [
+            "https://cafedelites.com/creamy-garlic-chicken-breasts/"
+          ]
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "inLanguage": "en-US",
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#primaryimage",
+      "url": "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-55.jpg",
+      "contentUrl": "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-55.jpg",
+      "width": 800,
+      "height": 1200,
+      "caption": "Creamy Garlic Chicken Breasts in a pan"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://cafedelites.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Recipes",
+          "item": "https://cafedelites.com/recipes/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Dinner",
+          "item": "https://cafedelites.com/category/dinner-recipes/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Chicken",
+          "item": "https://cafedelites.com/category/dinner-recipes/chicken-recipes/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "Creamy Garlic Chicken Breasts"
+        }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://cafedelites.com/#website",
+      "url": "https://cafedelites.com/",
+      "name": "Cafe Delites",
+      "description": "for good food lovers",
+      "publisher": {
+        "@id": "https://cafedelites.com/#organization"
+      },
+      "potentialAction": [
+        {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://cafedelites.com/?s={search_term_string}"
+          },
+          "query-input": {
+            "@type": "PropertyValueSpecification",
+            "valueRequired": true,
+            "valueName": "search_term_string"
+          }
+        }
+      ],
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://cafedelites.com/#organization",
+      "name": "Cafe Delites",
+      "url": "https://cafedelites.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "inLanguage": "en-US",
+        "@id": "https://cafedelites.com/#/schema/logo/image/",
+        "url": "https://cafedelites.com/wp-content/uploads/2026/04/logos-02.png",
+        "contentUrl": "https://cafedelites.com/wp-content/uploads/2026/04/logos-02.png",
+        "width": 696,
+        "height": 696,
+        "caption": "Cafe Delites"
+      },
+      "image": {
+        "@id": "https://cafedelites.com/#/schema/logo/image/"
+      },
+      "sameAs": [
+        "https://www.facebook.com/CafeDelites",
+        "https://x.com/cafedelites",
+        "https://www.instagram.com/cafedelites/?hl=en",
+        "https://www.youtube.com/@cafedelites2272",
+        "https://www.tiktok.com/@cafedelites",
+        "http://www.pinterest.com/cafedelites/"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://cafedelites.com/#/schema/person/41fb006b06c4b8e6baf2d320ebc85292",
+      "name": "Karina Carrel",
+      "image": {
+        "@type": "ImageObject",
+        "inLanguage": "en-US",
+        "@id": "https://secure.gravatar.com/avatar/81d1b2262019cb95413c1f9188444c1b1d798545a2af657e4be6e03102e38429?s=96&d=mm&r=g",
+        "url": "https://secure.gravatar.com/avatar/81d1b2262019cb95413c1f9188444c1b1d798545a2af657e4be6e03102e38429?s=96&d=mm&r=g",
+        "contentUrl": "https://secure.gravatar.com/avatar/81d1b2262019cb95413c1f9188444c1b1d798545a2af657e4be6e03102e38429?s=96&d=mm&r=g",
+        "caption": "Karina Carrel"
+      },
+      "description": "Cooking is my passion, or should I say eating. What started out as a little food diary on Instagram developed into a love affair creating full flavoured recipes in the kitchen. After surviving cancer, (Stage 4 Hodgkins Lymphoma) and a lot of life's battles, including molestation, rape and abuse, I am eternally grateful to have been given a second chance. Although my life is far from perfect, I'm loving every moment. Welcome to my world of food!",
+      "sameAs": [
+        "https://cafedelites.com/about/",
+        "https://www.facebook.com/CafeDelites",
+        "https://x.com/karinacarrel"
+      ]
+    },
+    {
+      "@type": "Question",
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#faq-question-1761199598201",
+      "position": 1,
+      "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#faq-question-1761199598201",
+      "name": "How Can I Store Leftover Creamy Garlic Chicken Breasts?",
+      "answerCount": 1,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Store your leftovers in an airtight container in the refrigerator for 3-4 days and reheat in a pan over medium heat or in the microwave, pausing at every 15 second interval. You may also need to add a splash of milk or chicken broth to get the sauce back to the right consistency. ",
+        "inLanguage": "en-US"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Question",
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#faq-question-1761199602513",
+      "position": 2,
+      "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#faq-question-1761199602513",
+      "name": "Can I Try This With Another Protein?",
+      "answerCount": 1,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can! I love the idea of trying this recipe with shrimp, steaks and even salmon. Just remember that the cooking time will be different depending on the kind of meat you’re working with. ",
+        "inLanguage": "en-US"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Recipe",
+      "name": "Creamy Garlic Chicken Breast Recipe",
+      "author": {
+        "@id": "https://cafedelites.com/#/schema/person/41fb006b06c4b8e6baf2d320ebc85292"
+      },
+      "description": "Lightly floured boneless chicken breasts are pan fried until golden and crispy before being added to a mouth-watering garlic cream sauce!",
+      "datePublished": "2018-12-23T22:01:18+00:00",
+      "image": [
+        "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-54.jpg",
+        "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-54-500x500.jpg",
+        "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-54-500x375.jpg",
+        "https://cafedelites.com/wp-content/uploads/2018/12/Creamy-Garlic-Chicken-Breasts-IMAGE-54-480x270.jpg"
+      ],
+      "recipeYield": [
+        "4",
+        "4 people"
+      ],
+      "prepTime": "PT15M",
+      "cookTime": "PT20M",
+      "totalTime": "PT35M",
+      "recipeIngredient": [
+        "2-3  boneless chicken breasts (large, skinless, halved horizontally to make 4)",
+        "4 tablespoons flour ((all purpose or plain))",
+        "4 tablespoons parmesan cheese (finely grated, fresh )",
+        "2 teaspoon salt",
+        "1 teaspoon garlic powder",
+        "1/2 teaspoon black pepper (cracked)",
+        "5 tablespoons olive oil",
+        "2 tablespoons butter",
+        "1 small onion (finely chopped)",
+        "1 whole head of garlic (peeled and divided into 10-12 cloves)",
+        "1 1/4 cup chicken broth ((stock))",
+        "1 1/4 cup heavy cream (half and half (or evaporated milk))",
+        "1/2 cup parmesan cheese (finely grated, fresh)",
+        "2 tablespoons fresh parsley (to serve)"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToStep",
+          "text": "Season the chicken with salt, garlic powder and pepper.",
+          "name": "Season the chicken with salt, garlic powder and pepper.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-0"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "In a shallow bowl, combine the flour, parmesan cheese. Dredge chicken in the flour mixture; shake off excess.",
+          "name": "In a shallow bowl, combine the flour, parmesan cheese. Dredge chicken in the flour mixture; shake off excess.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-1"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Heat 2 tablespoons of oil and 1 tablespoon butter in a large skillet over medium-high heat. Swirl pan to coat evenly. ",
+          "name": "Heat 2 tablespoons of oil and 1 tablespoon butter in a large skillet over medium-high heat. Swirl pan to coat evenly. ",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-2"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Fry 2-3 chicken breasts until golden on each side, cooked through and no longer pink (about 4-5 minutes each side, depending on the thickness of your chicken). Transfer to a warm plate. Set aside.",
+          "name": "Fry 2-3 chicken breasts until golden on each side, cooked through and no longer pink (about 4-5 minutes each side, depending on the thickness of your chicken). Transfer to a warm plate. Set aside.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-3"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Wipe pan over with a sheet of paper towel. Repeat with remaining oil, butter and chicken breasts. When cooked, transfer the chicken onto the same plate.",
+          "name": "Wipe pan over with a sheet of paper towel. Repeat with remaining oil, butter and chicken breasts. When cooked, transfer the chicken onto the same plate.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-4"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Reduce heat to medium. Sauté the onion in the remaining oil/juices in the pan until softened.&nbsp;",
+          "name": "Reduce heat to medium. Sauté the onion in the remaining oil/juices in the pan until softened.&nbsp;",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-5"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Smash 6 whole cloves of garlic with the blunt edge of the back of a knife&nbsp;",
+          "name": "Smash 6 whole cloves of garlic with the blunt edge of the back of a knife&nbsp;",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-6"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Add the remaining oil and butter to the pan and heat through, mixing it through the onions. Sauté smashed garlic cloves and whole garlic cloves until fragrant, about 2-3 minutes. Add the broth to deglaze the pan. Scrape up any browned bits and let simmer and reduce to half, about 5 minutes.",
+          "name": "Add the remaining oil and butter to the pan and heat through, mixing it through the onions. Sauté smashed garlic cloves and whole garlic cloves until fragrant, about 2-3 minutes. Add the broth to deglaze the pan. Scrape up any browned bits and let simmer and reduce to half, about 5 minutes.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-7"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Reduce heat to medium-low. Pour in the cream. Bring the sauce to a gentle simmer for about 2-3 minutes, combining all of the flavours together.",
+          "name": "Reduce heat to medium-low. Pour in the cream. Bring the sauce to a gentle simmer for about 2-3 minutes, combining all of the flavours together.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-8"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Mix in the parmesan cheese. Continue cooking gently for about 2-3 minutes until cheese melts, while stirring occasionally. Season with salt and pepper to your taste.&nbsp;",
+          "name": "Mix in the parmesan cheese. Continue cooking gently for about 2-3 minutes until cheese melts, while stirring occasionally. Season with salt and pepper to your taste.&nbsp;",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-9"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Add the chicken back into the pan and let simmer for a further 2-3 minutes to thicken the sauce to your liking. The chicken breast will soak up all of the delicious flavours.",
+          "name": "Add the chicken back into the pan and let simmer for a further 2-3 minutes to thicken the sauce to your liking. The chicken breast will soak up all of the delicious flavours.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-10"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Garnish with parsley and a little black cracked pepper.&nbsp;Serve over pasta, cauliflower mash, zucchini noodles, rice or mashed potatoes.",
+          "name": "Garnish with parsley and a little black cracked pepper.&nbsp;Serve over pasta, cauliflower mash, zucchini noodles, rice or mashed potatoes.",
+          "url": "https://cafedelites.com/creamy-garlic-chicken-breasts/#wprm-recipe-60729-step-0-11"
+        }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.97",
+        "ratingCount": "205",
+        "reviewCount": "16"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Did not make - yet. Was wondering if anyone has added lemon and maybe a little honey to make this lemon-garlic cream sauce?  This sounds fantastic but a bit like Alfredo Sauce so I was looking for something slightly different",
+          "author": {
+            "@type": "Person",
+            "name": "Carollyn"
+          },
+          "datePublished": "2026-08-15"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Absolutely delicious I will be making it again",
+          "author": {
+            "@type": "Person",
+            "name": "Lila"
+          },
+          "datePublished": "2026-07-27"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This is an amazing sauce, perfect consistency . The family loved it, I’ve added to favourites. Thanks for sharing Karina .",
+          "author": {
+            "@type": "Person",
+            "name": "Michelle"
+          },
+          "datePublished": "2026-07-18"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Love this! Easy and flavorful.",
+          "author": {
+            "@type": "Person",
+            "name": "Dee"
+          },
+          "datePublished": "2026-06-22"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "3"
+          },
+          "reviewBody": "Too much cream and garlic to be served with cauliflower mash..  Maybe  a pasta would be more acceptable. We will try the leftover chicken on pasta",
+          "author": {
+            "@type": "Person",
+            "name": "Tim"
+          },
+          "datePublished": "2026-06-03"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This tastes like something that would be served at a fine restaurant!",
+          "author": {
+            "@type": "Person",
+            "name": "Sharon"
+          },
+          "datePublished": "2026-04-12"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This was a very delicious and easy to follow recipe, I will be making it again, and look forward to more recipes from your page! \r\nThank you!",
+          "author": {
+            "@type": "Person",
+            "name": "Pam"
+          },
+          "datePublished": "2026-03-22"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "I made this tonight and it is sooooo gooood! The smell of, butter, garlic, parmesan, cream - heaven!!! Bookmarked this recipe because it will definitely a staple!",
+          "author": {
+            "@type": "Person",
+            "name": "Anika"
+          },
+          "datePublished": "2026-02-22"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "4"
+          },
+          "reviewBody": "Very good!  Made this tonight and it was delicious!",
+          "author": {
+            "@type": "Person",
+            "name": "Denise Augusta"
+          },
+          "datePublished": "2026-02-13"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Excellent and easy, tonight will be the 3rd time I'm making it. I moved this recipe it to my top 10 list. Also book marked your site, looking forward to checking out more of your recipes.\r\n\r\nThanks",
+          "author": {
+            "@type": "Person",
+            "name": "Ken Schliessman"
+          },
+          "datePublished": "2026-02-07"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Excellent insight!... I鈥檒l definitely recommend this to others..",
+          "author": {
+            "@type": "Person",
+            "name": "Dominic Churchill"
+          },
+          "datePublished": "2025-12-25"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "I made this today and it was delicious!! Unfortunately I mixed the flour, cheese and salt and pepper together and 2 tsps salt is too much. I’m going to make it again the same way only using 1 tsp of salt.",
+          "author": {
+            "@type": "Person",
+            "name": "Kathy"
+          },
+          "datePublished": "2025-11-07"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "I made this today and I am in love! I made it exactly as written and made roasted asparagus and riced cauliflower to go with it and also crusty bread! I will absolutely make this again!",
+          "author": {
+            "@type": "Person",
+            "name": "Lisa"
+          },
+          "datePublished": "2025-10-26"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This has been one of my favorites since I discovered the recipe several years ago. Just fixed it again for a couple of friends and both expressed desire to pick up and lick their plates clean, the sauce was so delicious. One said she felt like she'd been treated to a fancy, expensive meal at a fine restaurant. (I served it with herb-seasoned smashed taters and southern style fresh green beans with bacon and onions.) How great a compliment is that?!\r\n\r\nThank you! Highly recommend this simple ingredient recipe as a Must Try.",
+          "author": {
+            "@type": "Person",
+            "name": "Pat"
+          },
+          "datePublished": "2025-09-28"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This was so good. Several steps but easy to make.",
+          "author": {
+            "@type": "Person",
+            "name": "Janet"
+          },
+          "datePublished": "2025-09-21"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Very good &amp; flexible recipe",
+          "author": {
+            "@type": "Person",
+            "name": "Elaine Stevens"
+          },
+          "datePublished": "2025-09-14"
+        }
+      ],
+      "recipeCategory": [
+        "Dinner"
+      ],
+      "recipeCuisine": [
+        "American"
+      ],
+      "keywords": "Chicken breasts, creamy chicken breasts, Creamy garlic chicken breasts, Garlic chicken",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "calories": "666 kcal",
+        "carbohydrateContent": "11 g",
+        "proteinContent": "22 g",
+        "fatContent": "60 g",
+        "saturatedFatContent": "28 g",
+        "cholesterolContent": "149 mg",
+        "sodiumContent": "1819 mg",
+        "fiberContent": "1 g",
+        "sugarContent": "3 g",
+        "transFatContent": "0.3 g",
+        "unsaturatedFatContent": "29 g",
+        "servingSize": "1 serving"
+      },
+      "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#recipe",
+      "isPartOf": {
+        "@id": "https://cafedelites.com/creamy-garlic-chicken-breasts/#article"
+      },
+      "mainEntityOfPage": "https://cafedelites.com/creamy-garlic-chicken-breasts/"
+    }
+  ]
+}

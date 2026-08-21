@@ -168,6 +168,55 @@ export async function refineRecipe(currentRecipe, instruction) {
     return { recipe: parsed.recipe, changeSummary: parsed.changeSummary };
 }
 
+// URL capture (TASK_08): a fast, free, deterministic path IN FRONT of the Gemini extraction
+// above — not a replacement for it. Calls the netlify/functions/fetch-recipe.js function, which
+// fetches the page server-side (a browser can't, CORS) and either:
+//   - finds schema.org/Recipe JSON-LD and returns an already-mapped recipe (no Gemini call), or
+//   - finds no usable JSON-LD and returns the page's readable text instead, which we then run
+//     through the SAME extractRecipe() above — no duplicated extraction logic.
+export async function extractRecipeFromUrl(url) {
+    const trimmedUrl = url?.trim();
+    if (!trimmedUrl) {
+        throw new Error('Paste a recipe URL first.');
+    }
+
+    let response;
+    try {
+        response = await fetch(`/.netlify/functions/fetch-recipe?url=${encodeURIComponent(trimmedUrl)}`);
+    } catch {
+        throw new Error("Couldn't reach the recipe fetcher. Check your connection and try again.");
+    }
+
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('application/json')) {
+        throw new Error(
+            "The recipe-fetching function isn't available here. If you're running `npm run dev`, use `netlify dev` instead so Netlify Functions are served locally."
+        );
+    }
+
+    let body;
+    try {
+        body = await response.json();
+    } catch {
+        throw new Error("Couldn't read that page — the fetcher returned something unexpected.");
+    }
+
+    if (!response.ok || body?.error) {
+        throw new Error(body?.error || `Couldn't fetch that page (${response.status}).`);
+    }
+
+    if (body?.source === 'jsonld' && body?.recipe) {
+        return body.recipe;
+    }
+
+    if (body?.source === 'fallback' && body?.pageText) {
+        const recipe = await extractRecipe({ text: body.pageText });
+        return { ...recipe, source_url: body.source_url ?? trimmedUrl };
+    }
+
+    throw new Error("Couldn't find a recipe on that page. Try pasting the recipe text directly.");
+}
+
 // Translates raw Gemini API errors into something a user's error message can actually reflect,
 // instead of a one-size-fits-all "couldn't read that recipe."
 export function describeApiError(err) {

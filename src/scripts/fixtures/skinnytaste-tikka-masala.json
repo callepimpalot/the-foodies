@@ -1,0 +1,541 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#article",
+      "isPartOf": {
+        "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/"
+      },
+      "author": {
+        "name": "Gina Homolka",
+        "@id": "https://www.skinnytaste.com/#/schema/person/d30ee2b4f0b2b8cff8d010fbf4228b72"
+      },
+      "headline": "Instant Pot Chicken Tikka Masala with Cauliflower and Peas",
+      "datePublished": "2017-08-01T15:12:46+00:00",
+      "dateModified": "2026-03-08T16:47:50+00:00",
+      "wordCount": 1086,
+      "commentCount": 495,
+      "publisher": {
+        "@id": "https://www.skinnytaste.com/#organization"
+      },
+      "image": {
+        "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#primaryimage"
+      },
+      "thumbnailUrl": "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7.jpg",
+      "articleSection": [
+        "Chicken Recipes",
+        "Dairy Free Recipes",
+        "Dinner Ideas",
+        "Egg Free Recipes",
+        "Fall",
+        "Freezer Meals",
+        "Gluten Free",
+        "Instant Pot Recipes",
+        "Pressure Cooker Recipes",
+        "Recipes",
+        "Weight Watchers – WW Recipes",
+        "Winter"
+      ],
+      "inLanguage": "en-US",
+      "potentialAction": [
+        {
+          "@type": "CommentAction",
+          "name": "Comment",
+          "target": [
+            "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#respond"
+          ]
+        }
+      ]
+    },
+    {
+      "@type": [
+        "WebPage",
+        "FAQPage"
+      ],
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/",
+      "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/",
+      "name": "Instant Pot Chicken Tikka Masala l Skinnytaste",
+      "isPartOf": {
+        "@id": "https://www.skinnytaste.com/#website"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#primaryimage"
+      },
+      "image": {
+        "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#primaryimage"
+      },
+      "thumbnailUrl": "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7.jpg",
+      "datePublished": "2017-08-01T15:12:46+00:00",
+      "dateModified": "2026-03-08T16:47:50+00:00",
+      "description": "This Instant Pot Chicken Tikka Masala with cauliflower and peas is a lightened up, dairy-free version of the classic Indian curry.",
+      "breadcrumb": {
+        "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#breadcrumb"
+      },
+      "mainEntity": [
+        {
+          "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071452061"
+        },
+        {
+          "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071469321"
+        },
+        {
+          "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071541142"
+        }
+      ],
+      "inLanguage": "en-US",
+      "potentialAction": [
+        {
+          "@type": "ReadAction",
+          "target": [
+            "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/"
+          ]
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "inLanguage": "en-US",
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#primaryimage",
+      "url": "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7.jpg",
+      "contentUrl": "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7.jpg",
+      "width": 550,
+      "height": 825,
+      "caption": "I've created a lightened up, dairy-free Chicken Tikka Masala with Cauliflower and Peas in the Instant Pot to satisfy my craving for Indian food! This mild curry is made with boneless chicken thighs cooked in a tomato base, with lots of spices and coconut milk. You can serve this with garlic naan or basmati rice on the side (cauliflower rice would work too to keep it low carb!)"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Skinnytaste",
+          "item": "https://www.skinnytaste.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Recipes",
+          "item": "https://www.skinnytaste.com/recipes/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Instant Pot Recipes",
+          "item": "https://www.skinnytaste.com/recipes/instant-pot-recipes/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Instant Pot Chicken Tikka Masala with Cauliflower and Peas"
+        }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.skinnytaste.com/#website",
+      "url": "https://www.skinnytaste.com/",
+      "name": "Skinnytaste",
+      "description": "Delicious Healthy Recipes Made with Real Food",
+      "publisher": {
+        "@id": "https://www.skinnytaste.com/#organization"
+      },
+      "potentialAction": [
+        {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://www.skinnytaste.com/?s={search_term_string}"
+          },
+          "query-input": {
+            "@type": "PropertyValueSpecification",
+            "valueRequired": true,
+            "valueName": "search_term_string"
+          }
+        }
+      ],
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.skinnytaste.com/#organization",
+      "name": "Skinnytaste",
+      "url": "https://www.skinnytaste.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "inLanguage": "en-US",
+        "@id": "https://www.skinnytaste.com/#/schema/logo/image/",
+        "url": "https://www.skinnytaste.com/wp-content/uploads/2016/03/logo@2x.png",
+        "contentUrl": "https://www.skinnytaste.com/wp-content/uploads/2016/03/logo@2x.png",
+        "width": 860,
+        "height": 220,
+        "caption": "Skinnytaste"
+      },
+      "image": {
+        "@id": "https://www.skinnytaste.com/#/schema/logo/image/"
+      },
+      "sameAs": [
+        "https://www.facebook.com/GinasSkinnytaste/",
+        "https://x.com/skinnytaste",
+        "https://instagram.com/skinnytaste/",
+        "https://pinterest.com/skinnytaste/"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.skinnytaste.com/#/schema/person/d30ee2b4f0b2b8cff8d010fbf4228b72",
+      "name": "Gina Homolka",
+      "image": {
+        "@type": "ImageObject",
+        "inLanguage": "en-US",
+        "@id": "https://www.skinnytaste.com/wp-content/uploads/2025/04/cropped-gina-author-white-96x96.jpg",
+        "url": "https://www.skinnytaste.com/wp-content/uploads/2025/04/cropped-gina-author-white-96x96.jpg",
+        "contentUrl": "https://www.skinnytaste.com/wp-content/uploads/2025/04/cropped-gina-author-white-96x96.jpg",
+        "caption": "Gina Homolka"
+      }
+    },
+    {
+      "@type": "Question",
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071452061",
+      "position": 1,
+      "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071452061",
+      "name": "Can I make this paleo or Whole30 friendly?",
+      "answerCount": 1,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! You could easily make this whole30 or paleo by eliminating the peas and serving this with cauliflower rice.",
+        "inLanguage": "en-US"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Question",
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071469321",
+      "position": 2,
+      "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071469321",
+      "name": "What's the difference between butter chicken and tikka masala?",
+      "answerCount": 1,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The two are similar but butter chicken contains, well, more butter. Additionally, the flavor of butter chicken is much more mild and sweet than tikka masala. ",
+        "inLanguage": "en-US"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Question",
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071541142",
+      "position": 3,
+      "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#faq-question-1690071541142",
+      "name": "Is tikka masala spicy?",
+      "answerCount": 1,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chicken tikka masala contains a lot of different spices so it's spiced in that way but it is not \"spicy\" as in \"hot\". ",
+        "inLanguage": "en-US"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Recipe",
+      "name": "Instant Pot Chicken Tikka Masala with Cauliflower and Peas",
+      "author": {
+        "@id": "https://www.skinnytaste.com/#/schema/person/d30ee2b4f0b2b8cff8d010fbf4228b72"
+      },
+      "description": "This Instant Pot Chicken Tikka Masala with cauliflower and peas is a lightened up, dairy-free version of the classic Indian curry. Ready in just 30 minutes, this dish makes an easy weeknight dinner.",
+      "datePublished": "2017-08-01T10:12:46+00:00",
+      "image": [
+        "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7.jpg",
+        "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7-500x500.jpg",
+        "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7-500x375.jpg",
+        "https://www.skinnytaste.com/wp-content/uploads/2017/08/Instant-Pot-Chicken-Tikka-Masala-with-Cauliflower-and-Peas-1-7-480x270.jpg"
+      ],
+      "recipeYield": [
+        "6",
+        "6 servings"
+      ],
+      "prepTime": "PT15M",
+      "cookTime": "PT30M",
+      "totalTime": "PT45M",
+      "recipeIngredient": [
+        "1 ½ pounds skinless (boneless chicken thighs, cubed)",
+        "1 ½ teaspoon kosher salt",
+        "½ tablespoon ghee (butter or coconut oil for df)",
+        "½  onion (chopped)",
+        "3 cloves garlic (minced)",
+        "1 teaspoon grated ginger root",
+        "1 teaspoon ground coriander",
+        "1 teaspoon cumin",
+        "½ teaspoon turmeric",
+        "½ teaspoon garam masala",
+        "¼ teaspoon cayenne pepper",
+        "¼ teaspoon ground cardamom",
+        "14 ounce can diced tomatoes (drained)",
+        "2 cups cauliflower florets",
+        "½ cup frozen peas",
+        "½ cup full fat canned coconut milk",
+        "¼ cup fresh cilantro leaves (for serving)"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToStep",
+          "text": "Season chicken with 1 teaspoon salt.",
+          "name": "Season chicken with 1 teaspoon salt.",
+          "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#wprm-recipe-48080-step-0-0"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Press saute button and melt the butter, add onion, garlic, ginger and 6 spices (from coriander to cardamom) and saute until the vegetables are soft and the spices are fragrant, about 2 to 3 minutes.",
+          "name": "Press saute button and melt the butter, add onion, garlic, ginger and 6 spices (from coriander to cardamom) and saute until the vegetables are soft and the spices are fragrant, about 2 to 3 minutes.",
+          "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#wprm-recipe-48080-step-0-1"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Add the tomatoes and use an immersion to blend until smooth (or blend in the blender), add the chicken, remaining ½ teaspoon salt and stir, cook high pressure 15 minutes.",
+          "name": "Add the tomatoes and use an immersion to blend until smooth (or blend in the blender), add the chicken, remaining ½ teaspoon salt and stir, cook high pressure 15 minutes.",
+          "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#wprm-recipe-48080-step-0-2"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Quick release, add the cauliflower and peas and cook 2 minutes on high pressure.",
+          "name": "Quick release, add the cauliflower and peas and cook 2 minutes on high pressure.",
+          "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#wprm-recipe-48080-step-0-3"
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Quick release, stir in coconut milk and serve garnished with cilantro.",
+          "name": "Quick release, stir in coconut milk and serve garnished with cilantro.",
+          "url": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#wprm-recipe-48080-step-0-4"
+        }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.68",
+        "ratingCount": "134",
+        "reviewCount": "15"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Delicious extremely easy recipe thank you!",
+          "author": {
+            "@type": "Person",
+            "name": "Natalie"
+          },
+          "datePublished": "2026-04-21"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "When my husband remarks on how good a dish is before I even ask him, it's a keeper. Doubled ingredients from garlic down the list to cardamom, added a little juice from the tomatoes to make more sauce, and I would add more cayenne next time. It wasn't as spicy as I like. I used breast meat and cooked for 12 min instead of 15, but I would do 10 next time. It wasn't dried out, but it was close. And I cooked the cauliflower in the second round for 1 min instead of 2. I also added the peas with the coconut milk (used light milk and a dollop of light sour cream). Served w/Basmati and mini naans, and I'll do it again!",
+          "author": {
+            "@type": "Person",
+            "name": "Becky"
+          },
+          "datePublished": "2026-04-16"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "My husband loves this easy instant pot meal! It’s a go to for a weeknight dinner. I use lite coconut milk as we don’t like it too creamy;  sometimes I use chicken breast tenders instead of thighs. We love Indian food, this recipe gets close to authentic and comes out great every time!",
+          "author": {
+            "@type": "Person",
+            "name": "Shana"
+          },
+          "datePublished": "2026-02-03"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "My family members who are from India, really like this dish. I like the extra veggies and the easy recipe. It's a winner in taste and in the cooking and we have it regularly.",
+          "author": {
+            "@type": "Person",
+            "name": "Gina"
+          },
+          "datePublished": "2025-05-18"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "So easy, flavorful and low points - great weekday meal! I doubled the vegetables, coconut and spices to make sure I had enough liquid for the cauliflower at the end - and it turned out great! I didn’t have garam masala so subbed a curry powder; and I only had frozen mixed vegetables so left them on the side to add in as desired. Served with garlic naan.",
+          "author": {
+            "@type": "Person",
+            "name": "Anna"
+          },
+          "datePublished": "2025-03-25"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This recipe was an instant favorite in our house. My teen was skeptical when he saw the cauliflower going into tiki masala, but the flavor made a believer out of him. I used chicken breasts, which was perfectly cooked. The only change I might make next time would be to double the peas.",
+          "author": {
+            "@type": "Person",
+            "name": "Karen M"
+          },
+          "datePublished": "2024-04-23"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Love the spices used in this one - delicious!",
+          "author": {
+            "@type": "Person",
+            "name": "Sawyer Clark"
+          },
+          "datePublished": "2024-03-23"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Another winning recipe! I made exactly as the recipe stated, but on the stove in a Dutch oven because we don’t have a pressure cooker. Total simmer-cook time was 30 minutes. The level of spice was perfect for my husband and I. The peas added a bright pop and crunch. I served over jasmine rice with a side of naan bread, and I’m already looking forward to the leftovers for lunch tomorrow :)",
+          "author": {
+            "@type": "Person",
+            "name": "Caro"
+          },
+          "datePublished": "2024-02-19"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "So good, and very easy as well as economical.  The only change was I used unsalted butter, otherwise followed exact.  Chicken thighs are 100% the way to go.  Served over cauliflower rice so we could have a mini naan with it too.  I didn't have as much liquid as the still pics for some reason, but it didn't really matter.  Mine looked a lot more like the one in the YT video.  Bonus, my house smells amazing, like a food candle lol!",
+          "author": {
+            "@type": "Person",
+            "name": "H"
+          },
+          "datePublished": "2024-02-01"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Does using chicken breast change the cooking time?",
+          "author": {
+            "@type": "Person",
+            "name": "Maria"
+          },
+          "datePublished": "2023-08-23"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Wowza!! This was awesome! Not an unhappy person at the dinner table (some of who are picky eaters).",
+          "author": {
+            "@type": "Person",
+            "name": "Cherie"
+          },
+          "datePublished": "2023-08-22"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Excellent! Second time cooking in an Instant Pot and food turned out great. I did leave it on sear an additional 5”-7” to reduce the liquid and thicken the sauce which made the cauliflower overdone but next time I will add it even later than step 5.",
+          "author": {
+            "@type": "Person",
+            "name": "Zsuzsanna"
+          },
+          "datePublished": "2023-07-08"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Love this recipe! I listened to the other reviews and doubled all the seasonings and it’s perfect! The first time I made it I used an immersion blender…and definitely splattered sauce all over my kitchen. So I switched to a regular blender the next time and it worked great.",
+          "author": {
+            "@type": "Person",
+            "name": "Kristine"
+          },
+          "datePublished": "2023-06-03"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "Delicious. I like a little more spice, but it's perfect for family members that like their food a little more on the bland side.",
+          "author": {
+            "@type": "Person",
+            "name": "Marie"
+          },
+          "datePublished": "2023-05-22"
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5"
+          },
+          "reviewBody": "This is delicious! I have tried different Tikka Masala recipes, and this is my favorite.  I put the entire can of coconut milk in the recipe by accident, and it still had a nice flavor.  I look forward to trying it again with the proper amount of coconut milk to get more of a kick.",
+          "author": {
+            "@type": "Person",
+            "name": "Janet"
+          },
+          "datePublished": "2023-04-30"
+        }
+      ],
+      "recipeCategory": [
+        "Dinner"
+      ],
+      "recipeCuisine": [
+        "American"
+      ],
+      "keywords": "instant pot chicken tikka masala, instant pot tikka masala",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "servingSize": "3 /4 cup",
+        "calories": "226 kcal",
+        "carbohydrateContent": "9 g",
+        "proteinContent": "25 g",
+        "fatContent": "10 g",
+        "cholesterolContent": "3 mg",
+        "sodiumContent": "405 mg",
+        "fiberContent": "2.5 g",
+        "sugarContent": "4 g"
+      },
+      "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#recipe",
+      "isPartOf": {
+        "@id": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/#article"
+      },
+      "mainEntityOfPage": "https://www.skinnytaste.com/instant-pot-chicken-tikka-masala-with-cauliflower-and-peas/"
+    }
+  ]
+}

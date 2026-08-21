@@ -20,6 +20,7 @@
     "dotenv": "^17.3.1",
     "framer-motion": "^12.33.0",
     "lucide-react": "^0.563.0",
+    "parse-ingredient": "^2.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

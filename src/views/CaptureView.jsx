@@ -9,6 +9,20 @@ import { TicketCard, BoardCard } from '../components/ui/TicketCard';
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
 
+// A single pasted token that's a bare http(s) URL — nothing else on the line. Deliberately strict
+// (no surrounding text, no newlines) so this only fires when the user pastes just a link, not when
+// a URL happens to appear inside a block of recipe text.
+const BARE_URL_RE = /^https?:\/\/\S+$/i;
+const isBareUrl = (value) => BARE_URL_RE.test(value ?? '');
+
+function sourceDomain(url) {
+    try {
+        return new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+        return null;
+    }
+}
+
 export function CaptureView() {
     const { setCurrentView, VIEWS } = useView();
     const { unitSystem, setUnitSystem } = useUnitPreference();
@@ -48,8 +62,19 @@ export function CaptureView() {
         }
     };
 
-    const canExtract = pastedText.trim().length > 0 || images.length > 0;
-    const handleExtract = () => capture({ text: pastedText, images: images.map((img) => img.file) });
+    const trimmedText = pastedText.trim();
+    // Only treat the composer as "a URL was pasted" when it's the ONLY thing in the box and no
+    // photos are attached — otherwise this falls straight through to the existing text/photo path,
+    // completely unchanged.
+    const isUrlCapture = images.length === 0 && isBareUrl(trimmedText);
+    const canExtract = trimmedText.length > 0 || images.length > 0;
+    const handleExtract = () => {
+        if (isUrlCapture) {
+            capture({ url: trimmedText });
+        } else {
+            capture({ text: pastedText, images: images.map((img) => img.file) });
+        }
+    };
 
     const setDishPhotoFile = (file) => {
         if (!file) return;
@@ -123,7 +148,7 @@ export function CaptureView() {
                             value={pastedText}
                             onChange={(e) => setPastedText(e.target.value)}
                             onPaste={handlePaste}
-                            placeholder="Paste a screenshot (Ctrl/Cmd+V) and/or type or paste recipe text here..."
+                            placeholder="Paste a screenshot (Ctrl/Cmd+V), a recipe URL, and/or type or paste recipe text here..."
                             className="input w-full resize-none flex-1"
                             style={{ minHeight: '120px' }}
                         />
@@ -153,12 +178,14 @@ export function CaptureView() {
                             onClick={handleExtract}
                             className="w-full disabled:opacity-30 disabled:cursor-not-allowed"
                         >
-                            Extract Recipe
+                            {isUrlCapture ? 'Fetch Recipe' : 'Extract Recipe'}
                         </Button>
                     </BoardCard>
 
                     <p className="font-body text-[12px] text-chalkDim text-center">
-                        Combine a screenshot, a photo, and/or typed text — extraction uses everything you add.
+                        {isUrlCapture
+                            ? 'Meal Buddy will pull the recipe straight from that link.'
+                            : 'Combine a screenshot, a photo, and/or typed text — extraction uses everything you add.'}
                     </p>
 
                     <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChosen} />
@@ -169,7 +196,7 @@ export function CaptureView() {
             {status === 'extracting' && (
                 <div className="flex-1 flex flex-col items-center justify-center gap-2 min-h-[300px]">
                     <p className="font-head italic text-[18px] text-chalkDim animate-pulse">
-                        Reading your recipe...
+                        {isUrlCapture ? 'Fetching that page...' : 'Reading your recipe...'}
                     </p>
                 </div>
             )}
