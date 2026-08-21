@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Buddy</title>
+
+<!--
+  FONT DIVERGENCE NOTE:
+  The live app self-hosts Anton, Zilla Slab, IBM Plex Sans and IBM Plex Mono via
+  @fontsource npm packages (see src/index.css). This file is a standalone static
+  page with no build step, so it can't import those packages — it loads the same
+  four families from Google Fonts instead, each with a real system fallback stack
+  matching the app's --f-display / --f-head / --f-body / --f-mono roles.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Zilla+Slab:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ===== Tokens — copied verbatim from .agent/DESIGN_SYSTEM.md v3.0 "The Chit Rail" ===== */
+  :root {
+    /* The board — shell & chrome */
+    --board: #14211B;
+    --board-2: #1C2C24;
+    --line: #33493B;
+    --chalk: #EDE7D8;
+    --chalk-dim: #93A395;
+
+    /* The ticket — card surface */
+    --ticket: #F1E7CC;
+    --ticket-2: #EADFBE;
+    --ticket-shadow: #D8C495;
+    --ink: #251C10;
+    --ink-dim: #6B5D45;
+
+    /* The marks — used sparingly */
+    --stamp: #C1442C;
+    --stamp-ink: #9C3620;
+    --grease: #B98523;
+    --done: #5C7A4E;
+
+    /* Fonts */
+    --f-display: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+    --f-head: 'Zilla Slab', Georgia, 'Times New Roman', serif;
+    --f-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --f-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+    /* Spacing scale */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+    --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px;
+
+    /* Radii */
+    --r-xs: 3px;
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+
+    /* Shadows */
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-hero: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--board);
+    color: var(--chalk);
+    font-family: var(--f-body);
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img, svg { max-width: 100%; }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--sp-4);
+  }
+
+  /* ===== Header ===== */
+  header.chrome {
+    background: var(--board-2);
+    border-bottom: 1px solid var(--line);
+  }
+  header.chrome .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--sp-4);
+    padding-bottom: var(--sp-4);
+  }
+  .wordmark {
+    font-family: var(--f-head);
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--chalk);
+    letter-spacing: 0.01em;
+  }
+  .wordmark .dot {
+    color: var(--grease);
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding-top: var(--sp-16);
+    padding-bottom: var(--sp-12);
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--chalk-dim);
+    margin-bottom: var(--sp-4);
+  }
+  .hero h1 {
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: clamp(34px, 8vw, 64px);
+    line-height: 1.05;
+    margin: 0 0 var(--sp-5) 0;
+    color: var(--chalk);
+  }
+  .hero p.lede {
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--chalk-dim);
+    max-width: 480px;
+    margin: 0 auto var(--sp-8) auto;
+  }
+
+  /* CTA — the ONE stamp element on this page */
+  .btn-stamp {
+    display: inline-block;
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ticket);
+    background: var(--stamp);
+    border: 2px solid var(--stamp-ink);
+    border-radius: 999px; /* the one deliberate rounded-full exception, per DESIGN_SYSTEM.md §5 */
+    padding: 14px 36px;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    box-shadow: var(--shadow-card);
+    transition: transform 150ms ease;
+  }
+  .btn-stamp:hover { transform: scale(0.98); }
+  .btn-stamp:active { transform: scale(0.96); }
+
+  /* ===== Section shell ===== */
+  section {
+    padding-top: var(--sp-12);
+    padding-bottom: var(--sp-12);
+  }
+  .section-head {
+    text-align: center;
+    margin-bottom: var(--sp-10);
+  }
+  .section-head .eyebrow { margin-bottom: var(--sp-3); }
+  .section-head h2 {
+    font-family: var(--f-head);
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--chalk);
+    margin: 0;
+  }
+
+  /* ===== The loop — ticket cards ===== */
+  .loop-rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+  }
+  .ticket {
+    background: var(--ticket);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--sp-6);
+    position: relative;
+    display: flex;
+    gap: var(--sp-5);
+    align-items: flex-start;
+  }
+  .ticket .num {
+    font-family: var(--f-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--ticket-2);
+    border: 1px solid var(--ticket-shadow);
+    border-radius: var(--r-xs);
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ticket .body h3 {
+    font-family: var(--f-head);
+    font-weight: 700;
+    font-size: 21px;
+    color: var(--ink);
+    margin: 0 0 var(--sp-2) 0;
+  }
+  .ticket .body p {
+    font-family: var(--f-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+  .ticket .body .tag {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    background: var(--ticket-2);
+    border: 1px solid var(--ticket-shadow);
+    border-radius: var(--r-xs);
+    padding: 3px 8px;
+    margin-top: var(--sp-3);
+  }
+
+  /* connecting line between rail items on desktop */
+  @media (min-width: 640px) {
+    .loop-rail {
+      position: relative;
+    }
+    .loop-rail::before {
+      content: "";
+      position: absolute;
+      left: 31px;
+      top: 20px;
+      bottom: 20px;
+      width: 1px;
+      background: var(--line);
+      z-index: 0;
+    }
+  }
+
+  /* ===== What it isn't — board cards ===== */
+  .isnt-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+  @media (min-width: 560px) {
+    .isnt-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .isnt-card {
+    background: var(--board-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--sp-5);
+  }
+  .isnt-card h3 {
+    font-family: var(--f-head);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--chalk);
+    margin: 0 0 var(--sp-2) 0;
+  }
+  .isnt-card p {
+    font-family: var(--f-body);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chalk-dim);
+    margin: 0;
+  }
+  .isnt-card .mark {
+    font-family: var(--f-mono);
+    color: var(--done);
+    margin-right: var(--sp-2);
+  }
+
+  .isnt-summary {
+    font-family: var(--f-body);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--chalk-dim);
+    text-align: center;
+    max-width: 460px;
+    margin: var(--sp-8) auto 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ===== Secondary CTA row (not a stamp — text link) ===== */
+  .cta-row {
+    text-align: center;
+    padding-top: var(--sp-4);
+  }
+  .cta-row a {
+    font-family: var(--f-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--chalk);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: var(--sp-6);
+    padding-bottom: var(--sp-10);
+  }
+  footer .wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    align-items: center;
+    text-align: center;
+  }
+  footer p {
+    font-family: var(--f-body);
+    font-size: 12.5px;
+    color: var(--chalk-dim);
+    margin: 0;
+  }
+  footer .foot-count {
+    font-family: var(--f-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--chalk-dim);
+  }
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="wrap">
+    <div class="wordmark">Meal Buddy<span class="dot">.</span></div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">A personal culinary companion</div>
+      <h1>Capture what you<br>cook. Plan what's<br>next.</h1>
+      <p class="lede">
+        A place to keep your own recipes, plan a few days ahead, and cook with
+        your phone propped against the spice rack. Built for one household,
+        not a market.
+      </p>
+      <a class="btn-stamp" href="https://thefoodi.netlify.app">Open the app</a>
+    </div>
+  </section>
+
+  <section id="loop">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How it works</div>
+        <h2>The loop</h2>
+      </div>
+
+      <div class="loop-rail">
+        <div class="ticket">
+          <div class="num">01</div>
+          <div class="body">
+            <h3>Capture</h3>
+            <p>
+              Paste a recipe as text, attach a photo or screenshot, or both
+              at once. It gets pulled into a structured recipe, and before
+              anything saves you can ask for changes in a back-and-forth
+              conversation until it's right.
+            </p>
+            <span class="tag">Text + photo, combined</span>
+          </div>
+        </div>
+
+        <div class="ticket">
+          <div class="num">02</div>
+          <div class="body">
+            <h3>Plan</h3>
+            <p>
+              One meal a day, laid out a few days at a time. Tap a day, pick
+              a saved recipe, mark it as leftovers from another day, or just
+              leave a note. Gaps are fine — it's a plan, not a contract.
+            </p>
+          </div>
+        </div>
+
+        <div class="ticket">
+          <div class="num">03</div>
+          <div class="body">
+            <h3>Shop</h3>
+            <p>
+              Once the plan is locked, the ingredients from every recipe on
+              it get pulled together into one checkable list, consolidated
+              and sorted by category so you're not reading four recipes in
+              the store.
+            </p>
+          </div>
+        </div>
+
+        <div class="ticket">
+          <div class="num">04</div>
+          <div class="body">
+            <h3>Cook</h3>
+            <p>
+              A step-by-step view for when your hands are actually busy — a
+              servings stepper that scales quantities live, and a simple
+              countdown timer built in, so you're not switching apps mid-recipe.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="isnt">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Worth saying plainly</div>
+        <h2>What it isn't</h2>
+      </div>
+
+      <div class="isnt-grid">
+        <div class="isnt-card">
+          <h3><span class="mark">&mdash;</span>No accounts</h3>
+          <p>Nobody signs up, nobody signs in. It's just there.</p>
+        </div>
+        <div class="isnt-card">
+          <h3><span class="mark">&mdash;</span>No subscription</h3>
+          <p>Nothing to renew, nothing that stops working if a card expires.</p>
+        </div>
+        <div class="isnt-card">
+          <h3><span class="mark">&mdash;</span>No ads</h3>
+          <p>Nothing trying to sell you a different recipe than the one you saved.</p>
+        </div>
+        <div class="isnt-card">
+          <h3><span class="mark">&mdash;</span>Your own recipes</h3>
+          <p>What's in it is what you or your family cooked — not a catalog to browse.</p>
+        </div>
+      </div>
+
+      <p class="isnt-summary">
+        Most recipe apps make their money on your attention or your card.
+        This one doesn't need to — it just needs to work in the kitchen.
+      </p>
+
+      <div class="cta-row">
+        <a href="https://thefoodi.netlify.app">Open the app &rarr;</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Meal Buddy &mdash; a personal tool, not a product.</p>
+    <p class="foot-count">v1</p>
+  </div>
+</footer>
+
+</body>
+</html>
