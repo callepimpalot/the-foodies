@@ -177,7 +177,7 @@ h1{font-family:var(--f-head);font-weight:700;font-size:clamp(28px,5vw,42px);line
     <div class="count c-done"><span class="n mono" id="n-done">0</span><span class="l">Verified</span></div>
     <div class="count"><span class="n mono" id="n-tests">0/0</span><span class="l">Hand-tests ticked</span></div>
   </div>
-  <p class="branchline">Built work is committed on <span class="mono">feat/tier-1-batch</span> — four commits, one per task. Not merged, not deployed.</p>
+  <p class="branchline">Four tasks committed on <span class="mono">feat/tier-1-batch</span>, awaiting your hand-tests. Four more in flight now: 03+04+09 (shopping list) and 08 (URL capture). Nothing merged or deployed yet.</p>
 </header>
 
 <div class="findings">
@@ -352,7 +352,7 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","05":"built","06":"built"};
+const STATUS={"01":"built","02":"built","05":"built","06":"built","03":"running","04":"running","08":"running","09":"running"};
 const SLABEL={open:"Open",running:"Running",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.
