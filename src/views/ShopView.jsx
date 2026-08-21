@@ -1,16 +1,58 @@
-import React, { useMemo } from 'react';
-import { Check } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Check, ChevronDown } from 'lucide-react';
 import { usePlan } from '../context/PlanContext';
 import { useInventory } from '../context/InventoryContext';
 import { useShop } from '../context/ShopContext';
-import { buildShoppingList, CATEGORY_ORDER } from '../lib/consolidateIngredients';
+import { buildShoppingList, CATEGORY_ORDER, formatMeasure } from '../lib/consolidateIngredients';
 import { BoardCard } from '../components/ui/TicketCard';
 import { Button } from '../components/ui/Button';
+
+const dayLabel = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return Number.isNaN(d?.getTime?.()) ? date : d.toLocaleDateString('en-US', { weekday: 'short' });
+};
+
+// One line of the "why is this on my list?" breakdown. Shows the recipe's own
+// wording when it differs from the row's label, so a merged row never hides what
+// the recipe actually asked for. Leftover days contribute no ingredients by
+// design — they're attributed back to the day that was actually shopped for.
+function SourceLine({ source, rowName }) {
+    const wording = source?.name && source?.name !== rowName ? source.name : null;
+    const amount = formatMeasure(source?.quantity, source?.unit);
+    const leftovers = source?.leftoverDates ?? [];
+
+    return (
+        <li className="flex items-baseline justify-between gap-3">
+            <span className="t-body text-inkDim min-w-0">
+                <span className="t-mono text-xs">{dayLabel(source?.date)}</span>
+                {' · '}
+                {source?.recipeTitle}
+                {wording ? <span className="italic"> ({wording})</span> : null}
+                {leftovers.length > 0 && (
+                    <span className="t-mono text-xs">
+                        {' '}+ leftovers {leftovers.map(dayLabel).join(', ')}
+                    </span>
+                )}
+            </span>
+            {amount && <span className="t-mono text-xs text-inkDim shrink-0">{amount}</span>}
+        </li>
+    );
+}
 
 export function ShopView() {
     const { weeklyPlan, isPlanConfirmed } = usePlan();
     const { toggleFlag } = useInventory();
     const { checkedKeys, toggleChecked, resetList, householdSnapshot } = useShop();
+    const [expandedKeys, setExpandedKeys] = useState(() => new Set());
+
+    const toggleExpanded = (key) => {
+        setExpandedKeys((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key); else next.add(key);
+            return next;
+        });
+    };
 
     const recipeItems = useMemo(
         () => (isPlanConfirmed ? buildShoppingList(weeklyPlan) : []),
@@ -106,27 +148,66 @@ export function ShopView() {
                             <div className="list-ticket">
                                 {catItems.map((item) => {
                                     const checked = checkedKeys.has(item.key);
+                                    // The chevron's presence is itself information: this
+                                    // number is a sum. A chevron revealing "1 for Stew" on
+                                    // a row that already says "1" is a broken promise.
+                                    const sources = item?.sources ?? [];
+                                    const canExpand = sources.length > 1;
+                                    const expanded = canExpand && expandedKeys.has(item.key);
                                     return (
-                                        <button
-                                            key={item.key}
-                                            onClick={() => toggleChecked(item.key)}
-                                            className="list-row w-full text-left bg-transparent cursor-pointer"
-                                        >
-                                            <span
-                                                className={`w-5 h-5 rounded-xs border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-done border-done' : 'border-ticketShadow'
-                                                    }`}
-                                            >
-                                                {checked && <Check size={12} strokeWidth={3} className="text-ticket" />}
-                                            </span>
-                                            <span className={`flex-1 t-body ${checked ? 'text-done line-through' : 'text-ink'}`}>
-                                                {item.name}
-                                            </span>
-                                            {item.quantity != null && (
-                                                <span className="t-mono text-xs text-inkDim">
-                                                    {Math.round(item.quantity * 10) / 10}{item.unit ?? ''}
-                                                </span>
+                                        // Not a <button> — the checkbox and the chevron are
+                                        // sibling controls. Nesting one inside the other is
+                                        // invalid HTML and the taps misfire.
+                                        <div key={item.key} className="list-row flex-col items-stretch gap-0">
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleChecked(item.key)}
+                                                    aria-pressed={checked}
+                                                    className="flex flex-1 min-w-0 items-center gap-3 min-h-11 text-left bg-transparent cursor-pointer"
+                                                >
+                                                    <span
+                                                        className={`w-5 h-5 rounded-xs border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-done border-done' : 'border-ticketShadow'
+                                                            }`}
+                                                    >
+                                                        {checked && <Check size={12} strokeWidth={3} className="text-ticket" />}
+                                                    </span>
+                                                    <span className={`flex-1 min-w-0 t-body ${checked ? 'text-done line-through' : 'text-ink'}`}>
+                                                        {item.name}
+                                                    </span>
+                                                    {item.quantityLabel && (
+                                                        <span className={`t-mono text-xs shrink-0 ${checked ? 'text-done' : 'text-inkDim'}`}>
+                                                            {item.quantityLabel}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                {canExpand && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleExpanded(item.key)}
+                                                        aria-expanded={expanded}
+                                                        aria-label={`Show what ${item.name} is for`}
+                                                        className="w-11 h-11 -mr-3 flex items-center justify-center shrink-0 bg-transparent cursor-pointer text-inkDim"
+                                                    >
+                                                        <ChevronDown
+                                                            size={18}
+                                                            className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+                                                        />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {expanded && (
+                                                <ul className="flex flex-col gap-1 pb-3 pl-8 pr-3">
+                                                    {sources.map((source, i) => (
+                                                        <SourceLine
+                                                            key={`${item.key}|${source?.date}|${i}`}
+                                                            source={source}
+                                                            rowName={item.name}
+                                                        />
+                                                    ))}
+                                                </ul>
                                             )}
-                                        </button>
+                                        </div>
                                     );
                                 })}
                             </div>
