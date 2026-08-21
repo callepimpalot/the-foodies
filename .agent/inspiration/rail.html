@@ -1,0 +1,518 @@
+<title>Meal Buddy Task Rail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Zilla+Slab:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --board:#14211B; --board-2:#1C2C24; --line:#33493B;
+  --chalk:#EDE7D8; --chalk-dim:#93A395;
+  --ticket:#F1E7CC; --ticket-2:#EADFBE; --ticket-shadow:#D8C495;
+  --ink:#251C10; --ink-dim:#6B5D45;
+  --stamp:#C1442C; --grease:#B98523; --done:#5C7A4E;
+  --f-display:'Anton',Impact,sans-serif;
+  --f-head:'Zilla Slab',Georgia,serif;
+  --f-body:'IBM Plex Sans',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-6:24px; --sp-8:32px;
+  --r-xs:3px; --r-sm:6px; --r-md:10px; --r-lg:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--board); color:var(--chalk);
+  font-family:var(--f-body); font-size:15px; line-height:1.55;
+  padding:var(--sp-6) var(--sp-4) 200px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* ── header ─────────────────────────────── */
+header{border-bottom:1px solid var(--line);padding-bottom:var(--sp-6);margin-bottom:var(--sp-6)}
+.eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--chalk-dim)}
+h1{font-family:var(--f-head);font-weight:700;font-size:clamp(28px,5vw,42px);line-height:1.1;text-wrap:balance;margin:var(--sp-2) 0}
+.sub{color:var(--chalk-dim);max-width:62ch}
+.counts{display:flex;gap:var(--sp-6);margin-top:var(--sp-6);flex-wrap:wrap}
+.count .n{font-family:var(--f-display);font-size:38px;line-height:1;display:block}
+.count .l{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--chalk-dim)}
+.c-now .n{color:var(--stamp)} .c-next .n{color:var(--grease)} .c-later .n{color:var(--done)}
+.c-built .n{color:var(--stamp)} .c-open .n{color:var(--chalk-dim)} .c-done .n{color:var(--done)}
+.branchline{margin-top:var(--sp-4);font-size:13px;color:var(--chalk-dim)}
+.branchline .mono{font-family:var(--f-mono);color:var(--grease);font-size:12px}
+
+/* ── findings ───────────────────────────── */
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--sp-3);margin-bottom:var(--sp-8)}
+.find{background:var(--board-2);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-4)}
+.find.key{border-color:var(--stamp)}
+.find h3{font-family:var(--f-head);font-size:17px;font-weight:600;margin-bottom:6px;color:var(--chalk)}
+.find p{font-size:13.5px;color:var(--chalk-dim)}
+.find code{font-family:var(--f-mono);font-size:12px;color:var(--grease);background:rgba(185,133,35,.1);padding:1px 4px;border-radius:var(--r-xs)}
+
+/* ── filter ─────────────────────────────── */
+.bar{display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:center;margin-bottom:var(--sp-6)}
+.fbtn{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  background:transparent;color:var(--chalk-dim);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:7px 13px;cursor:pointer;transition:all 150ms ease}
+.fbtn:hover{color:var(--chalk);border-color:var(--chalk-dim)}
+.fbtn[aria-pressed="true"]{background:var(--chalk);color:var(--board);border-color:var(--chalk)}
+.fbtn:focus-visible{outline:2px solid var(--grease);outline-offset:2px}
+
+/* ── rails ──────────────────────────────── */
+.rail{margin-bottom:var(--sp-8)}
+.rail-head{display:flex;align-items:baseline;gap:var(--sp-3);margin-bottom:var(--sp-4);
+  padding-bottom:var(--sp-2);border-bottom:1px dashed var(--line)}
+.rail-head h2{font-family:var(--f-head);font-size:21px;font-weight:700}
+.rail-head .note{font-size:13px;color:var(--chalk-dim)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.d-now{background:var(--stamp)} .d-next{background:var(--grease)} .d-later{background:var(--done)}
+.tickets{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--sp-4)}
+
+/* ── ticket ─────────────────────────────── */
+.ticket{position:relative;background:var(--ticket);color:var(--ink);
+  border-radius:0 0 var(--r-md) var(--r-md);padding:22px var(--sp-4) var(--sp-4);
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
+  transition:transform 150ms ease,box-shadow 150ms ease;display:block}
+.ticket::before{content:"";position:absolute;top:0;left:0;right:0;height:9px;background:var(--ticket);
+  -webkit-mask:repeating-linear-gradient(135deg,#000 0 6px,transparent 6px 12px);
+  mask:repeating-linear-gradient(135deg,#000 0 6px,transparent 6px 12px)}
+.ticket::after{content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:9px;height:9px;border-radius:50%;background:var(--board);opacity:.28}
+.ticket:hover{transform:translateY(-3px);box-shadow:0 8px 26px rgba(0,0,0,.45)}
+.ticket.on{box-shadow:0 0 0 2px var(--stamp),0 8px 26px rgba(0,0,0,.45)}
+/* the summary is the one interactive region; the fire button sits outside it
+   so we never nest a button inside a button */
+.t-summary{display:block;width:100%;background:transparent;border:none;
+  font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0}
+.t-summary:focus-visible{outline:2px solid var(--grease);outline-offset:3px}
+
+.t-top{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-2)}
+.t-num{font-family:var(--f-display);font-size:30px;line-height:.9;color:var(--ticket-shadow)}
+.ticket.on .t-num{color:var(--stamp)}
+.t-feat{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-dim);border:1px solid var(--ticket-shadow);border-radius:var(--r-xs);padding:3px 7px;white-space:nowrap}
+.t-badges{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.st{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  border-radius:var(--r-xs);padding:3px 7px;white-space:nowrap;font-weight:600}
+.st-open{background:var(--ticket-2);color:var(--ink-dim);border:1px solid var(--ticket-shadow)}
+.st-running{background:var(--grease);color:var(--ticket)}
+.st-built{background:var(--stamp);color:var(--ticket)}
+.st-verified,.st-shipped{background:var(--done);color:var(--ticket)}
+/* a built ticket carries a coloured spine so status reads at a glance */
+.st-card-built{border-left:3px solid var(--stamp)}
+.st-card-verified,.st-card-shipped{border-left:3px solid var(--done)}
+.st-card-running{border-left:3px solid var(--grease)}
+.tests{display:flex;flex-direction:column;gap:5px;margin-bottom:var(--sp-2)}
+.tst{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink);cursor:pointer;
+  background:var(--ticket-2);border:1px solid var(--ticket-shadow);border-radius:var(--r-xs);padding:7px 9px}
+.tst input{margin:2px 0 0;accent-color:var(--done);flex:none;width:15px;height:15px;cursor:pointer}
+.tst.ok span{color:var(--ink-dim);text-decoration:line-through}
+.tst:focus-within{outline:2px solid var(--grease);outline-offset:2px}
+.t-title{display:block;font-family:var(--f-head);font-size:18px;font-weight:700;line-height:1.25;margin-bottom:var(--sp-2);text-wrap:balance}
+.t-gap{display:block;font-size:13.5px;color:var(--ink-dim);margin-bottom:var(--sp-3)}
+.t-meta{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap;
+  border-top:1px dashed var(--ticket-shadow);padding-top:var(--sp-3)}
+.pips{display:flex;gap:3px}
+.pip{width:8px;height:8px;border-radius:1px;background:var(--ticket-shadow)}
+.pip.f{background:var(--grease)}
+.eff{font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--ink-dim)}
+.t-meta .lbl{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
+.warn{font-family:var(--f-mono);font-size:10px;color:var(--stamp);margin-left:auto;font-weight:600}
+
+/* ── detail ─────────────────────────────── */
+.detail{display:none;margin-top:var(--sp-3);padding-top:var(--sp-3);border-top:1px dashed var(--ticket-shadow)}
+.ticket.open .detail{display:block}
+.detail h4{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-dim);margin:var(--sp-3) 0 5px}
+.detail h4:first-child{margin-top:0}
+.detail p{font-size:13.5px;color:var(--ink);margin-bottom:2px}
+.detail code{font-family:var(--f-mono);font-size:12px;background:var(--ticket-2);padding:1px 4px;border-radius:var(--r-xs)}
+.src{display:inline-block;font-family:var(--f-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 5px;border-radius:var(--r-xs);margin-right:5px;vertical-align:1px}
+.src.v{background:var(--done);color:var(--ticket)}
+.src.r{background:var(--ticket-2);color:var(--ink-dim);border:1px solid var(--ticket-shadow)}
+.src.a{background:var(--stamp);color:var(--ticket)}
+.fire{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--stamp);color:var(--ticket);border:none;border-radius:var(--r-sm);
+  padding:9px 15px;cursor:pointer;margin-top:var(--sp-3);width:100%;font-weight:600}
+.fire.rm{background:transparent;color:var(--ink-dim);border:1px solid var(--ticket-shadow)}
+.fire:focus-visible{outline:2px solid var(--grease);outline-offset:2px}
+
+/* ── tray ───────────────────────────────── */
+.tray{position:fixed;left:0;right:0;bottom:0;background:var(--board-2);
+  border-top:1px solid var(--line);padding:var(--sp-4);z-index:50;
+  box-shadow:0 -8px 32px rgba(0,0,0,.5);max-height:46vh;overflow-y:auto}
+.tray-in{max-width:1120px;margin:0 auto}
+.tray-head{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)}
+.tray-head h3{font-family:var(--f-head);font-size:17px;font-weight:700}
+.tray-head .n{font-family:var(--f-mono);font-size:12px;color:var(--chalk-dim)}
+.clear{margin-left:auto;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--line);color:var(--chalk-dim);
+  border-radius:var(--r-sm);padding:6px 12px;cursor:pointer}
+.clear:hover{color:var(--chalk);border-color:var(--chalk-dim)}
+.queue{display:flex;flex-direction:column;gap:6px}
+.qrow{display:flex;align-items:center;gap:var(--sp-3);background:var(--board);
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:9px var(--sp-3)}
+.qrow .seq{font-family:var(--f-mono);font-size:11px;color:var(--chalk-dim);min-width:18px}
+.qrow .id{font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--grease);min-width:26px}
+.qrow .nm{font-size:13.5px;flex:1;min-width:0}
+.qrow .ef{font-family:var(--f-mono);font-size:10.5px;color:var(--chalk-dim)}
+.qwarn{font-family:var(--f-mono);font-size:10.5px;color:var(--stamp);
+  border-left:2px solid var(--stamp);padding-left:9px;margin-top:var(--sp-2)}
+.next{font-size:12.5px;color:var(--chalk-dim);margin-top:var(--sp-3);
+  border-top:1px dashed var(--line);padding-top:var(--sp-3)}
+.next .mono{font-family:var(--f-mono);font-size:11.5px;color:var(--grease)}
+.empty{font-family:var(--f-head);font-style:italic;color:var(--chalk-dim);font-size:15px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media(max-width:520px){.tickets{grid-template-columns:1fr}body{padding-bottom:230px}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Meal Buddy · Candidate work · 21 Aug 2026</span>
+  <h1>The Rail</h1>
+  <p class="sub">Fifteen tasks pulled from the Gemini competitor report, cross-checked on the web, and grounded against the live codebase. Tap a ticket to see the evidence. Adding one builds a running order in the tray at the bottom — this board is for choosing, it doesn't run anything.</p>
+  <div class="counts">
+    <div class="count c-built"><span class="n mono" id="n-built">0</span><span class="l">Built · test it</span></div>
+    <div class="count c-open"><span class="n mono" id="n-open">0</span><span class="l">Not started</span></div>
+    <div class="count c-done"><span class="n mono" id="n-done">0</span><span class="l">Verified</span></div>
+    <div class="count"><span class="n mono" id="n-tests">0/0</span><span class="l">Hand-tests ticked</span></div>
+  </div>
+  <p class="branchline">Built work is committed on <span class="mono">feat/tier-1-batch</span> — four commits, one per task. Not merged, not deployed.</p>
+</header>
+
+<div class="findings">
+  <div class="find key">
+    <h3>Your family goal isn't blocked by auth</h3>
+    <p>It's blocked by persistence. Plan lives in <code>localStorage</code>; Shop isn't persisted at all. If your wife installed the app tomorrow she'd see the same recipes and an empty plan. Task 07 fixes this without building login.</p>
+  </div>
+  <div class="find">
+    <h3>Three live bugs, none from the report</h3>
+    <p>The report only analyses features competitors <em>market</em>. It structurally can't find a dead counter or a wiped shopping list. Those came from reading your code.</p>
+  </div>
+  <div class="find">
+    <h3>The report's stack advice doesn't fit</h3>
+    <p>It mandates React Native, Python/FastAPI, Celery, Redis. You run React + Vite + Supabase + Netlify. Every task here is re-specified for what you actually have.</p>
+  </div>
+</div>
+
+<div class="bar">
+  <button class="fbtn" data-f="all" aria-pressed="true">All 15</button>
+  <button class="fbtn" data-f="built" aria-pressed="false">Built · needs testing</button>
+  <button class="fbtn" data-f="open" aria-pressed="false">Not started</button>
+  <button class="fbtn" data-f="now" aria-pressed="false">Now</button>
+  <button class="fbtn" data-f="next" aria-pressed="false">Next</button>
+  <button class="fbtn" data-f="later" aria-pressed="false">Later</button>
+  <button class="fbtn" data-f="bug" aria-pressed="false">Bug fixes</button>
+  <button class="fbtn" data-f="fam" aria-pressed="false">Family-critical</button>
+</div>
+
+<div id="rails"></div>
+</div>
+
+<div class="tray">
+  <div class="tray-in">
+    <div class="tray-head">
+      <h3>Pipeline</h3>
+      <span class="n mono" id="tcount">nothing fired yet</span>
+      <button class="clear" id="clear">Clear</button>
+    </div>
+    <div id="queue"><p class="empty">Fire a ticket to start building your running order.</p></div>
+  </div>
+</div>
+
+<script>
+const T=[
+{id:"01",h:"now",feat:"Shop",imp:5,eff:"S",bug:1,fam:1,
+ title:"Shopping list survives a reload",
+ gap:"Checked items are component state. Switch apps mid-shop and every tick is gone.",
+ code:"ShopView.jsx:11 — useState(() => new Set())",
+ ev:[["a","Found by audit"],["r","Report's own data model assumes a persisted isPurchased field"],["v","Every mainstream list app treats checked state as durable — nobody markets it, which is why the report missed it"]],
+ why:"The failure lands at maximum cost: mid-shop, hands full, no way to recover which of 30 items are already in the trolley.",
+ dep:"Build behind a context API so Task 07 can swap the storage layer without touching the view."},
+
+{id:"02",h:"now",feat:"Cook",imp:5,eff:"XS",bug:0,fam:0,
+ title:"Screen stays awake in Cook Mode",
+ gap:"Nothing stops the phone sleeping. Auto-lock fires mid-recipe, every recipe.",
+ code:"~25 lines. Highest impact-to-effort item here.",
+ ev:[["v","Wake Lock API now in every major browser, >94% global support (May 2026)"],["v","iOS Safari 16.4+; the installed-PWA bug was fixed by Apple in 18.4 — and your app is an installed PWA"],["v","web.dev's own announcement uses following a recipe with dough-covered hands as the motivating example"],["r","Report specifies wake-lock in its StepByStepCookMode component"]],
+ why:"Your design brief literally reads 'one dad, a phone propped against a spice rack.' A screen that blacks out every 30 seconds fails that brief at the one moment the app exists for.",
+ dep:"None. Do this first."},
+
+{id:"03",h:"now",feat:"Shop",imp:4,eff:"M",bug:1,fam:0,
+ title:"Smarter ingredient merging",
+ gap:"'yellow onion' and 'onion' are two rows. Worse: when units clash the quantity is set to null, which renders blank — so the number silently vanishes.",
+ code:"consolidateIngredients.js:51 (key) and :55 (the null)",
+ ev:[["r","AnyList 'fails to aggregate quantities depending on how an ingredient was arbitrarily named'"],["r","Mealie's Oct 2024 user survey: users explicitly ask to merge similar ingredients intelligently"],["v","Report recommends Python NLP — unusable in your browser app. JS equivalents exist, but you don't need them: your ingredients are already structured"]],
+ why:"Two independent products, same complaint. This is the hard problem of the category. Deterministic rules handle ~80% at zero latency and stay offline-capable — which matters because Shop is used in shops with bad signal.",
+ dep:"Bias every ambiguous call toward NOT merging. A wrong merge means a missing ingredient at cook time."},
+
+{id:"04",h:"now",feat:"Shop",imp:4,eff:"S",bug:1,fam:0,
+ title:"Fix miscategorised items + aisle order",
+ gap:"The catch-all returns 'Produce', so cinnamon, honey, almonds, lentils and chocolate are all filed as vegetables — in the first section you walk to.",
+ code:"consolidateIngredients.js:11 — return 'Produce'",
+ ev:[["v","Shoppers with a list spend ~23 min less in store; category-ordered lists finish up to 40% faster"],["v","Organised shoppers also spend 15–20% less — less wandering past impulse buys"],["v","Bring! and AnyList both let users reorder categories to match their own supermarket"],["r","Report's AisleGroupContainer assumes a fixed topology — your competitors are ahead of it here"]],
+ why:"An honest 'Other' bucket sorted last beats a confident wrong answer at the front. A wrong category costs a walk across the shop.",
+ dep:"Run after Task 03 so categorisation works on canonicalised names."},
+
+{id:"05",h:"now",feat:"Pantry",imp:2,eff:"XS",bug:1,fam:0,
+ title:"Fix the dead \"0 items available\"",
+ gap:"Home filters on i.inPantry — a field no item has. That counter has shown 0 since the Essentials rebuild.",
+ code:"HomeView.jsx:220 — the only reference to inPantry in all of src/",
+ ev:[["a","Found by audit"],["a","DATA_MODELS §2 still describes in-memory storage and five fields that no longer exist — it's now localStorage-backed"],["a","PROJECT.md:14 still flags Playfair/DM Sans as missing; v3.0 replaced them with @fontsource"]],
+ why:"CLAUDE.md tells every session to trust DATA_MODELS for field names. That drift is what produced this bug, and it'll keep producing more. Fixing the doc is the more valuable half.",
+ dep:"Prerequisite for Task 11 — don't extend a data model that's documented wrong."},
+
+{id:"06",h:"now",feat:"New",imp:3,eff:"M",bug:0,fam:1,
+ title:"Landing page",
+ gap:"The app opens straight into a dashboard assuming you already know what it is. Nothing explains it to a second person.",
+ code:"landing/index.html — standalone, nothing wired in, nothing deployed",
+ ev:[["a","You asked for it"],["v","Recipe-app landing pages converge on one product shot, one sentence, then the loop as 3–4 steps"],["a","Your real differentiator isn't 'AI meal planner' — it's no accounts, no subscription, your own recipes. None of the competitors can say that"]],
+ why:"Built as one self-contained HTML file you can double-click, because the value you asked for is inspecting it fast — and the Browser pane can't reach your dev server.",
+ dep:"Becomes the invite surface when Task 12 lands."},
+
+{id:"07",h:"next",feat:"Plan · Shop",imp:5,eff:"L",bug:0,fam:2,
+ title:"Move Plan + Shop into Supabase",
+ gap:"Recipes are shared. Plan, Shop and Essentials are per-device. 'One plans, the other shops' is precisely the thing that doesn't work.",
+ code:"PlanContext.jsx:88 · ShopView.jsx:11 · InventoryContext.jsx:3",
+ ev:[["a","The key insight: you don't need auth. A household_id in localStorage + a join code gets two devices sharing one plan today"],["v","Standard Supabase multi-tenancy is a members table joining users to tenants, with RLS filtering on tenant id — maps exactly onto your family model"],["r","Umami's family sharing is the one collaboration feature the report praises without reservation"]],
+ why:"Auth delivers nothing you can feel on its own. Share the data first, get the benefit, secure it later. The trade-off is honest: a household code is a bearer token, fine for two people, not forever.",
+ dep:"Offline resilience is non-negotiable — your Supabase free tier pauses, and useRecipes already survives that. Don't regress it."},
+
+{id:"08",h:"next",feat:"Capture",imp:4,eff:"M",bug:0,fam:0,
+ title:"Paste a recipe URL",
+ gap:"Capture takes text and photos but not links. Saving from a food blog means copy-paste gymnastics for content that's already clean structured JSON.",
+ code:"New netlify/functions/fetch-recipe.js — CORS blocks the browser",
+ ev:[["r","The report's cascading ingestion pipeline — its single best architectural idea"],["r","Most food blogs publish schema.org/Recipe as JSON-LD: deterministic, instant, zero ML compute"],["r","Counter-evidence that matters: Paprika's scrapers 'fail catastrophically' on site changes — so it's a fast path with a fallback, never a replacement"]],
+ why:"You already have the AI fallback built. You're only adding the cheap deterministic path in front of it. JSON-LD returns in ~200ms with exact publisher quantities; Gemini takes seconds and can hallucinate a number.",
+ dep:"This is where an npm ingredient parser finally earns its place — JSON-LD gives raw strings, unlike your stored recipes."},
+
+{id:"09",h:"next",feat:"Shop",imp:3,eff:"S",bug:0,fam:1,
+ title:"Why is this on my list?",
+ gap:"The list says 'Onions — 3' and nothing else. You can't check whether that's right without opening Plan and doing the arithmetic.",
+ code:"buildShoppingList drops the source when it merges",
+ ev:[["r","Report's AggregatedListItem: an accordion revealing '1 for Stew, 2 for Tacos'"],["r","Positioned as the answer to the AnyList complaint — users want legible aggregation, not just correct aggregation"],["a","Doubles as your debugging tool for Task 03's new merge logic"]],
+ why:"Chevron only on multi-source rows, so its presence itself means 'this number is a sum'. Accordion not always-visible, because you scan this one-handed while walking.",
+ dep:"Bundle with Task 03 — threading sources through costs almost nothing while you're already in there."},
+
+{id:"10",h:"next",feat:"Cook",imp:3,eff:"M",bug:0,fam:0,
+ title:"Per-step ingredients in Cook Mode",
+ gap:"You read 'add the aromatics' while scanning 14 ingredients to work out which ones those are.",
+ code:"Blocker: steps is text[] — no link between a step and its ingredients",
+ ev:[["r","Report's StepByStepCookMode: step on top, only that step's ingredients below"],["r","Its schema stores instructions as step objects with attached ingredient IDs — the enabling decision"],["a","Which means it's a capture-time problem, not a cook-time one. Runtime matching now, stored links for new captures"]],
+ why:"Keep the full ingredient list always reachable. Per-step scoping is an assist; if the match is wrong, hiding the full list turns a small miss into being unable to cook.",
+ dep:"Do Task 02 first — a screen that blacks out is the bigger Cook Mode problem."},
+
+{id:"11",h:"next",feat:"Pantry",imp:4,eff:"L",bug:0,fam:2,
+ title:"Pantry quantities + \"use it up\"",
+ gap:"No quantity, no expiry. The app can't tell you what's about to go off or what you could cook without shopping.",
+ code:"Phase 1 only: lowStock + useByDate. No deduction, no conversions.",
+ ev:[["r","MealBoard has the deepest pantry system of any competitor — and 'the manual data entry burden is immense, causing many users to abandon the feature entirely'"],["r","Samsung Food 'falls short without heavy manual intervention'"],["a","The report's Autonomous Pantry Agent exists because manual tracking is known to fail. It's damage control, not an enhancement"]],
+ why:"This is the one task where the report's evidence argues against its own recommendation. Expiry has a forcing function — food visibly goes off. Quantity has none, so it drifts, and then the feature lies to you.",
+ dep:"Do Task 05 and Task 07 first. Two people, one fridge — device-local pantry data is worse than none."},
+
+{id:"12",h:"later",feat:"Everything",imp:5,eff:"XL",bug:0,fam:2,
+ title:"Families and real accounts",
+ gap:"Vault-deferred in PROJECT.md. Needs a written brief before any code.",
+ code:"household → members → all planning data scoped by household_id",
+ ev:[["v","Supabase members-table pattern with RLS filtering on tenant id is the documented standard"],["v","Every table exposed through the API needs real RLS — your recipes table is currently unconditional 'to public', which is fine solo and unsafe once a second family exists"],["a","Call them 'members', not 'child users' — that phrasing reads as a kids-profile feature to a future session"]],
+ why:"Highest-risk change here: get RLS wrong and one family reads another's data. Task 07 gives you the actual benefit first at a fraction of the cost.",
+ dep:"Six open questions to resolve. Start it as a conversation, not a coding session."},
+
+{id:"13",h:"later",feat:"Library",imp:3,eff:"L",bug:0,fam:0,
+ title:"Semantic recipe search",
+ gap:"Keyword search can't answer 'something warming for a cold night' or 'what can I make with chicken and old spinach'.",
+ code:"pgvector on your existing Supabase — dimension 768 for Gemini, not the report's 1536",
+ ev:[["r","Report puts embeddings directly on the recipes table and describes the cosine-similarity flow precisely"],["v","Supabase supports pgvector natively — no Weaviate or Pinecone needed, contrary to the report"],["a","But weekPlanChat.js already handles natural-language meal requests over your library. This partly duplicates shipped work"]],
+ why:"You built the current search on 15 Aug and it fixed a genuinely broken filter. Give it time to prove it's insufficient before replacing it.",
+ dep:"Trigger: when you repeatedly fail to find a recipe you know is in there."},
+
+{id:"14",h:"later",feat:"Capture",imp:4,eff:"XL",bug:0,fam:0,
+ title:"Capture from Instagram / TikTok",
+ gap:"You'd screenshot the caption today — which works, and is probably why this hasn't hurt yet.",
+ code:"Cheap version: Open Graph caption + thumbnail. No video download.",
+ ev:[["r","Pestle extracts from Reels in <100ms on-device — but text-only. No caption, no recipe"],["r","Preplo 'watches' the video with multimodal AI: works, slow, expensive subscription"],["a","Share-sheet integration is the whole UX and iOS doesn't support Web Share Target — the best part is unavailable to a PWA"],["a","Netlify Functions time out at 10s. A 60-second video won't fit — which is exactly why the report reaches for Celery"]],
+ why:"Start with what Pestle actually does: read the caption. Creators generally do write the recipe there, which is why text-only succeeded commercially. Video-watching is a separate, much larger task.",
+ dep:"Needs Task 08 first — same function, same fallback path."},
+
+{id:"15",h:"later",feat:"Cook → Plan",imp:3,eff:"L",bug:0,fam:2,
+ title:"Taste model",
+ gap:"Already has a brief — the only entry in your Active Briefs table. Needs decisions, not code.",
+ code:"cook_feedback table, digest fed into weekPlanChat",
+ ev:[["r","Peel's 'Suggested Plans' learns from cooking history rather than static presets — validates the premise, adds no mechanism"],["a","Verdict: your existing brief is ahead of the report on this one. No changes recommended from the research"],["a","But the brief predates your family plan — cook_feedback has no member attribution"]],
+ why:"With two raters, 'loved it' and 'not again' on the same dish cancel out. Add household_id and member_id now, nullable: attribution is unrecoverable retroactively, and it enables the better feature — meals you BOTH like.",
+ dep:"Answer the brief's four open questions plus the attribution one. A conversation."}
+];
+
+/* ── STATUS ──────────────────────────────────────────────
+   Maintained here as work lands. Anything not listed is "open".
+   open     — not started
+   running  — an agent is working on it right now
+   built    — code committed on a branch, awaiting your hand-test
+   verified — you've tested it on the real device and it works
+   shipped  — merged to main, live on Netlify
+   ------------------------------------------------------ */
+const BRANCH="feat/tier-1-batch";
+const STATUS={"01":"built","02":"built","05":"built","06":"built"};
+const SLABEL={open:"Open",running:"Running",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
+
+/* Hand-tests only you can run — no agent can reach your phone or dev server.
+   Ticking these is stored in your browser, not in the file. */
+const TESTS={
+"01":["Tick 3 items, then hard-reload the page — same 3 still ticked",
+      "Tick items, go to Plan, come back — still ticked",
+      "Change a recipe on a locked day — checks CLEAR, not stale",
+      "Flag a new essential in Pantry, go to Shop — it appears (this was the regression)",
+      "Tick a household item — it stays visible struck through, doesn't vanish",
+      "Tick everything, hit Reset list — clears and returns to the list"],
+"02":["On your phone: enter Cook Mode, don't touch it for 3 minutes — screen stays on",
+      "Leave Cook Mode, let the phone idle past normal auto-lock — it SHOULD lock again (a leaked lock is a silent battery drain)",
+      "Switch to another app and back — indicator returns to 'Screen awake'",
+      "Turn on Low Power Mode, re-enter Cook Mode — reads 'Screen may sleep', no crash",
+      "Check the console for unhandled promise rejections"],
+"05":["Home screen shows a non-zero count",
+      "Add an item in Pantry — the Home count goes up",
+      "The number renders in mono, not body type"],
+"06":["Open landing/index.html directly in a browser",
+      "Check it at phone width — no sideways scroll",
+      "Read the four loop descriptions — do they match what the app really does?"]
+};
+
+const H={now:{t:"Now",n:"Solo-use benefit, no architecture required",d:"d-now"},
+        next:{t:"Next",n:"Bigger wins — two of these unlock the family goal",d:"d-next"},
+        later:{t:"Later",n:"Real ideas, wrong time — each has a trigger to revisit",d:"d-later"}};
+const PRE={"04":["03"],"09":["03"],"10":["02"],"11":["05","07"],"12":["07"],"14":["08"]};
+const ORD={now:0,next:1,later:2};
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+let sel=new Set(), opened=new Set(), filt="all";
+
+const stOf=id=>STATUS[id]||"open";
+
+/* personal hand-test ticks, remembered in this browser only */
+function loadTested(){try{return new Set(JSON.parse(localStorage.getItem("rail_tested")||"[]"))}catch{return new Set()}}
+function saveTested(s){try{localStorage.setItem("rail_tested",JSON.stringify([...s]))}catch{}}
+let tested=loadTested();
+
+function match(t){
+  if(filt==="all")return true;
+  if(filt==="bug")return t.bug===1;
+  if(filt==="fam")return t.fam===2;
+  if(filt==="built")return stOf(t.id)==="built";
+  if(filt==="open")return stOf(t.id)==="open";
+  return t.h===filt;
+}
+
+function render(){
+  const host=document.getElementById("rails"); host.innerHTML="";
+  ["now","next","later"].forEach(h=>{
+    const list=T.filter(t=>t.h===h&&match(t));
+    if(!list.length)return;
+    const m=H[h];
+    const sec=document.createElement("section"); sec.className="rail";
+    sec.innerHTML=`<div class="rail-head"><span class="dot ${m.d}"></span><h2>${m.t}</h2><span class="note">${m.n}</span></div>
+      <div class="tickets">${list.map(card).join("")}</div>`;
+    host.appendChild(sec);
+  });
+  document.querySelectorAll(".t-summary").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const id=b.dataset.open;
+      opened.has(id)?opened.delete(id):opened.add(id);
+      const art=b.closest(".ticket");
+      art.classList.toggle("open",opened.has(id));
+      b.setAttribute("aria-expanded",opened.has(id));
+    });
+  });
+  document.querySelectorAll(".fire").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const id=b.dataset.id;
+      sel.has(id)?sel.delete(id):sel.add(id);
+      render(); tray();
+    });
+  });
+  // hand-test ticks: update in place, never re-render (that would collapse the card)
+  document.querySelectorAll("input[data-test]").forEach(cb=>{
+    cb.addEventListener("change",()=>{
+      const k=cb.dataset.test;
+      cb.checked?tested.add(k):tested.delete(k);
+      saveTested(tested);
+      cb.closest(".tst").classList.toggle("ok",cb.checked);
+      counts();
+    });
+  });
+}
+
+function card(t){
+  const on=sel.has(t.id);
+  const missing=(PRE[t.id]||[]).filter(p=>on&&!sel.has(p));
+  const pips=[1,2,3,4,5].map(i=>`<span class="pip ${i<=t.imp?"f":""}"></span>`).join("");
+  const ev=t.ev.map(([k,x])=>{
+    const lab=k==="v"?"Verified":k==="r"?"Report":"Audit";
+    return `<p><span class="src ${k}">${lab}</span>${esc(x)}</p>`;
+  }).join("");
+  const open=opened.has(t.id);
+  const st=stOf(t.id);
+  return `<article class="ticket ${on?"on":""} ${open?"open":""} st-card-${st}" data-t="${t.id}">
+    <button class="t-summary" data-open="${t.id}" aria-expanded="${open}">
+      <span class="t-top"><span class="t-num mono">${t.id}</span>
+        <span class="t-badges"><span class="st st-${st}">${SLABEL[st]}</span><span class="t-feat">${esc(t.feat)}</span></span></span>
+      <span class="t-title">${esc(t.title)}</span>
+      <span class="t-gap">${esc(t.gap)}</span>
+      <span class="t-meta">
+        <span class="lbl">Impact</span><span class="pips">${pips}</span>
+        <span class="lbl">Effort</span><span class="eff">${t.eff}</span>
+        ${missing.length?`<span class="warn">needs ${missing.join(" · ")}</span>`:""}
+      </span>
+    </button>
+    <div class="detail">
+      ${st==="built"?`<h4>Your hand-tests — committed on <code>${BRANCH}</code></h4>
+        <div class="tests">${(TESTS[t.id]||[]).map((x,i)=>{
+          const k=`${t.id}.${i}`;const done=tested.has(k);
+          return `<label class="tst ${done?"ok":""}"><input type="checkbox" data-test="${k}" ${done?"checked":""}><span>${esc(x)}</span></label>`;
+        }).join("")}</div>`:""}
+      <h4>In the code</h4><p><code>${esc(t.code)}</code></p>
+      <h4>Evidence</h4>${ev}
+      <h4>Why it's shaped this way</h4><p>${esc(t.why)}</p>
+      <h4>Watch out</h4><p>${esc(t.dep)}</p>
+      <button class="fire ${on?"rm":""}" data-id="${t.id}">${on?"Remove from pipeline":"Add to pipeline"}</button>
+    </div>
+  </article>`;
+}
+
+function tray(){
+  const q=document.getElementById("queue"), c=document.getElementById("tcount");
+  if(!sel.size){
+    q.innerHTML='<p class="empty">Add a ticket to start building your running order.</p>';
+    c.textContent="nothing selected"; return;
+  }
+  const items=T.filter(t=>sel.has(t.id))
+    .sort((a,b)=>ORD[a.h]-ORD[b.h]||a.id.localeCompare(b.id));
+  const warns=[];
+  items.forEach(t=>(PRE[t.id]||[]).forEach(p=>{
+    if(!sel.has(p)){const pt=T.find(x=>x.id===p);warns.push(`${t.id} works better after ${p} — ${pt.title}`);}
+  }));
+  q.innerHTML=`<div class="queue">${items.map((t,i)=>
+    `<div class="qrow"><span class="seq mono">${i+1}</span><span class="id mono">${t.id}</span>
+     <span class="nm">${esc(t.title)}</span><span class="ef mono">${t.eff}</span></div>`).join("")}</div>`
+    +warns.map(w=>`<p class="qwarn">${esc(w)}</p>`).join("")
+    +`<p class="next">To run these: tell Claude Code <span class="mono">"do ${items.map(t=>t.id).join(", ")}"</span>, or open <span class="mono">.agent/inspiration/TASK_${items[0].id}_*.md</span> and paste the prompt at the bottom into a fresh session.</p>`;
+  c.textContent=`${items.length} selected · ${items.map(t=>t.id).join(", ")}`;
+}
+
+document.querySelectorAll(".fbtn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    filt=b.dataset.f;
+    document.querySelectorAll(".fbtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    render();
+  });
+});
+function counts(){
+  const by=s=>T.filter(t=>stOf(t.id)===s).length;
+  const total=Object.values(TESTS).reduce((a,v)=>a+v.length,0);
+  document.getElementById("n-built").textContent=by("built");
+  document.getElementById("n-open").textContent=by("open");
+  document.getElementById("n-done").textContent=by("verified")+by("shipped");
+  document.getElementById("n-tests").textContent=`${tested.size}/${total}`;
+}
+
+document.getElementById("clear").addEventListener("click",()=>{sel.clear();render();tray();});
+render(); tray(); counts();
+</script>

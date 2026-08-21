@@ -32,6 +32,22 @@ The Capture → Plan → Shop → Cook loop is built and live in production. Mos
 
 ---
 
+## CANDIDATE TASKS (not briefs — /.agent/inspiration/)
+
+`/.agent/inspiration/` holds 15 ranked, decision-ready candidate tasks derived from a competitive
+research report plus a full codebase audit (Aug 21, 2026). Start at
+[`.agent/inspiration/README.md`](inspiration/README.md).
+
+These are **not** feature briefs and are not approved work. Each carries evidence, an impact/effort
+ranking, a NOW/NEXT/LATER horizon, a note on whether it survives the future two-user family model,
+and a ready-to-paste prompt. A task that gets approved and is large enough to need one should still
+get a proper brief in `/.agent/features/` first.
+
+Two of them are documentation/bug fixes for drift found during that audit
+(`TASK_05` — a dead counter in HomeView plus stale DATA_MODELS §2 and PROJECT.md notes).
+
+---
+
 ## ARCHIVED BRIEFS (moved to /.agent/features/archive/)
 
 These briefs do not reflect the current app and should not be built from directly — the ideas either shipped in a different shape (see SHIPPED table above) or are still deliberately out of scope (see PROJECT.md's Deferred/Vault list).
