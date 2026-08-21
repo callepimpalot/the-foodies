@@ -11,7 +11,7 @@ Last updated: Aug 6, 2026 — POC loop built and live in production.
 3. Shop — consolidated, categorized, checkable shopping list generated from the locked plan. Handles both the live Supabase ingredient shape and the local-fallback shape.
 4. Cook — step-by-step view with a servings stepper (scales ingredient quantities live) and a simple in-app countdown timer.
 
-**Design soul:** Cinematic Zinc — dark, moody, editorial. A digital culinary magazine that happens to be interactive. Known gap: Playfair Display/DM Sans are not actually loaded anywhere (no Google Fonts link in index.html, `font-display` isn't a real Tailwind class) — flagged as a standalone fix, not yet done.
+**Design soul:** The Chit Rail — a kitchen order ticket rail above a line cook's station. Dark chalkboard green, warm kraft paper, and rubber-stamp red accents. Self-hosted fonts via @fontsource (Anton, Zilla Slab, IBM Plex Sans/Mono) imported in src/index.css.
 
 **Who it is built for:** One dad, solo use. No auth, no family sharing, no moonshots in v1.
 

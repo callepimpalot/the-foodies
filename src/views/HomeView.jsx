@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useArchetype } from '../context/ArchetypeContext';
 import { useInventory } from '../context/InventoryContext';
 import { usePlan } from '../context/PlanContext';
 import { useView } from '../context/ViewContext';
@@ -34,7 +33,6 @@ function TicketTag({ children }) {
 }
 
 export function HomeView() {
-    const { activeArchetype } = useArchetype();
     const { items } = useInventory();
     const { setDayRecipe, resolveDay } = usePlan();
     const { setCurrentView } = useView();
@@ -217,7 +215,7 @@ export function HomeView() {
                         <div>
                             <h3 className="t-heading-sm" style={{ color: 'var(--chalk)' }}>My Pantry</h3>
                             <p className="t-body" style={{ color: 'var(--chalk-dim)', marginTop: '2px' }}>
-                                <span className="t-mono">{items.filter(i => i.inPantry).length}</span> items available
+                                <span className="t-mono">{items.length}</span> items tracked
                             </p>
                         </div>
                     </div>

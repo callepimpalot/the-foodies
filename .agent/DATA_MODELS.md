@@ -63,23 +63,58 @@ Written by `src/hooks/useRecipeCapture.js` → `src/lib/recipeExtraction.js` (Ge
 
 ## 2. HOUSEHOLD ESSENTIALS (Pantry tab)
 
-Lives entirely in `src/context/InventoryContext.jsx` — **in-memory only, no persistence**. Resets to 5 hardcoded seed items on every page reload. This is real current behavior, not a bug being tracked — no localStorage or Supabase wiring exists for this feature.
+Lives entirely in `src/context/InventoryContext.jsx` — **localStorage-backed, persists across page reloads**. Manages a user-editable grid of pantry items and categories. Defaults to 5 seed items if localStorage is empty or corrupted.
+
+### Persistence
+
+Two localStorage keys, defined in `src/context/InventoryContext.jsx:3-4`:
+
+```
+meal_buddy_essentials_items       → array of InventoryItem
+meal_buddy_essentials_categories  → array of Category
+```
+
+Both are auto-saved on any state change via `useEffect` hooks (lines 52-58).
+
+### Data shapes
 
 ```
 InventoryItem {
-  id: string
+  id: string                    // uuid, generated on creation (crypto.randomUUID())
   name: string
-  category: string            // one of the DEFAULT_CATEGORIES ids (produce, protein, dairy, grains, frozen, canned, snacks, beverages, condiments, household, other)
-  quantity: number
-  targetQuantity: number
-  unit: string
-  inPantry: boolean            // false = soft-deleted
-  isMaster: boolean            // true = flagged as a household essential ("hearted")
-  toBuy: boolean                // flagged for the shopping list
+  emoji: string                 // single emoji character from user selection or commonItems defaults
+  category: string              // id of one of the user-editable categories (see below)
+  flagged: boolean              // true = item is on the shopping list (feeds Shop tab's "Household" section)
 }
 ```
 
-No `EssentialCheckSession` concept exists — flagging is immediate and stateless, not session-based.
+```
+Category {
+  id: string                    // lowercase slug, auto-derived from name (e.g., "Fruit & Veg" → "fruit-veg")
+  name: string                  // user-editable display name
+}
+```
+
+### Default state
+
+When localStorage keys are empty or missing, `loadItems()` and `loadCategories()` (lines 30-46) return hardcoded defaults:
+
+**DEFAULT_CATEGORIES** (lines 8-20): produce, protein, dairy, grains, frozen, canned, snacks, beverages, condiments, household, other
+
+**DEFAULT_ITEMS** (lines 22-28): 5 seed items (Milk, Eggs, Bread, Coffee, Dish Soap) with appropriate emojis and categories
+
+### User actions
+
+- **Add item**: `addItem(nameOrItem, category)` accepts either a plain string (defaults to category `'other'`, emoji `'📦'`) or an object shape matching `{ name, category, emoji }` (e.g., from `src/data/commonItems.js`). Rejects duplicates (case-insensitive name match).
+- **Remove item**: `removeItem(id)` deletes permanently
+- **Toggle flag**: `toggleFlag(id)` flips the `flagged` boolean for shopping-list inclusion
+- **Clear all flags**: `clearFlags()` resets all items to `flagged: false`
+- **Add category**: `addCategory(name)` creates a new user-defined category (auto-derives id from name)
+- **Remove category**: `removeCategory(id)` deletes a category, reassigning any items in it to `'other'`
+
+### Relationship to Shop tab
+
+Items with `flagged: true` feed the Shop tab's "Household" section via `ShopContext`. The Shop tab's consolidation reads this array directly; flagging is what triggers inclusion, not a separate "buying" state.
 
 ---
 
@@ -148,5 +183,6 @@ The following data models existed in v1.0 of this file but describe features tha
 
 | Date | Change |
 |---|---|
+| Aug 21 | §2 rewritten — Essentials now persist to localStorage (meal_buddy_essentials_items, meal_buddy_essentials_categories), not in-memory. Item shape is now { id, name, emoji, category, flagged } (removed quantity, targetQuantity, inPantry, isMaster, toBuy). Categories are user-editable. Removed stale inPantry-based Home screen counter bug and updated all docs to match actual code. |
 | Jul 26 | v2.0 — Full rewrite against actual code. Documented real Supabase columns, the local-fallback ingredient shape mismatch, in-memory-only Essentials, the new one-meal-per-day Plan model, and the non-persisted Shop model. Removed all models for deleted features (swipe, family, auth, customisation). |
 | Feb 20 | v1.0 — Initial data models documented: Recipe, Essentials, Swipe, WeeklyPlan, ShoppingList (superseded — described a Supabase-backed design that was never built) |
