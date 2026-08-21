@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useView } from '../context/ViewContext';
-import { ArrowLeft, Check, ChevronRight, ChevronLeft, Minus, Plus, ListChecks, Timer as TimerIcon } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, ChevronLeft, Minus, Plus, ListChecks, Timer as TimerIcon, Zap, ZapOff } from 'lucide-react';
 import { normalizeIngredient, getServingsRatio } from '../lib/consolidateIngredients';
 import { Button, IconButton } from '../components/ui/Button';
 import { TicketCard } from '../components/ui/TicketCard';
 import { Sheet } from '../components/ui/Sheet';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 export function CookModeView() {
     const { setCurrentView, VIEWS, viewData } = useView();
     const [activeStep, setActiveStep] = useState(0);
     const [showIngredients, setShowIngredients] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
+    const { isActive: isWakeLockActive, isSupported: isWakeLockSupported } = useWakeLock();
 
     const recipe = viewData || {
         title: "Quick Cook Session",
@@ -52,6 +54,25 @@ export function CookModeView() {
                 <div className="flex flex-col items-end gap-1">
                     <span className="t-eyebrow text-chalkDim">Step {activeStep + 1} of {stepsToRender.length}</span>
                     <h3 className="t-heading-sm text-chalk text-right">{recipe.title}</h3>
+                    <div
+                        className={`flex items-center gap-1.5 ${isWakeLockActive ? 'text-chalk' : 'text-chalkDim'}`}
+                        title={
+                            !isWakeLockSupported
+                                ? 'Wake lock not supported on this browser'
+                                : isWakeLockActive
+                                    ? 'Screen is being held awake'
+                                    : 'Wake lock unavailable right now'
+                        }
+                    >
+                        <span className="t-eyebrow">
+                            {isWakeLockActive ? 'Screen awake' : 'Screen may sleep'}
+                        </span>
+                        {isWakeLockActive ? (
+                            <Zap size={14} strokeWidth={1.75} />
+                        ) : (
+                            <ZapOff size={14} strokeWidth={1.75} />
+                        )}
+                    </div>
                 </div>
             </div>
 
