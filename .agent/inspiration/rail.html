@@ -180,7 +180,7 @@ h1{font-family:var(--f-head);font-weight:700;font-size:clamp(28px,5vw,42px);line
     <div class="count c-done"><span class="n mono" id="n-done">0</span><span class="l">Verified</span></div>
     <div class="count"><span class="n mono" id="n-tests">0/0</span><span class="l">Hand-tests ticked</span></div>
   </div>
-  <p class="branchline">Everything lives on <span class="mono">feat/tier-1-batch</span>, pushed. Four tasks are committed and waiting on your hand-tests. Four more are queued for the scheduled agent, which runs at 18:00, 20:00, 22:00 and midnight and pushes its own work. Three tasks are approved in <span class="mono">.agent/inspiration/queue/</span>. Nothing is merged and nothing is deployed — Netlify only builds from <span class="mono">main</span>.</p>
+  <p class="branchline">Everything lives on <span class="mono">feat/tier-1-batch</span>, pushed. Four tasks are committed and waiting on your hand-tests. Four more are queued for the scheduled agent, which runs at 18:00, 20:00, 22:00 and midnight and pushes its own work. Five tasks are approved in <span class="mono">.agent/inspiration/queue/</span>. Nothing is merged and nothing is deployed — Netlify only builds from <span class="mono">main</span>.</p>
 </header>
 
 <div class="findings">
@@ -357,7 +357,7 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","05":"built","06":"built","03":"queued","04":"queued","08":"queued","09":"queued","10":"queued","07":"needsyou","11":"needsyou","12":"needsyou","15":"needsyou"};
+const STATUS={"01":"built","02":"built","05":"built","06":"built","03":"queued","04":"queued","08":"queued","09":"queued","10":"queued","11":"queued","15":"queued","07":"needsyou","11":"needsyou","12":"needsyou","15":"needsyou"};
 const SLABEL={open:"Open",queued:"Queued · auto",running:"Running",needsyou:"Needs you",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.

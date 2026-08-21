@@ -3,7 +3,7 @@ id: task-10
 title: Per-step ingredients in Cook Mode
 model: sonnet
 autonomous: true
-priority: 2
+priority: 3
 depends_on: [batch-2]
 owns:
   - src/lib/stepIngredients.js

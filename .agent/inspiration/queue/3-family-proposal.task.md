@@ -3,7 +3,7 @@ id: family-proposal
 title: Write the family/household design proposal (document only, no code)
 model: opus
 autonomous: true
-priority: 3
+priority: 2
 depends_on: []
 owns:
   - .agent/features/FEATURE_family_households.md
