@@ -7,6 +7,7 @@ import { ArchetypeProvider } from './context/ArchetypeContext'
 import { ViewProvider } from './context/ViewContext'
 import { InventoryProvider } from './context/InventoryContext'
 import { PlanProvider } from './context/PlanContext'
+import { ShopProvider } from './context/ShopContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ViewProvider>
         <InventoryProvider>
           <PlanProvider>
-            <App />
+            <ShopProvider>
+              <App />
+            </ShopProvider>
           </PlanProvider>
         </InventoryProvider>
       </ViewProvider>
