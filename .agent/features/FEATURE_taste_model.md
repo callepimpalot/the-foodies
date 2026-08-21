@@ -44,13 +44,13 @@ The owner reviewed the four questions below and accepted every recommendation as
 3. **Granularity:** every cook stored as its own event row. Never averaged or overwritten at write time.
 4. **History window:** the most recent ~20 entries fed to the week planner.
 
-**Fifth decision, added Aug 21 — this brief predated the family plan.**  gains
- and  columns, both nullable, from the start. He is the only user today, but
-attribution cannot be recovered retroactively — once a year of unattributed ratings exists there is no
-way to work out who gave them. It also enables the better feature later: suggesting meals *both* adults
-rated well, rather than just meals that were rated well.
+**Fifth decision, added Aug 21 — this brief predated the family plan.** The `cook_feedback` table
+gains `household_id` and `member_id` columns, both nullable, from the start. He is the only user
+today, but attribution cannot be recovered retroactively — once a year of unattributed ratings
+exists there is no way to work out who gave them. It also enables the better feature later:
+suggesting meals *both* adults rated well, rather than just meals that were rated well.
 
-Status: ready to build. Queued as .
+Status: ready to build. Queued as `task-15`.
 
 ---
 
