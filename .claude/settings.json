@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Browser__navigate",
+      "mcp__Claude_Browser__get_page_text",
+      "mcp__Claude_Browser__read_console_messages",
+      "mcp__Claude_Browser__preview_start",
+      "mcp__Claude_Browser__read_page",
+      "mcp__Claude_Browser__preview_logs",
+      "mcp__Claude_Browser__find",
+      "mcp__bbf34248-0d17-4042-b195-ec7b8a8c9dd7__netlify-project-services-reader",
+      "mcp__8bbb9c0c-6cbf-4a9f-b1d3-6ea0684a197a__get_project",
+      "mcp__Claude_Browser__tabs_context",
+      "mcp__Claude_Browser__read_network_requests",
+      "mcp__Claude_Browser__preview_list",
+      "mcp__8bbb9c0c-6cbf-4a9f-b1d3-6ea0684a197a__list_projects"
+    ]
+  }
+}

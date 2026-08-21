@@ -1,107 +1,110 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
+const STORAGE_KEY_ITEMS = 'meal_buddy_essentials_items';
+const STORAGE_KEY_CATEGORIES = 'meal_buddy_essentials_categories';
+
 const InventoryContext = createContext();
 
+const DEFAULT_CATEGORIES = [
+    { id: 'produce', name: 'Fruit & Veg' },
+    { id: 'protein', name: 'Meat & Seafood' },
+    { id: 'dairy', name: 'Dairy & Eggs' },
+    { id: 'grains', name: 'Grains & Pasta' },
+    { id: 'frozen', name: 'Frozen' },
+    { id: 'canned', name: 'Canned Goods' },
+    { id: 'snacks', name: 'Snacks' },
+    { id: 'beverages', name: 'Beverages' },
+    { id: 'condiments', name: 'Condiments & Spices' },
+    { id: 'household', name: 'Household' },
+    { id: 'other', name: 'Other' },
+];
+
+const DEFAULT_ITEMS = [
+    { id: 'seed-1', name: 'Milk', emoji: '🥛', category: 'dairy', flagged: false },
+    { id: 'seed-2', name: 'Eggs', emoji: '🥚', category: 'dairy', flagged: false },
+    { id: 'seed-3', name: 'Bread', emoji: '🍞', category: 'grains', flagged: false },
+    { id: 'seed-4', name: 'Coffee', emoji: '☕', category: 'beverages', flagged: false },
+    { id: 'seed-5', name: 'Dish Soap', emoji: '🧼', category: 'household', flagged: false },
+];
+
+function loadCategories() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+        return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
+    } catch {
+        return DEFAULT_CATEGORIES;
+    }
+}
+
+function loadItems() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_ITEMS);
+        return saved ? JSON.parse(saved) : DEFAULT_ITEMS;
+    } catch {
+        return DEFAULT_ITEMS;
+    }
+}
+
 export function InventoryProvider({ children }) {
-    // Default Categories
-    const DEFAULT_CATEGORIES = [
-        { id: 'produce', name: 'Fruit & Veg', icon: '🥦' },
-        { id: 'protein', name: 'Meat & Seafood', icon: '🥩' },
-        { id: 'dairy', name: 'Dairy & Eggs', icon: '🧀' },
-        { id: 'grains', name: 'Grains & Pasta', icon: '🍝' },
-        { id: 'frozen', name: 'Frozen', icon: 'ice' },
-        { id: 'canned', name: 'Canned Goods', icon: '🥫' },
-        { id: 'snacks', name: 'Snacks', icon: '🍿' },
-        { id: 'beverages', name: 'Beverages', icon: '🥤' },
-        { id: 'condiments', name: 'Condiments & Spices', icon: '🧂' },
-        { id: 'household', name: 'Household', icon: '🏠' },
-        { id: 'other', name: 'Other', icon: '📦' }
-    ];
+    const [categories, setCategories] = useState(loadCategories);
+    const [items, setItems] = useState(loadItems);
 
-    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+    }, [categories]);
 
-    // Default Route Order
-    const [categoryOrder, setCategoryOrder] = useState([
-        'produce', 'dairy', 'protein', 'frozen', // Fridge/Fresh
-        'grains', 'canned', 'spices', 'condiments', 'snacks', 'beverages', // Pantry
-        'household', 'other' // Home
-    ]);
-
-    const updateCategoryOrder = (newOrder) => {
-        setCategoryOrder(newOrder);
-    };
-
-    // Initial State with updated schema
-    const [items, setItems] = useState([
-        { id: '1', name: 'Chicken Breast', category: 'protein', quantity: 2, targetQuantity: 1, unit: 'kg', inPantry: true, isMaster: true, toBuy: false },
-        { id: '2', name: 'Rice', category: 'grains', quantity: 1, targetQuantity: 1, unit: 'bag', inPantry: true, isMaster: true, toBuy: false },
-        { id: '3', name: 'Broccoli', category: 'produce', quantity: 3, targetQuantity: 1, unit: 'pcs', inPantry: true, isMaster: true, toBuy: false },
-        { id: '4', name: 'Eggs', category: 'dairy', quantity: 12, targetQuantity: 1, unit: 'pcs', inPantry: true, isMaster: true, toBuy: false },
-        { id: '5', name: 'Pasta', category: 'grains', quantity: 2, targetQuantity: 1, unit: 'box', inPantry: true, isMaster: true, toBuy: false }
-    ]);
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+    }, [items]);
 
     const addCategory = (name) => {
         const id = name.toLowerCase().replace(/\s+/g, '-');
         if (!categories.find(c => c.id === id)) {
-            setCategories([...categories, { id, name, icon: '🏷️' }]);
+            setCategories(prev => [...prev, { id, name }]);
         }
     };
 
     const removeCategory = (id) => {
-        setCategories(categories.filter(c => c.id !== id));
-        // Move items in this category to 'other'
-        setItems(items.map(i => i.category === id ? { ...i, category: 'other' } : i));
+        setCategories(prev => prev.filter(c => c.id !== id));
+        setItems(prev => prev.map(i => i.category === id ? { ...i, category: 'other' } : i));
     };
 
+    // Accepts either a plain name string (defaults to 'other', 📦) or an
+    // { name, category, emoji } object — QuickAddModal's commonItems shape.
     const addItem = (nameOrItem, category = 'other') => {
         let name = nameOrItem;
         let itemCategory = category;
+        let emoji = '📦';
 
         if (typeof nameOrItem === 'object') {
             name = nameOrItem.name;
             itemCategory = nameOrItem.category || 'other';
+            emoji = nameOrItem.emoji || '📦';
         }
+        if (!name?.trim()) return;
 
-        const existing = items.find(i => i.name.toLowerCase() === name.toLowerCase());
-        if (existing) {
-            if (!existing.inPantry) {
-                updateItem(existing.id, { inPantry: true });
-            } else {
-                updateItem(existing.id, { quantity: (existing.quantity || 1) + 1 });
-            }
-            return;
-        }
+        const alreadyTracked = items.find(i => i.name.toLowerCase() === name.toLowerCase());
+        if (alreadyTracked) return;
 
-        const newItem = {
-            id: Date.now().toString() + Math.random(), // Ensure unique ID
-            name: name,
+        setItems(prev => [...prev, {
+            id: crypto.randomUUID(),
+            name,
+            emoji,
             category: itemCategory,
-            quantity: 1,
-            targetQuantity: 1, // Default Target
-            unit: 'pcs',
-            inPantry: true,
-            isMaster: false, // Default to FALSE (User must heart it)
-            toBuy: false
-        };
-        setItems(prev => [...prev, newItem]);
+            flagged: false,
+        }]);
     };
 
     const removeItem = (id) => {
-        // Soft delete for pantry view
-        updateItem(id, { inPantry: false, quantity: 0 });
+        setItems(prev => prev.filter(i => i.id !== id));
     };
 
-    const updateItem = (id, updates) => {
-        setItems(items.map(item => item.id === id ? { ...item, ...updates } : item));
+    const toggleFlag = (id) => {
+        setItems(prev => prev.map(i => i.id === id ? { ...i, flagged: !i.flagged } : i));
     };
 
-    const toggleEssential = (id) => {
-        const item = items.find(i => i.id === id);
-        if (item) updateItem(id, { isMaster: !item.isMaster });
-    };
-
-    const toggleToBuy = (id, status) => {
-        updateItem(id, { toBuy: status });
+    const clearFlags = () => {
+        setItems(prev => prev.map(i => i.flagged ? { ...i, flagged: false } : i));
     };
 
     return (
@@ -110,13 +113,10 @@ export function InventoryProvider({ children }) {
             categories,
             addItem,
             removeItem,
-            updateItem,
-            toggleEssential,
-            toggleToBuy,
+            toggleFlag,
+            clearFlags,
             addCategory,
             removeCategory,
-            categoryOrder,
-            updateCategoryOrder
         }}>
             {children}
         </InventoryContext.Provider>
