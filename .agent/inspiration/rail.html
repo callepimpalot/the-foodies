@@ -357,7 +357,7 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","05":"built","06":"built","03":"queued","04":"queued","08":"queued","09":"queued","10":"queued","11":"queued","15":"queued","07":"needsyou","11":"needsyou","12":"needsyou","15":"needsyou"};
+const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"queued","11":"queued","15":"queued","07":"needsyou","12":"needsyou"};
 const SLABEL={open:"Open",queued:"Queued · auto",running:"Running",needsyou:"Needs you",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.
@@ -379,7 +379,27 @@ const TESTS={
       "The number renders in mono, not body type"],
 "06":["Open landing/index.html directly in a browser",
       "Check it at phone width — no sideways scroll",
-      "Read the four loop descriptions — do they match what the app really does?"]
+      "Read the four loop descriptions — do they match what the app really does?"],
+"03":["Plan a week where two different days use onions — Shop shows ONE onion row, not two",
+      "Plan a recipe wanting garlic in cloves and another wanting it in grams — the row reads like '2 cloves + 30g', never blank",
+      "Scan the whole list for a wrong merge — red vs green pepper, sweet potato vs potato, chicken vs chicken stock must all be separate rows",
+      "Put an ingredient with no quantity on the plan — the row still appears, just without a number",
+      "Reload mid-shop — your ticks survive (the stored key format changed to v2, so the FIRST reload after this deploy will clear old ticks once; that's expected, and only once)"],
+"04":["Read the aisle headings in your usual shop order — do they match how you actually walk the store?",
+      "Look for anything in 'Other' — if something obvious landed there, tell me the name and I'll map it",
+      "Check nothing absurd happened: chicken stock in Pantry not Meat, coconut milk in Pantry not Dairy, garlic bread in Bakery not Herbs"],
+"08":["THIS ONE IS UNVERIFIED — the Netlify function has never run for real. Deploy this branch to a Netlify preview (not main) and test there; `npm run dev` alone will show a 'function isn't available here' error, use `netlify dev`",
+      "Paste a bare recipe URL from a big food blog — you land in the same review screen, with quantities filled in",
+      "Paste a URL from a small/odd blog with no structured data — it should still work, just slower (that's the Gemini fallback)",
+      "Paste a deliberately broken link and a non-recipe page — you get a plain error, NEVER an invented recipe",
+      "Paste a URL and a screenshot together — it must use the OLD text+photo path, not the URL one",
+      "Paste a URL with a note typed after it — same, old path",
+      "On a URL capture, use 'Ask for changes' — refine must work exactly as it does on a typed recipe",
+      "Save a URL capture, then check the recipe row in Supabase has source_url filled in"],
+"09":["Find a row that came from two different meals — tap the chevron, check the breakdown adds up to the number on the row",
+      "Tap the chevron and confirm it does NOT tick the checkbox (they're separate targets now)",
+      "Confirm a row with only ONE source has no chevron at all — its presence is the signal that the number is a sum",
+      "Check a day marked as leftovers is credited to the day it came from, and doesn't double-count"]
 };
 
 const H={now:{t:"Now",n:"Solo-use benefit, no architecture required",d:"d-now"},

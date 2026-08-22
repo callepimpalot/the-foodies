@@ -4,7 +4,7 @@ import { useInventory } from './InventoryContext';
 
 const ShopContext = createContext();
 
-const SCHEMA_VERSION = 'v1';
+const SCHEMA_VERSION = 'v2';
 const STORAGE_KEY_CHECKED = 'meal_buddy_shop_checked';
 const STORAGE_KEY_FINGERPRINT = 'meal_buddy_shop_fingerprint';
 

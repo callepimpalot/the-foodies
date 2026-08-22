@@ -21,6 +21,7 @@ import {
     extractHtmlTitle,
     isFetchableUrl,
 } from '../../netlify/functions/fetch-recipe.js';
+import { isBareUrl, isUrlCapture } from '../lib/captureRouting.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -299,6 +300,44 @@ section('Failure paths (no hallucinated recipes)');
     });
     test('isFetchableUrl accepts a normal https food-blog URL', () => {
         assert.equal(isFetchableUrl('https://www.bbcgoodfood.com/recipes/easy-pancakes'), true);
+    });
+}
+
+// The composer's routing gate. TASK_08's hardest requirement is that the pre-existing
+// text and photo capture paths are COMPLETELY unaffected, and this predicate is the
+// only thing standing between them and the new URL path.
+section('Capture routing — existing text/photo paths must be untouched');
+{
+    const urlOnly = 'https://www.bbcgoodfood.com/recipes/easy-pancakes';
+
+    test('a bare pasted URL, nothing else, routes to the URL path', () => {
+        assert.equal(isUrlCapture({ text: urlOnly, imageCount: 0 }), true);
+        assert.equal(isUrlCapture({ text: `  ${urlOnly}  `.trim(), imageCount: 0 }), true);
+        assert.equal(isUrlCapture({ text: 'HTTPS://EXAMPLE.COM/r/1', imageCount: 0 }), true);
+    });
+    test('a URL with ANY attached photo stays on the existing text+photo path', () => {
+        assert.equal(isUrlCapture({ text: urlOnly, imageCount: 1 }), false);
+        assert.equal(isUrlCapture({ text: urlOnly, imageCount: 3 }), false);
+    });
+    test('a URL mentioned inside recipe text stays on the existing text path', () => {
+        assert.equal(isUrlCapture({ text: `Mum's pancakes, adapted from ${urlOnly}`, imageCount: 0 }), false);
+        assert.equal(isUrlCapture({ text: `${urlOnly}\n\n2 eggs\n300ml milk`, imageCount: 0 }), false);
+        assert.equal(isUrlCapture({ text: `${urlOnly} — halve the sugar`, imageCount: 0 }), false);
+    });
+    test('ordinary pasted recipe text never routes to the URL path', () => {
+        assert.equal(isUrlCapture({ text: '2 eggs\n300ml milk\n140g flour', imageCount: 0 }), false);
+        assert.equal(isUrlCapture({ text: 'www.bbcgoodfood.com/recipes/easy-pancakes', imageCount: 0 }), false);
+        assert.equal(isUrlCapture({ text: '', imageCount: 0 }), false);
+        assert.equal(isUrlCapture({ text: undefined, imageCount: 0 }), false);
+        assert.equal(isUrlCapture(), false);
+    });
+    test('photos with no text at all stay on the existing photo path', () => {
+        assert.equal(isUrlCapture({ text: '', imageCount: 2 }), false);
+    });
+    test('isBareUrl rejects non-http(s) schemes the composer should not fetch', () => {
+        assert.equal(isBareUrl('javascript:alert(1)'), false);
+        assert.equal(isBareUrl('ftp://example.com/x'), false);
+        assert.equal(isBareUrl('file:///etc/passwd'), false);
     });
 }
 

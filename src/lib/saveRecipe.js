@@ -26,6 +26,9 @@ export async function saveRecipe(draft, dishPhotoFile) {
         kcal: draft.kcal ?? null,
         base_servings: draft.base_servings ?? 2,
         meal_type: draft.meal_type ?? 'Dinner',
+        // Only ever set by a URL capture (TASK_08) — text and photo captures
+        // carry no origin link and store null, exactly as before.
+        source_url: draft.source_url ?? null,
         tags: draft.tags ?? ['captured'],
         archetypes: [],
         ingredients: (draft.ingredients ?? []).map((i) => ({

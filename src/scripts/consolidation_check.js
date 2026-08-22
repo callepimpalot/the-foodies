@@ -1,5 +1,9 @@
+/* global process */
 // Runnable check for the Shop consolidation pipeline.
 //   node src/scripts/consolidation_check.js
+//
+// (The `global` comment above is because eslint.config.js applies browser globals
+// to **/*.{js,jsx}; this file only ever runs under node.)
 //
 // Covers every acceptance criterion in TASK_03 (canonicalName / toBaseUnit /
 // compound quantities), TASK_04 (categorisation + the 'Other' fallback) and

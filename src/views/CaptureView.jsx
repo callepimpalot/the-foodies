@@ -3,18 +3,16 @@ import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X, Send, Utensils 
 import { useRecipeCapture } from '../hooks/useRecipeCapture';
 import { useView } from '../context/ViewContext';
 import { useUnitPreference } from '../hooks/useUnitPreference';
+import { isUrlCapture as routesToUrlCapture } from '../lib/captureRouting';
 import { Button, IconButton } from '../components/ui/Button';
 import { TicketCard, BoardCard } from '../components/ui/TicketCard';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
 
-// A single pasted token that's a bare http(s) URL — nothing else on the line. Deliberately strict
-// (no surrounding text, no newlines) so this only fires when the user pastes just a link, not when
-// a URL happens to appear inside a block of recipe text.
-const BARE_URL_RE = /^https?:\/\/\S+$/i;
-const isBareUrl = (value) => BARE_URL_RE.test(value ?? '');
-
+// The one place the review screen admits a URL was involved. Deliberately just the
+// domain, not which extraction path ran (JSON-LD or the Gemini fallback) — that's an
+// implementation detail, and TASK_08 wants both paths to feel identical from here on.
 function sourceDomain(url) {
     try {
         return new URL(url).hostname.replace(/^www\./, '');
@@ -63,10 +61,7 @@ export function CaptureView() {
     };
 
     const trimmedText = pastedText.trim();
-    // Only treat the composer as "a URL was pasted" when it's the ONLY thing in the box and no
-    // photos are attached — otherwise this falls straight through to the existing text/photo path,
-    // completely unchanged.
-    const isUrlCapture = images.length === 0 && isBareUrl(trimmedText);
+    const isUrlCapture = routesToUrlCapture({ text: trimmedText, imageCount: images.length });
     const canExtract = trimmedText.length > 0 || images.length > 0;
     const handleExtract = () => {
         if (isUrlCapture) {
@@ -253,6 +248,7 @@ function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefi
     const ingredients = draft.ingredients ?? [];
     const steps = draft.steps ?? [];
     const dishPhotoInputRef = useRef(null);
+    const sourceHost = sourceDomain(draft?.source_url);
 
     const updateIngredient = (idx, patch) => {
         const next = ingredients.map((ing, i) => (i === idx ? { ...ing, ...patch } : ing));
@@ -280,6 +276,17 @@ function RecipeReviewForm({ draft, onChange, onCancel, onSave, saveError, onRefi
             <RefineChat onRefine={onRefine} refining={refining} chatLog={chatLog} />
 
             <TicketCard torn eyebrow="New Recipe" className="flex flex-col gap-[24px]">
+                {sourceHost && (
+                    <a
+                        href={draft?.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="t-mono text-xs text-inkDim self-start underline decoration-dotted underline-offset-2"
+                    >
+                        From {sourceHost}
+                    </a>
+                )}
+
                 <Field label="Title">
                     <input
                         value={draft.title ?? ''}
