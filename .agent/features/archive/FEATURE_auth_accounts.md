@@ -2,8 +2,21 @@
 # Meal Buddy / The Foodies
 # Purpose: Add Supabase Auth so users have persistent accounts and families can share data across devices
 # Audience: Gemini CTO Gem + AG @engineer.md (infrastructure only — no creator needed)
-# Status: NOT STARTED
-# ⚠️ PREREQUISITE: This must be built before Profile & Family Settings (FEATURE_profile_family_settings.md)
+# Status: ARCHIVED — SUPERSEDED (Aug 22, 2026)
+
+---
+
+> ## ⛔ DO NOT BUILD FROM THIS FILE
+>
+> The auth work described here is now part of **`.agent/features/FEATURE_family_households.md`**,
+> which supersedes this brief. Go there instead.
+>
+> This one predates the household model, the `household_members` join, and the RLS rewrite that
+> multi-tenancy actually requires — it scopes data to `user_id`, which would mean migrating twice.
+> It is kept only as a record of the original thinking.
+>
+> Still deferred either way: the new brief has six open decisions that are the owner's, and it
+> depends on TASK_07 shipping first.
 
 ---
 

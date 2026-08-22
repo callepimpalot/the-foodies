@@ -28,7 +28,8 @@ The Capture → Plan → Shop → Cook loop is built and live in production. Mos
 
 | Feature | Brief File | Status |
 |---|---|---|
-| Taste Model — post-meal feedback feeding AI suggestions | FEATURE_taste_model.md | 🔴 NOT STARTED — promoted from PROJECT.md's Deferred/Vault at user's request; open questions need deciding before build (Aug 15, 2026) |
+| Taste Model — post-meal feedback feeding AI suggestions | FEATURE_taste_model.md | 🔴 NOT STARTED — promoted from PROJECT.md's Deferred/Vault at user's request; its open questions are now DECIDED (see the brief's DECISIONS section); queued for build (Aug 21, 2026) |
+| Families & Households — two adults, one plan, real accounts | FEATURE_family_households.md | 🟠 PROPOSAL, NOT APPROVED — written from TASK_12 so it can be reacted to rather than re-derived. **Six decisions are open and are the owner's**; four of them change the schema, so none of this is buildable until they're answered. Depends on TASK_07 shipping first. (Aug 22, 2026) |
 
 ---
 
@@ -55,8 +56,8 @@ These briefs do not reflect the current app and should not be built from directl
 | Brief File | Status |
 |---|---|
 | FEATURE_bulk_recipe_import.md | COMPLETE — 400 recipes imported via Epicurious pipeline |
-| FEATURE_auth_accounts.md | DEFERRED — solo use, no auth in v1 |
-| FEATURE_profile_family_settings.md | DEFERRED — family sharing is post-MVP |
+| FEATURE_auth_accounts.md | SUPERSEDED — the auth work it describes is now folded into `FEATURE_family_households.md` (Aug 22, 2026). Still deferred; build from the new brief, not this one. |
+| FEATURE_profile_family_settings.md | SUPERSEDED in part — household/membership is now in `FEATURE_family_households.md` (Aug 22, 2026). Its per-member preferences and allergy-awareness ideas are deliberately NOT in that brief's scope and remain a good follow-up once households exist. |
 | FEATURE_swipe_discovery.md | REMOVED — deleted from the codebase |
 | FEATURE_recipe_customisation.md | PARTIALLY SHIPPED — pre-save refinement shipped as Capture's "Ask for changes" chat; post-save forking still deferred |
 | FEATURE_recipe_photo_import.md | SHIPPED — folded into Capture |

@@ -2,7 +2,19 @@
 # Meal Buddy / The Foodies
 # Purpose: Replace placeholder profile tab with a full individual + family management system
 # Audience: Gemini CTO Gem + AG @engineer.md then @creator.md (sequential)
-# Status: NOT STARTED — currently a placeholder screen
+# Status: ARCHIVED — SUPERSEDED IN PART (Aug 22, 2026)
+
+---
+
+> ## ⚠️ PARTLY SUPERSEDED — read this before building anything here
+>
+> **Layer 2 (Family Group)** is now covered by **`.agent/features/FEATURE_family_households.md`**,
+> which models it properly as `household → household_members` with a full RLS design. Build the
+> family side from that brief, not this one.
+>
+> **Layer 1 (Individual Profile)** — per-member names, dietary preferences, allergies, and the
+> allergy-awareness in planning — is deliberately **out of scope** of that brief and is still a
+> genuinely good follow-up. Those ideas remain live; they just need households to exist first.
 
 ---
 
