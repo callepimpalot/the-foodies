@@ -37,6 +37,9 @@ export async function saveRecipe(draft, dishPhotoFile) {
             unit: i.unit ?? null,
         })),
         steps: draft.steps ?? [],
+        // TASK_10 — per-step ingredient links, parallel to `steps`. Only newly captured
+        // recipes have these; null means Cook Mode falls back to runtime matching.
+        step_ingredients: draft.step_ingredients ?? null,
         is_personal: true,
         created_at: new Date().toISOString(),
     };

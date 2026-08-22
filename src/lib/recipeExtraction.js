@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { normalizeImage, fileToBase64 } from './imageUtils';
 import { unitSystemInstruction } from './unitPreference';
+import { withValidStepIngredients } from './stepIngredients';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
@@ -31,9 +32,20 @@ export const RECIPE_SCHEMA = {
             },
         },
         steps: { type: 'array', items: { type: 'string' } },
+        // TASK_10 — per-step ingredient links, one entry per step, each an array of
+        // indexes into `ingredients`. Kept PARALLEL to `steps` rather than turning
+        // steps into objects, because `recipes.steps` is `text[]` in Supabase and
+        // cannot carry them inline. Deliberately NOT in `required`: if the model
+        // omits it, Cook Mode falls back to runtime matching and nothing breaks.
+        step_ingredients: {
+            type: 'array',
+            items: { type: 'array', items: { type: 'integer' } },
+            nullable: true,
+        },
     },
     required: ['title', 'cook_time_minutes', 'difficulty', 'base_servings', 'meal_type', 'ingredients', 'steps'],
 };
+
 
 const EXTRACTION_PROMPT = `You are a recipe extraction assistant. Extract a structured recipe from the
 provided content, which may include pasted text, one or more photos/screenshots, or both together
@@ -59,6 +71,11 @@ Rules:
 - meal_type: infer from the dish itself (a dessert or dinner-style dish is "Dinner" unless clearly a breakfast/lunch dish).
 - ingredients: split into clean {name, quantity, unit} — name should never include the quantity.
 - steps: each entry is one complete instruction, not a sentence fragment.
+- step_ingredients: exactly one entry per step, in the same order as steps. Each entry lists the
+  0-based indexes into the ingredients array that the step actually uses. A step that uses no
+  ingredients ("Preheat the oven to 200C") gets an empty array — never omit an entry to skip it, or
+  every later step would be misaligned. Include an ingredient whenever the step plausibly uses it;
+  a missing link means the cook doesn't add something, an extra one is just a glance.
 - kcal: estimate per serving if not stated; use your best judgement, do not leave null unless truly impossible to estimate.
 - base_servings: the number of people the recipe serves as written.
 - units: {{UNIT_INSTRUCTION}}`;
@@ -83,6 +100,10 @@ Rules:
   the replacement; removing an ingredient also removes or rewrites any step that specifically calls
   for it.
 - Keep everything else identical to the current recipe unless the request requires changing it.
+- step_ingredients: re-emit it to match the recipe you are RETURNING, not the one you were given —
+  one entry per returned step, indexes pointing into the returned ingredients array. If you add,
+  remove or reorder an ingredient or a step, every index must be recomputed. If you are unsure,
+  omit the field entirely rather than returning stale indexes.
 - changeSummary should be short and human, e.g. "Scaled to 4 servings and swapped carrots for cucumbers."
 - units: {{UNIT_INSTRUCTION}} Apply this even if the request itself isn't about units.`;
 
@@ -135,7 +156,7 @@ export async function extractRecipe({ text, images = [] } = {}) {
 
     const raw = cleanJson(response.text);
     if (!raw) throw new Error('Gemini returned an empty response — the image or text may be unreadable.');
-    return JSON.parse(raw);
+    return withValidStepIngredients(JSON.parse(raw));
 }
 
 // Applies one follow-up instruction to an already-extracted recipe draft, e.g. "make it 4 servings"
@@ -165,7 +186,7 @@ export async function refineRecipe(currentRecipe, instruction) {
     const raw = cleanJson(response.text);
     if (!raw) throw new Error('Gemini returned an empty response.');
     const parsed = JSON.parse(raw);
-    return { recipe: parsed.recipe, changeSummary: parsed.changeSummary };
+    return { recipe: withValidStepIngredients(parsed.recipe), changeSummary: parsed.changeSummary };
 }
 
 // URL capture (TASK_08): a fast, free, deterministic path IN FRONT of the Gemini extraction

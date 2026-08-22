@@ -357,7 +357,7 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"queued","11":"queued","15":"queued","07":"needsyou","12":"needsyou"};
+const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"built","11":"queued","15":"queued","07":"needsyou","12":"needsyou"};
 const SLABEL={open:"Open",queued:"Queued · auto",running:"Running",needsyou:"Needs you",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.
@@ -396,6 +396,13 @@ const TESTS={
       "Paste a URL with a note typed after it — same, old path",
       "On a URL capture, use 'Ask for changes' — refine must work exactly as it does on a typed recipe",
       "Save a URL capture, then check the recipe row in Supabase has source_url filled in"],
+"10":["Cook something with 10+ ingredients — each step should show just the ones it needs, under the step text",
+      "Change the servings mid-recipe — the per-step amounts must move with it, same as the full list",
+      "Find a step like 'preheat the oven' — it must show NOTHING under it. No empty box, no 'no ingredients' label",
+      "Tap the list icon at any point — the FULL ingredient list must still be there. If a step's match is wrong, this is your escape hatch",
+      "Look for a wrong match and tell me what it was. Known trade-off: a recipe with both chicken breast AND chicken stock shows both on a step that just says 'chicken'. That's deliberate (missing one is worse), but if it's noisy in practice, say so",
+      "Check the timer and the servings stepper still work — neither was meant to change",
+      "Capture a NEW recipe, then cook it — new captures get links from the AI rather than the matcher, so this should be noticeably better than an old recipe. Compare the two"],
 "09":["Find a row that came from two different meals — tap the chevron, check the breakdown adds up to the number on the row",
       "Tap the chevron and confirm it does NOT tick the checkbox (they're separate targets now)",
       "Confirm a row with only ONE source has no chevron at all — its presence is the signal that the number is a sum",

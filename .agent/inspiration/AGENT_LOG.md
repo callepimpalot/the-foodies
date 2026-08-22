@@ -157,3 +157,81 @@ sequenced around that.
 
 Task 12 stays `needsyou` on the dashboard, which is now literally accurate: the proposal exists and
 it's waiting on you.
+
+---
+
+## Aug 22, 2026 — run 1 · task-10 (per-step ingredients in Cook Mode)
+
+**Task:** `queue/2-cook-step-ingredients.task.md` — TASK_10. Dependency `batch-2` was in `done/`
+first, as required.
+
+### What it does now
+Cooking a step, you see just the ingredients that step needs, with amounts that move with the
+servings stepper. A step like "preheat the oven" shows **nothing** — no empty box, no label. The
+full ingredient list is still one tap away behind the list icon, untouched: this is an assist, and
+if the match is wrong you must still be able to cook.
+
+Two sources, in order of trust: explicit links stored with the recipe, otherwise a runtime matcher.
+
+### The matcher, and its deliberate bias
+Word-boundary matching on canonicalised tokens, not `includes()` — so "salted butter" in a step does
+**not** drag in your salt, and "salt" does not drag in the salted butter. Reuses `canonicalName()`
+from batch-2, so "chicken breasts" in the list matches "chicken" in the step.
+
+Measured over your real library: **78% of 152 steps match at least one ingredient, averaging 1.3
+ingredients per matched step.** Five real examples are printed by the check script.
+
+**One trade-off you should know about, because it is deliberate and you may disagree.** TASK_10
+requires "chicken breasts" to match a step saying "chicken". The unavoidable consequence is that a
+recipe with *both* "chicken breast" and "chicken stock" shows both on that step. I erred toward
+showing too many, per the spec — a missing ingredient means you don't add it; an extra one is a
+glance. It is asserted in the check script so it stays a choice rather than drifting. **If it reads
+as noise in a real kitchen, say so and I'll tighten it.**
+
+### New captures get better links than the matcher
+The Gemini schema now emits `step_ingredients` — one entry per step, each a list of ingredient
+indexes. Anything it returns is validated against the recipe it came with and **dropped wholesale if
+it doesn't line up**, falling back to the matcher. That guard is mostly for the refine chat, where
+the model can remove an ingredient and leave the indexes pointing at whatever moved up into its
+place. A wrong link is worse than none, because Cook Mode shows it with full confidence.
+
+**No backfill of the 400 existing recipes** — explicitly out of scope, and not done.
+
+### ⚠️ A second live schema change, and a spec assumption that was wrong
+TASK_10 assumed a step could carry its own indexes, which DATA_MODELS §1 permits (`text[] | jsonb`).
+**In your database `recipes.steps` is `text[]`, so it cannot.** Retyping that column would touch 403
+rows and every reader of it. I put the links in a parallel column instead:
+
+```sql
+alter table public.recipes add column if not exists step_ingredients jsonb;
+```
+
+Shape: `[[0,2],[],[1,3], …]`, one entry per step. Nullable, unpopulated for existing recipes.
+Applied live, recorded at `supabase/migrations/20260822_add_step_ingredients_to_recipes.sql`.
+Same reasoning as `source_url`: additive, reversible, and `main` is unaffected because it neither
+reads nor writes it. This also meant a second edit to `src/lib/saveRecipe.js`, again outside the
+task's `owns` list and again owned by nothing else.
+
+### Two bugs my own tests caught, fixed rather than asserted around
+- `Number(null)` is `0`, so a `null` in a stored link array silently became "ingredient 0" — the
+  first thing in the list, shown on a step that never mentioned it. Now the type is rejected before
+  coercion.
+- The shared singulariser turns "chillies" into "chilly" (right for berries, wrong for chilli), so
+  a step saying "chillies" missed a "Chilli" ingredient. Rather than special-casing a spelling, the
+  step side now keeps both readings and matches on either.
+
+I also made the ingredients sheet use `formatMeasure`, so it reads "3 cloves" instead of "3cloves"
+and matches the new per-step chips. Small, and in a file this task owns.
+
+### Gate — both green
+```
+node src/scripts/step_ingredients_check.js   PASSED — 223 assertions
+npm run build                                ✓
+npx eslint <every file touched>              clean
+```
+(`consolidation_check` and `checkJsonLdMapping` re-run and still green — no regression from batch-2.)
+
+`step_ingredients_check.js` did not exist; I wrote it, following the pattern of the other scripts.
+It prints five real steps and what the matcher returns for each, so you can judge quality by eye.
+
+Hand-test checklist for task 10 is on `rail.html`. Task 10 → `built`.

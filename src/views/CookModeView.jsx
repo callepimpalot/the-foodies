@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useView } from '../context/ViewContext';
 import { ArrowLeft, Check, ChevronRight, ChevronLeft, Minus, Plus, ListChecks, Timer as TimerIcon, Zap, ZapOff } from 'lucide-react';
-import { normalizeIngredient, getServingsRatio } from '../lib/consolidateIngredients';
+import { normalizeIngredient, getServingsRatio, formatMeasure } from '../lib/consolidateIngredients';
+import { buildStepIngredients, stepText } from '../lib/stepIngredients';
 import { Button, IconButton } from '../components/ui/Button';
 import { TicketCard } from '../components/ui/TicketCard';
 import { Sheet } from '../components/ui/Sheet';
@@ -14,27 +15,36 @@ export function CookModeView() {
     const [showTimer, setShowTimer] = useState(false);
     const { isActive: isWakeLockActive, isSupported: isWakeLockSupported } = useWakeLock();
 
-    const recipe = viewData || {
+    // Memoised because the fallback is an object literal: without this it is a new
+    // object on every render, and the step-ingredient resolution below would re-run
+    // on every timer tick.
+    const recipe = useMemo(() => viewData || {
         title: "Quick Cook Session",
         time: "N/A",
         instructions: ["No recipe data loaded. Please return to dashboard and select a meal."]
-    };
+    }, [viewData]);
 
     const [servings, setServings] = useState(recipe.baseServings || recipe.servings || 2);
 
-    let stepsToRender = [];
-    if (Array.isArray(recipe.instructions) && recipe.instructions.length > 0) {
-        stepsToRender = recipe.instructions;
-    } else if (Array.isArray(recipe.steps) && recipe.steps.length > 0) {
-        stepsToRender = recipe.steps;
-    } else {
-        stepsToRender = ["Cook and enjoy! (No detailed steps provided)"];
-    }
+    const stepsToRender = useMemo(() => {
+        if (Array.isArray(recipe.instructions) && recipe.instructions.length > 0) return recipe.instructions;
+        if (Array.isArray(recipe.steps) && recipe.steps.length > 0) return recipe.steps;
+        return ["Cook and enjoy! (No detailed steps provided)"];
+    }, [recipe]);
 
     const progress = ((activeStep + 1) / stepsToRender.length) * 100;
     const ratio = getServingsRatio(recipe, servings);
     const scaledIngredients = (recipe.ingredients || []).map(normalizeIngredient);
     const isLastStep = activeStep === stepsToRender.length - 1;
+
+    // Which ingredients each step needs (TASK_10). Resolved once for the whole recipe
+    // rather than per render, since it does not depend on the servings stepper — only
+    // the displayed quantities do.
+    const stepIngredients = useMemo(
+        () => buildStepIngredients(recipe, stepsToRender),
+        [recipe, stepsToRender]
+    );
+    const activeStepIngredients = stepIngredients?.[activeStep] ?? [];
 
     return (
         <div className="fixed inset-0 z-50 bg-board text-chalk flex flex-col h-[100dvh]">
@@ -115,8 +125,36 @@ export function CookModeView() {
                     className="w-full max-w-2xl text-center animate-fade-in"
                 >
                     <p className="font-head font-bold text-ink text-[26px] md:text-[34px] leading-snug">
-                        {stepsToRender[activeStep]}
+                        {stepText(stepsToRender[activeStep])}
                     </p>
+
+                    {/* What this step needs (TASK_10). An ASSIST, never a replacement —
+                        the full list stays one tap away behind the list icon above, so a
+                        wrong or partial match is a glance, not a blocked recipe. A step
+                        with no matches renders nothing at all: no empty box, no label. */}
+                    {activeStepIngredients.length > 0 && (
+                        <div className="mt-5 pt-5 border-t border-dashed border-ticketShadow">
+                            <span className="t-eyebrow text-inkDim">For this step</span>
+                            <ul className="mt-3 flex flex-wrap justify-center gap-2">
+                                {activeStepIngredients.map((ing) => {
+                                    const amount = ing?.quantity != null
+                                        ? formatMeasure(ing.quantity * ratio, ing.unit)
+                                        : '';
+                                    return (
+                                        <li
+                                            key={ing.index}
+                                            className="flex items-baseline gap-2 rounded-xs bg-ticket2 px-3 py-2"
+                                        >
+                                            <span className="t-body text-ink">{ing.name}</span>
+                                            {amount && (
+                                                <span className="t-mono text-xs text-inkDim">{amount}</span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
                 </TicketCard>
             </div>
 
@@ -174,13 +212,13 @@ function IngredientsSheet({ ingredients, ratio, onClose }) {
                     <p className="t-body italic text-inkDim text-center py-4">No ingredients listed for this recipe.</p>
                 )}
                 {ingredients.map((ing, idx) => {
-                    const scaledQty = ing.quantity != null ? Math.round(ing.quantity * ratio * 10) / 10 : null;
+                    // formatMeasure rather than hand-rolled rounding, so the sheet and the
+                    // per-step chips read identically ("3 cloves", not "3cloves").
+                    const amount = ing.quantity != null ? formatMeasure(ing.quantity * ratio, ing.unit) : '';
                     return (
                         <div key={idx} className="list-row">
                             <span className="flex-1 t-body text-ink">{ing.name}</span>
-                            {scaledQty != null && (
-                                <span className="t-mono text-xs text-inkDim">{scaledQty}{ing.unit ?? ''}</span>
-                            )}
+                            {amount && <span className="t-mono text-xs text-inkDim">{amount}</span>}
                         </div>
                     );
                 })}
