@@ -357,7 +357,7 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"built","11":"built","15":"queued","07":"needsyou","12":"needsyou"};
+const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"built","11":"built","15":"built","07":"needsyou","12":"needsyou"};
 const SLABEL={open:"Open",queued:"Queued · auto",running:"Running",needsyou:"Needs you",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.
@@ -396,6 +396,15 @@ const TESTS={
       "Paste a URL with a note typed after it — same, old path",
       "On a URL capture, use 'Ask for changes' — refine must work exactly as it does on a typed recipe",
       "Save a URL capture, then check the recipe row in Supabase has source_url filled in"],
+"15":["Cook something to the last step and hit Finish — you get 'How was it?' with three ratings and an optional note",
+      "Tap Skip. Then check Supabase: cook_feedback must have NO new row. Not a row with a blank rating — no row. A blank would eventually be read as 'he didn't like it'",
+      "Rate one 'Loved it' — one tap should save and take you home, no second confirmation",
+      "Type a note THEN tap a rating (that order matters — the rating saves immediately; the hint on screen says so). Check the note landed",
+      "Cook the same dish twice with different ratings — you should get TWO rows, not one updated one",
+      "THE REAL TEST: mark a dish 'Not again', then ask the week planner for a week including something like it. It should not put that dish back on. Mark two things 'Loved it' and see if they start showing up when they fit",
+      "The planner must never SAY it's using your ratings — no 'since you loved X'. Just better suggestions. If it narrates, tell me and I'll tighten the prompt",
+      "Browse recipes, add one to the plan, don't cook it — no feedback prompt should ever appear",
+      "Open Cook Mode while Supabase is unreachable (airplane mode) — finishing should just go home, no broken prompt"],
 "11":["THE REAL TEST IS WHETHER YOU KEEP USING IT. Phase 1 is an experiment, not a feature — give it a month, then decide honestly whether you kept it up to date. If you didn't, say so and we stop here rather than building quantities on a bad assumption",
       "In Pantry, tap an item — it should mark as running low AND appear in Shop, exactly as flagging did before",
       "Tick that item off in Shop — the flag clears, and it's no longer marked low either",

@@ -303,3 +303,113 @@ task-10's per-step links needed their own column.
 Hand-test checklist for task 11 is on `rail.html`, and its first line is the one that matters:
 **the real test is whether you keep using it.** Phase 1 is a cheap experiment precisely so that
 "I didn't keep it up to date" is an acceptable and useful answer.
+
+---
+
+## Aug 22, 2026 — run 1 · task-15 (taste model)
+
+**Task:** `queue/5-taste-model.task.md` — the last one in the queue. Dependency `task-10` was in
+`done/` first. Built to `FEATURE_taste_model.md` with **no deviation from your five decisions**.
+
+### What it does
+Finishing a cook now asks "How was it?" — three ratings, an optional note, and a **Skip that is
+exactly as easy to tap as rating**. Rating is one tap and saves immediately. The prompt appears once
+per cook session and never comes back, whether you rated or skipped: a prompt that reappears trains
+you to dismiss it, which produces worse data than no prompt.
+
+**Skipping writes no row.** Not a row with a null rating — literally nothing. That was the criterion
+most likely to be got wrong, and it turns out the database enforces it too: `rating` is `NOT NULL`,
+so a null-rating row is impossible even by accident.
+
+The week planner now sees your last 20 cooks and is told to prefer what you loved, avoid what you
+said "not again" to (unless you ask for it), read notes as standing preferences rather than one-off
+remarks, generalise from tags, and not repeat something you cooked days ago. **It is also told never
+to mention that it is doing any of this** — better suggestions, no narration. An app that quotes
+your own ratings back at you feels like it is watching you.
+
+### Two implementation calls worth naming
+- **The digest is fetched inside `planWeek()` rather than passed in by the caller.** That keeps the
+  change inside this task's files and means every existing caller picked it up without modification.
+- **`recentCookFeedback()` never throws — it returns `[]`.** If the history can't be read, the
+  planner forgets but still plans. PROJECT.md documents the Supabase free tier pausing as a real
+  recurring condition, and losing the ability to plan a week because the taste model was unreachable
+  would be a bad trade.
+
+Also: feedback is only offered for recipes that exist in Supabase. Recipes served from the local
+`final_recipes.json` fallback have no id at all, so a row for one could not be linked to anything the
+planner could read back. In that case Finish just goes home, exactly as before.
+
+### Supabase — nothing was created, because it already existed
+The brief said to create `cook_feedback` if needed. **It was already there**, applied earlier the
+same day (`20260822163401_create_cook_feedback`), and it matches the brief exactly — verified column
+by column: 7 columns, RLS enabled, 2 policies, `household_id` and `member_id` both nullable and
+unpopulated, `rating` NOT NULL, `recipe_id` FK cascading. **Nothing was altered or dropped.**
+`get_advisors` (security) returns clean.
+
+There was no migration file in the repo for it, so I reconstructed an idempotent one from the
+verified live schema at `supabase/migrations/20260822163401_create_cook_feedback.sql`, clearly
+labelled as a record rather than the original. A fresh environment can now be built from the repo.
+
+### Gate — green
+```
+npm run build                       ✓          (the task's only gate)
+npx eslint <every file touched>     clean
+get_advisors (security)             no findings
+```
+All four check scripts re-run and still green.
+
+**What cannot be verified from here:** the acceptance criterion that the planner's proposals visibly
+change with your feedback needs real Gemini calls and real ratings. It is the headline item on the
+hand-test list. Task 15 → `built`.
+
+---
+
+## Aug 22, 2026 — run 1 · END OF RUN
+
+**The queue is empty. All five approved tasks are done and their gates all passed.**
+
+`queue/` is empty; `done/` holds all five. On the dashboard: 01–06, 08–11 and 15 are `built`; 07 and
+12 are `needsyou`, which is accurate — neither is approved work and 12 now has a proposal waiting on
+your answers.
+
+### ⚠️ But read this first: NOTHING WAS PUSHED
+
+**`git push` fails with a 403 from GitHub.** Not the proxy — GitHub itself, on
+`git-receive-pack`. Every write path was tried:
+
+| Route | Result |
+|---|---|
+| `git push -u origin feat/tier-1-batch` | `403 Forbidden` |
+| the same with `GITHUB_TOKEN` supplied explicitly | `403 Forbidden` |
+| GitHub MCP `push_files` | `403 Resource not accessible by integration` |
+| GitHub MCP `create_or_update_file` | `403 Resource not accessible by integration` |
+
+Reads and fetches work fine, and the MCP tools report they are authenticated as **you**. So this
+session has **read-only** access to the repository. The proxy status endpoint reports no relay
+failures, which rules out the network path.
+
+**Five commits are sitting on `feat/tier-1-batch` locally and will die with this sandbox.** Because
+of that I published the whole thing as an applyable patch — the link is at the top of
+`DECISIONS_NEEDED.md`.
+
+**The fix:** grant the Claude GitHub App write access to `callepimpalot/the-foodies` (claude.ai
+Settings → Connectors → GitHub, or https://claude.ai/admin-settings/claude-tag). Then just re-run
+the routine — it is idempotent and will redo all of this cleanly against a fresh sandbox.
+
+There is a sign this has happened before: `cook_feedback` was created in Supabase at 16:34 today, a
+couple of hours before this run started, but no code for it and no `AGENT_LOG.md` ever reached the
+repo. **That looks like an earlier run that also did work and also couldn't push.** Schema changes
+survive because they go to Supabase directly; code does not.
+
+### What survived regardless of the push
+The three Supabase changes are live and are **not** in the sandbox:
+- `recipes.source_url` — added (TASK_08)
+- `recipes.step_ingredients` — added (TASK_10)
+- `cook_feedback` — already existed, verified, untouched
+
+All three are additive and nullable, and the deployed `main` build neither reads nor writes any of
+them, so **production is unaffected by all of this**.
+
+### Nothing was merged, nothing went to main
+Per the hard rules: no commits to `main`, no merges, no pull requests. The only branch touched was
+`feat/tier-1-batch`, and only locally.

@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { RECIPE_SCHEMA, cleanJson, describeApiError } from './recipeExtraction';
 import { unitSystemInstruction } from './unitPreference';
+import { recentCookFeedback } from './cookFeedback';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
@@ -37,6 +38,9 @@ with a meal-planning friend before committing to a real plan. You'll be given JS
 - libraryShortlist: a condensed, 0-indexed array of the user's existing recipe library ({id, title,
   meal_type, tags, kcal, difficulty}) to match suggestions against — you'll reference an entry by its
   position in this array (see libraryIndex below), never by copying its id
+- cookHistory: the user's most recent cooks, newest first ({title, tags, rating, note, cooked_at}),
+  where rating is "loved" | "fine" | "not_again". May be empty — if it is, plan from the instruction
+  alone and do not mention that you have no history.
 - instruction: the user's latest message
 
 There are two different modes depending on whether currentProposal is empty:
@@ -75,7 +79,23 @@ Rules (both modes):
   instruction is clearly about that date or about filling out the week generally, otherwise leave it as
   type "empty", copied through unchanged, same as any other day the instruction doesn't address.
 - summary: one short, human sentence describing what you did this turn, e.g. "Planned 5 dinners with
-  two leftover days — one minced beef, one chicken, one vegan."`;
+  two leftover days — one minced beef, one chicken, one vegan."
+
+Using cookHistory (this is what makes you feel like you know this cook rather than a stranger):
+- Prefer dishes rated "loved" when they fit the stated constraint. Don't force one in where it
+  doesn't fit — a bad suggestion the user liked once is still a bad suggestion.
+- Do NOT suggest anything rated "not_again" unless the user explicitly asks for that dish, or asks
+  to give it another go. One bad night isn't a life sentence, so if the same dish also appears with
+  a "loved" or "fine" rating, treat it as usually fine rather than banned.
+- Treat the notes as real standing preferences, not one-off remarks. A note saying "too spicy for
+  the kids" should quietly steer you away from similarly spicy dishes from then on, without the user
+  having to say it again every week.
+- Use the tags on rated dishes to generalise: several "loved" Thai dishes is a signal about Thai
+  food, not only about those exact recipes.
+- Vary the week. If something was cooked in the last few days, don't put it straight back on unless
+  asked — "knowing them" includes knowing they don't want lasagne twice in one week.
+- Never say out loud that you are reading their history, and never quote a rating back at them. Just
+  make better suggestions. Mentioning it makes the app feel like it is watching them.`;
 
 // Pure date-string arithmetic — avoids the timezone pitfall of `new Date('YYYY-MM-DD')` being parsed
 // as UTC midnight while getDate()/setDate() operate in local time, which can roll the result back a
@@ -117,10 +137,17 @@ export async function planWeek({ instruction, scopeDates, currentProposal, libra
         throw new Error('Describe the week you want.');
     }
 
+    // Fetched here rather than passed in, so every existing caller picks up the taste
+    // model without changing its call. recentCookFeedback() never throws — it returns
+    // [] if the history can't be read, and the planner degrades to exactly the
+    // behaviour it had before this feature: it forgets, but it still plans.
+    const cookHistory = await recentCookFeedback();
+
     const payload = {
         scopeDates,
         currentProposal: toIndexedProposal(currentProposal, libraryShortlist),
         libraryShortlist,
+        cookHistory,
         instruction: instruction.trim(),
     };
 

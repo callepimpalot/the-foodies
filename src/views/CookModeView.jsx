@@ -3,6 +3,7 @@ import { useView } from '../context/ViewContext';
 import { ArrowLeft, Check, ChevronRight, ChevronLeft, Minus, Plus, ListChecks, Timer as TimerIcon, Zap, ZapOff } from 'lucide-react';
 import { normalizeIngredient, getServingsRatio, formatMeasure } from '../lib/consolidateIngredients';
 import { buildStepIngredients, stepText } from '../lib/stepIngredients';
+import { RATINGS, saveFeedback, canReceiveFeedback } from '../lib/cookFeedback';
 import { Button, IconButton } from '../components/ui/Button';
 import { TicketCard } from '../components/ui/TicketCard';
 import { Sheet } from '../components/ui/Sheet';
@@ -13,6 +14,11 @@ export function CookModeView() {
     const [activeStep, setActiveStep] = useState(0);
     const [showIngredients, setShowIngredients] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
+    // Shown once at the end of a cook, then never again for this session — whether it
+    // was answered or skipped. A prompt that reappears trains you to dismiss it, which
+    // produces worse data than no prompt at all.
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [feedbackDone, setFeedbackDone] = useState(false);
     const { isActive: isWakeLockActive, isSupported: isWakeLockSupported } = useWakeLock();
 
     // Memoised because the fallback is an object literal: without this it is a new
@@ -177,7 +183,12 @@ export function CookModeView() {
                     onClick={() => {
                         if (!isLastStep) {
                             setActiveStep((p) => p + 1);
+                        } else if (!feedbackDone && canReceiveFeedback(recipe)) {
+                            setShowFeedback(true);
                         } else {
+                            // Already rated or skipped, or a recipe with no Supabase row to
+                            // attach feedback to (the local final_recipes.json fallback has no
+                            // ids) — finish exactly as Cook Mode always did.
                             setCurrentView(VIEWS.DASHBOARD);
                         }
                     }}
@@ -200,7 +211,87 @@ export function CookModeView() {
             )}
 
             {showTimer && <TimerSheet onClose={() => setShowTimer(false)} />}
+
+            {showFeedback && (
+                <CookFeedbackSheet
+                    recipe={recipe}
+                    onDone={() => {
+                        setFeedbackDone(true);
+                        setShowFeedback(false);
+                        setCurrentView(VIEWS.DASHBOARD);
+                    }}
+                />
+            )}
         </div>
+    );
+}
+
+// The one capture point for the taste model. Rating is the only required tap; the note
+// is genuinely optional, with no validation.
+//
+// SKIPPING WRITES NOTHING. Not a row with a null rating — literally no row. A null
+// would eventually get read as a signal, and "I couldn't be bothered tonight" is not
+// the same as "I didn't like it".
+function CookFeedbackSheet({ recipe, onDone }) {
+    const [rating, setRating] = useState(null);
+    const [note, setNote] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(null);
+
+    const submit = async (chosen) => {
+        setSaving(true);
+        setError(null);
+        try {
+            await saveFeedback({ recipeId: recipe?.id, rating: chosen, note });
+            onDone();
+        } catch (err) {
+            console.error('Could not save cook feedback:', err);
+            setError(err?.message || "Couldn't save that rating. Your meal still counts.");
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Sheet onClose={onDone} title="How was it?" surface="ticket">
+            <div className="flex flex-col gap-4 pb-2">
+                <p className="t-body text-inkDim">{recipe?.title}</p>
+
+                <div className="flex flex-col gap-2">
+                    {RATINGS.map((option) => (
+                        <Button
+                            key={option.value}
+                            variant={rating === option.value ? 'primary' : 'secondary'}
+                            disabled={saving}
+                            onClick={() => { setRating(option.value); submit(option.value); }}
+                            className="w-full disabled:opacity-40"
+                        >
+                            {option.label}
+                        </Button>
+                    ))}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    <span className="t-eyebrow text-inkDim">Anything to remember? (optional)</span>
+                    <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        rows={2}
+                        placeholder="e.g. too salty, kids picked out the mushrooms, double it next time"
+                        className="w-full resize-none bg-ticket2 border border-ticketShadow rounded-sm p-3 font-body text-sm text-ink placeholder:text-inkDim focus:outline-none focus:border-stamp"
+                    />
+                    <p className="t-body text-inkDim text-xs">
+                        Write the note first if you want it saved — tapping a rating saves straight away.
+                    </p>
+                </div>
+
+                {error && <p className="t-body text-[var(--destructive)]">{error}</p>}
+
+                {/* Skipping is exactly as easy as rating, and costs one tap. */}
+                <Button variant="ghost" onClick={onDone} disabled={saving} className="w-full">
+                    Skip
+                </Button>
+            </div>
+        </Sheet>
     );
 }
 

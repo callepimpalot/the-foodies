@@ -1,7 +1,37 @@
 # FEATURE BRIEF: Taste Model — Post-Meal Feedback Feeding AI Suggestions
 # Purpose: Make the app's AI features actually know the user as a cook, not just react to whatever's typed in that moment
 # Audience: Next session
-# Status: NOT STARTED — brief written Aug 15, 2026, at user's request to make AI "more embedded in the general features"
+# Status: BUILT Aug 22, 2026 — awaiting hand-test on a real device (see .agent/inspiration/rail.html)
+# (brief written Aug 15, 2026, at user's request to make AI "more embedded in the general features")
+
+---
+
+## AS BUILT — Aug 22, 2026
+
+Built to this brief with no deviations from the DECISIONS below. What landed:
+
+- `src/lib/cookFeedback.js` — `saveFeedback()` and `recentCookFeedback()`.
+- `src/views/CookModeView.jsx` — the feedback sheet on "Finish Cooking". Rating is one tap and
+  saves immediately; the note is optional with no validation; **Skip is exactly as easy as rating
+  and writes no row at all.**
+- `src/lib/weekPlanChat.js` — the digest is fetched inside `planWeek()` rather than passed in, so
+  every existing caller picks it up without changing. `recentCookFeedback()` never throws: if the
+  history can't be read the planner forgets but still plans, which matters because PROJECT.md
+  documents the free tier pausing as a real recurring condition.
+
+Two things worth knowing:
+
+- **The `cook_feedback` table already existed** when this was built (applied earlier the same day),
+  and matched this brief exactly — verified column by column: RLS on, 2 policies, `household_id`
+  and `member_id` both nullable, `rating` NOT NULL. Nothing was altered. A reconstructed,
+  idempotent record now lives at `supabase/migrations/20260822163401_create_cook_feedback.sql`.
+  `rating NOT NULL` means the "skipping writes nothing" rule is enforced by the database, not only
+  by the UI.
+- **The prompt is told never to mention it is reading the history.** Better suggestions, no
+  narration — an app that quotes your own ratings back at you feels like it is watching you.
+
+**Not verifiable from a sandbox:** the acceptance criterion that proposals visibly change with
+feedback needs real Gemini calls and real ratings. It is on the hand-test list.
 
 ---
 
