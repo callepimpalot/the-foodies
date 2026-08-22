@@ -35,8 +35,11 @@ meal_type           text               — typically "Breakfast" | "Lunch" | "Di
 tags                text[]
 archetypes          text[]             — legacy persona-filter tags, mostly empty on bulk-imported rows
 ingredients         jsonb              — array of { name: string, quantity: number | null, unit: string | null }
-steps               text[] | jsonb
+steps               text[]             — verified against the live database Aug 22. Earlier versions of this file said "text[] | jsonb"; it is text[], which is why per-step ingredient links needed their own column rather than living on the step objects TASK_10 assumed.
 is_personal         boolean            — true for user-captured recipes (see Capture, below). NOT documented in the old v1.0 of this file.
+creator             text | null        — free-text attribution ("@handle", "Half Baked Harvest"), never guessed
+source_url          text | null        — TASK_08 (Aug 22). Origin link when the recipe was captured from a URL; null for text/photo captures.
+step_ingredients    jsonb | null       — TASK_10 (Aug 22). Array PARALLEL to `steps`; each entry an array of 0-based indexes into `ingredients`, e.g. [[0,2],[],[1,3]]. Null on all pre-existing rows, which fall back to the runtime matcher in src/lib/stepIngredients.js. No backfill was done.
 created_at          timestamptz
 ```
 
@@ -85,8 +88,32 @@ InventoryItem {
   emoji: string                 // single emoji character from user selection or commonItems defaults
   category: string              // id of one of the user-editable categories (see below)
   flagged: boolean              // true = item is on the shopping list (feeds Shop tab's "Household" section)
+
+  // --- TASK_11 Phase 1 (Aug 22). BOTH OPTIONAL — an item stored before this shipped
+  // --- has neither, and that is a valid item. Read them with `?.`; never assume present.
+  lowStock?: boolean            // "I'm running low." Set by the one tap on the Pantry grid,
+                                //   which ALSO sets `flagged` — see below.
+  useByDate?: string | null     // ISO 'YYYY-MM-DD', or null. Feeds the Home "Use it up" section.
 }
 ```
+
+**`lowStock` vs `flagged` — why both, and how they relate.** `flagged` is the shopping-list
+transport and is unchanged. `lowStock` is the pantry state. The Pantry grid's one tap sets
+`lowStock` and mirrors it onto `flagged`, deliberately reusing the existing route to the list rather
+than building a second one. Un-flagging (ticking the item off in Shop, or tapping it again in
+Pantry) clears both — you have it now.
+
+They therefore track each other today, since the grid tap is the only way to flag. The distinction
+is kept because the two mean different things and will diverge as soon as anything else can add to
+the list. **If that never happens, they are worth collapsing into one field** — noted so a future
+session doesn't preserve a redundancy out of caution.
+
+Phase 1 is **deliberately** two optional fields and nothing else: no quantities, no units, no
+cook-time deduction. See `TASK_11_pantry_real_inventory.md` for the evidence behind that scoping —
+pantry tracking is the most-abandoned feature in this product category, and the input cost is why.
+
+The transitions live as pure functions in `src/lib/pantryItems.js` and the date logic in
+`src/lib/useByDates.js`, both asserted by `node src/scripts/pantry_check.js`.
 
 ```
 Category {
@@ -107,14 +134,23 @@ When localStorage keys are empty or missing, `loadItems()` and `loadCategories()
 
 - **Add item**: `addItem(nameOrItem, category)` accepts either a plain string (defaults to category `'other'`, emoji `'📦'`) or an object shape matching `{ name, category, emoji }` (e.g., from `src/data/commonItems.js`). Rejects duplicates (case-insensitive name match).
 - **Remove item**: `removeItem(id)` deletes permanently
-- **Toggle flag**: `toggleFlag(id)` flips the `flagged` boolean for shopping-list inclusion
-- **Clear all flags**: `clearFlags()` resets all items to `flagged: false`
+- **Toggle flag**: `toggleFlag(id)` flips the `flagged` boolean for shopping-list inclusion. Called by ShopView when an item is ticked off. Un-flagging also clears `lowStock`.
+- **Toggle low stock**: `toggleLowStock(id)` — what the Pantry grid's one tap calls. Flips `lowStock` and mirrors it onto `flagged`, so it reaches the shopping list through the existing mechanism.
+- **Set use-by date**: `setUseByDate(id, isoDate)` — ISO `'YYYY-MM-DD'`, or anything falsy to clear. Two taps in the UI (item → preset); no calendar picker.
+- **Clear all flags**: `clearFlags()` resets all items to `flagged: false, lowStock: false`
 - **Add category**: `addCategory(name)` creates a new user-defined category (auto-derives id from name)
 - **Remove category**: `removeCategory(id)` deletes a category, reassigning any items in it to `'other'`
 
 ### Relationship to Shop tab
 
-Items with `flagged: true` feed the Shop tab's "Household" section via `ShopContext`. The Shop tab's consolidation reads this array directly; flagging is what triggers inclusion, not a separate "buying" state.
+Items with `flagged: true` feed the Shop tab's "Household" section via `ShopContext`. The Shop tab's consolidation reads this array directly; flagging is what triggers inclusion, not a separate "buying" state. `lowStock` is **not** read by Shop — it reaches the list only by setting `flagged`, which is the point.
+
+### Relationship to the Home tab
+
+`expiringItems()` (`src/lib/useByDates.js`) surfaces items whose `useByDate` falls within
+`EXPIRY_HORIZON_DAYS` (3), soonest first, overdue items included. When nothing qualifies the Home
+section renders **nothing at all** — no empty state, no placeholder. That is a requirement, not an
+oversight: a section that nags on every launch is one you learn to ignore.
 
 ---
 
@@ -183,6 +219,7 @@ The following data models existed in v1.0 of this file but describe features tha
 
 | Date | Change |
 |---|---|
+| Aug 22 | §2 — `InventoryItem` gains two OPTIONAL fields, `lowStock?: boolean` and `useByDate?: string \| null` (TASK_11 Phase 1). Existing stored items need no migration; both absent is valid. Documented how `lowStock` reaches the shopping list through the existing `flagged` mechanism rather than a parallel path, and flagged the two fields as candidates for collapsing if nothing else ever writes to the list. §1 — the live `recipes` table gained two nullable columns this same day: `source_url text` (TASK_08, the origin link on a URL capture) and `step_ingredients jsonb` (TASK_10, per-step ingredient indexes, parallel to `steps` because `steps` is `text[]` and cannot carry them inline). |
 | Aug 21 | §2 rewritten — Essentials now persist to localStorage (meal_buddy_essentials_items, meal_buddy_essentials_categories), not in-memory. Item shape is now { id, name, emoji, category, flagged } (removed quantity, targetQuantity, inPantry, isMaster, toBuy). Categories are user-editable. Removed stale inPantry-based Home screen counter bug and updated all docs to match actual code. |
 | Jul 26 | v2.0 — Full rewrite against actual code. Documented real Supabase columns, the local-fallback ingredient shape mismatch, in-memory-only Essentials, the new one-meal-per-day Plan model, and the non-persisted Shop model. Removed all models for deleted features (swipe, family, auth, customisation). |
 | Feb 20 | v1.0 — Initial data models documented: Recipe, Essentials, Swipe, WeeklyPlan, ShoppingList (superseded — described a Supabase-backed design that was never built) |

@@ -1,4 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import {
+    withFlagToggled,
+    withLowStockToggled,
+    withUseByDate,
+    withFlagsCleared,
+} from '../lib/pantryItems';
 
 const STORAGE_KEY_ITEMS = 'meal_buddy_essentials_items';
 const STORAGE_KEY_CATEGORIES = 'meal_buddy_essentials_categories';
@@ -39,7 +45,12 @@ function loadCategories() {
 function loadItems() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY_ITEMS);
-        return saved ? JSON.parse(saved) : DEFAULT_ITEMS;
+        if (!saved) return DEFAULT_ITEMS;
+        const parsed = JSON.parse(saved);
+        // TASK_11 Phase 1 added `lowStock` and `useByDate`. Both are OPTIONAL and both
+        // absent is a valid item — everything reads them with `?.`, so items stored
+        // before this shipped need no migration and lose nothing.
+        return Array.isArray(parsed) ? parsed : DEFAULT_ITEMS;
     } catch {
         return DEFAULT_ITEMS;
     }
@@ -99,12 +110,19 @@ export function InventoryProvider({ children }) {
         setItems(prev => prev.filter(i => i.id !== id));
     };
 
-    const toggleFlag = (id) => {
-        setItems(prev => prev.map(i => i.id === id ? { ...i, flagged: !i.flagged } : i));
+    // The transitions themselves live in src/lib/pantryItems.js as pure functions, so
+    // the flag-to-shopping-list behaviour TASK_11 warns twice about regressing can be
+    // asserted directly (src/scripts/pantry_check.js) instead of reasoned about.
+    const updateItem = (id, fn) => {
+        setItems(prev => prev.map(i => (i?.id === id ? fn(i) : i)));
     };
 
+    const toggleFlag = (id) => updateItem(id, withFlagToggled);
+    const toggleLowStock = (id) => updateItem(id, withLowStockToggled);
+    const setUseByDate = (id, isoDate) => updateItem(id, (i) => withUseByDate(i, isoDate));
+
     const clearFlags = () => {
-        setItems(prev => prev.map(i => i.flagged ? { ...i, flagged: false } : i));
+        setItems(prev => prev.map(i => (i?.flagged || i?.lowStock ? withFlagsCleared(i) : i)));
     };
 
     return (
@@ -114,6 +132,8 @@ export function InventoryProvider({ children }) {
             addItem,
             removeItem,
             toggleFlag,
+            toggleLowStock,
+            setUseByDate,
             clearFlags,
             addCategory,
             removeCategory,
@@ -123,6 +143,7 @@ export function InventoryProvider({ children }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useInventory() {
     const context = useContext(InventoryContext);
     if (!context) {

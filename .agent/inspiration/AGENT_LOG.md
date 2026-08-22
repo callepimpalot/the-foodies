@@ -235,3 +235,71 @@ npx eslint <every file touched>              clean
 It prints five real steps and what the matcher returns for each, so you can judge quality by eye.
 
 Hand-test checklist for task 10 is on `rail.html`. Task 10 → `built`.
+
+---
+
+## Aug 22, 2026 — run 1 · task-11 (Pantry Phase 1 — running low and use-it-up)
+
+**Task:** `queue/4-pantry-phase1.task.md` — TASK_11, **Phase 1 only**. No quantities, no units, no
+cook-time deduction. That boundary is respected exactly; nothing beyond the two optional fields was
+built.
+
+### What you can do now
+- **One tap on a pantry item** marks it running low and puts it on the shopping list — through the
+  existing `flagged` mechanism, not a second route to the list.
+- **A "Use by" mode** in Pantry: tap it, tap an item, tap a preset (Today / Tomorrow / In 3 days /
+  In a week / Clear). **Two taps per item**, which was the spec's budget. No calendar picker.
+- **A "Use it up" section on Home** listing anything due within 3 days, soonest first, overdue
+  first of all. Each row has "Find a recipe", which opens the recipes that genuinely use that
+  ingredient; picking one drops into the normal preview with Cook now / Add to plan.
+- **When nothing is expiring, that section renders nothing at all.** No empty state, no
+  placeholder. This was a requirement and I treated it as one: a Home screen that nags every launch
+  is one you learn to ignore, and it would poison the rest of the screen.
+
+The "find a recipe" search composes two things that already existed rather than adding a third:
+`recipeSearch.js`'s `filterRecipes` does the cheap library-wide scoping, then **task-10's
+word-boundary matcher** removes the substring false positives it lets through — so a pantry item
+called "salt" does not return every recipe containing salted butter. Verified both directions.
+
+### 👉 One thing worth your judgement (not blocking, already built as specified)
+The spec asks for two fields, `lowStock` and `useByDate`, with low-stock flowing to the list via
+`flagged`. I built exactly that. But **`lowStock` and `flagged` will track each other perfectly
+today**, because the pantry tap is currently the only way anything gets flagged. The distinction only
+earns its keep once something else can add to the list.
+
+I kept both because they mean different things and the spec asked for both — but if nothing else
+ever writes to the list, they are worth collapsing into one field. Noted here and in DATA_MODELS so
+a future session doesn't preserve the redundancy out of caution. **No action needed from you unless
+you disagree.**
+
+### The regression risk, actually verified rather than reasoned about
+TASK_11 warns twice that flag-to-shopping-list must not regress. Rather than eyeball it, I pulled
+the item transitions out of `InventoryContext` into pure functions (`src/lib/pantryItems.js`) and
+asserted them: flagging lists it, un-flagging de-lists it, ticking off in Shop clears low-stock too,
+flagging alone never invents a low-stock state, and the net effect on Shop of the new tap is
+**identical** to the old flag-only tap. Also asserted that an item stored before this shipped
+survives every transition with nothing lost.
+
+### Gate — green, plus more than was asked
+```
+npm run build                        ✓          (the task's only gate)
+node src/scripts/pantry_check.js     PASSED — 44 assertions   (written, not required)
+npx eslint <every file touched>      clean
+```
+All three earlier check scripts re-run and still green — no cross-task regression.
+
+I also silenced a **pre-existing** `react-refresh/only-export-components` error on
+`InventoryContext.jsx` (it predates this task — confirmed by stashing), using the same
+`eslint-disable` line `ShopContext.jsx` already carries.
+
+One naming trap worth recording: the date helper was originally `useByLabel`, which the lint rules
+treat as a **React hook** because it starts with "use". Renamed to `describeUseBy`.
+
+`DATA_MODELS.md` §2 updated to match, §1 updated with the two new `recipes` columns from tasks 08
+and 10, and a dated changelog row added. While there I corrected a real inaccuracy: §1 said `steps`
+was `text[] | jsonb`. **It is `text[]`** — verified against the live database — which is exactly why
+task-10's per-step links needed their own column.
+
+Hand-test checklist for task 11 is on `rail.html`, and its first line is the one that matters:
+**the real test is whether you keep using it.** Phase 1 is a cheap experiment precisely so that
+"I didn't keep it up to date" is an acceptable and useful answer.

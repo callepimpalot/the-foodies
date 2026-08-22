@@ -7,8 +7,12 @@ import { MealPreviewModal } from '../components/MealPreviewModal';
 import { AddToPlanModal } from '../components/AddToPlanModal';
 import { TicketCard, BoardCard } from '../components/ui/TicketCard';
 import { Button } from '../components/ui/Button';
+import { Sheet } from '../components/ui/Sheet';
 import { VIEWS } from '../utils/constants';
-import { ChevronRight, Clock, Flame, Users, Package } from 'lucide-react';
+import { ChevronRight, Clock, Flame, Users, Package, CalendarClock } from 'lucide-react';
+import { expiringItems, describeUseBy, daysUntil } from '../lib/useByDates';
+import { filterRecipes } from '../lib/recipeSearch';
+import { matchIngredientIndexes } from '../lib/stepIngredients';
 
 // Small kraft-safe meta chip for the hero ticket card — same shape/type as the shared `.tag`
 // class, but using the ink-dim/ticket-shadow pair so it reads clearly on the cream ticket
@@ -32,6 +36,18 @@ function TicketTag({ children }) {
     );
 }
 
+// Recipes that actually use this ingredient (TASK_11).
+//
+// Two existing pieces, composed — no third search implementation. recipeSearch's
+// filterRecipes does the cheap library-wide scoping, then TASK_10's word-boundary
+// matcher removes the substring false positives it lets through: a query of "salt"
+// must not keep a recipe whose only match is "salted butter".
+function recipesUsingIngredient(recipes, name) {
+    if (!name?.trim()) return [];
+    const candidates = filterRecipes(recipes, { query: name });
+    return candidates.filter((recipe) => matchIngredientIndexes(name, recipe?.ingredients ?? []).length > 0);
+}
+
 export function HomeView() {
     const { items } = useInventory();
     const { setDayRecipe, resolveDay } = usePlan();
@@ -42,6 +58,7 @@ export function HomeView() {
     const [selectedSource, setSelectedSource] = useState('library'); // Track source
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [useItUpFor, setUseItUpFor] = useState(null);
 
     // Time-based Greeting
     const hour = new Date().getHours();
@@ -83,6 +100,11 @@ export function HomeView() {
     };
 
     const displayRecipes = recipes || [];
+
+    // Things about to go off, soonest first. Empty means this section renders NOTHING —
+    // no empty state, no placeholder. A Home screen that nags every launch is one you
+    // learn to ignore, which would poison the rest of the screen too.
+    const expiring = expiringItems(items);
 
     return (
         <div className="animate-fade-in pb-32 relative">
@@ -199,6 +221,47 @@ export function HomeView() {
                 </div>
             </section>
 
+            {/* USE IT UP — only ever rendered when there is genuinely something to say */}
+            {expiring.length > 0 && (
+                <section className="mt-5">
+                    <div className="flex items-center gap-2 mb-3">
+                        <CalendarClock size={16} strokeWidth={1.75} style={{ color: 'var(--grease)' }} />
+                        <h2 className="t-heading-md" style={{ color: 'var(--chalk)' }}>Use it up</h2>
+                    </div>
+                    <BoardCard className="flex flex-col">
+                        {expiring.map(({ item, days }, index) => (
+                            <div
+                                key={item?.id}
+                                className="flex items-center justify-between gap-3"
+                                style={{
+                                    minHeight: '44px',
+                                    paddingTop: index === 0 ? 0 : '12px',
+                                    paddingBottom: index === expiring.length - 1 ? 0 : '12px',
+                                    borderBottom: index === expiring.length - 1 ? 'none' : '1px dashed var(--line)',
+                                }}
+                            >
+                                <div className="min-w-0">
+                                    <p className="t-body" style={{ color: 'var(--chalk)' }}>{item?.name}</p>
+                                    <p
+                                        className="t-mono"
+                                        style={{ fontSize: '12px', color: days <= 0 ? 'var(--grease)' : 'var(--chalk-dim)', marginTop: '2px' }}
+                                    >
+                                        {days < 0 ? 'Was due ' : 'Use by '}{describeUseBy(item?.useByDate)}
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setUseItUpFor(item)}
+                                    className="shrink-0"
+                                >
+                                    Find a recipe
+                                </Button>
+                            </div>
+                        ))}
+                    </BoardCard>
+                </section>
+            )}
+
             {/* PANTRY ACCESS */}
             <section className="mt-5">
                 <BoardCard
@@ -295,6 +358,16 @@ export function HomeView() {
                 </div>
             </section>
 
+            {useItUpFor && (
+                <UseItUpSheet
+                    item={useItUpFor}
+                    recipes={recipesUsingIngredient(displayRecipes, useItUpFor?.name)}
+                    onClose={() => setUseItUpFor(null)}
+                    onPick={(recipe) => { setUseItUpFor(null); handleMealClick(recipe, 'library'); }}
+                    onBrowseAll={() => { setUseItUpFor(null); setCurrentView(VIEWS.RECIPES); }}
+                />
+            )}
+
             {/* Modals */}
             {selectedMeal && !showAddModal && (
                 <MealPreviewModal
@@ -339,5 +412,57 @@ export function HomeView() {
                 />
             )}
         </div>
+    );
+}
+
+// The "find a recipe" destination. Deliberately a sheet on Home rather than a jump to
+// the Recipes tab: the point is to decide what to cook with the spinach right now, and
+// picking one here drops straight into the existing preview → Cook now / Add to plan.
+// The full library is one tap further for when nothing here fits.
+function UseItUpSheet({ item, recipes, onClose, onPick, onBrowseAll }) {
+    const days = daysUntil(item?.useByDate);
+
+    return (
+        <Sheet onClose={onClose} title={`Use up ${item?.name}`} surface="board">
+            <p className="t-body" style={{ color: 'var(--chalk-dim)', marginBottom: '16px' }}>
+                {days != null && days < 0
+                    ? `Was due ${describeUseBy(item?.useByDate).toLowerCase()}.`
+                    : `Due ${describeUseBy(item?.useByDate).toLowerCase()}.`}
+                {' '}
+                <span className="t-mono">{recipes.length}</span>
+                {recipes.length === 1 ? ' recipe uses it.' : ' recipes use it.'}
+            </p>
+
+            {recipes.length === 0 ? (
+                <p className="t-body" style={{ color: 'var(--chalk-dim)', marginBottom: '16px' }}>
+                    Nothing in your library calls for it by name.
+                </p>
+            ) : (
+                <div className="flex flex-col">
+                    {recipes.map((recipe, index) => (
+                        <button
+                            key={recipe?.id ?? index}
+                            onClick={() => onPick(recipe)}
+                            className="flex items-center justify-between gap-3 text-left"
+                            style={{
+                                minHeight: '44px',
+                                padding: '12px 0',
+                                borderBottom: index === recipes.length - 1 ? 'none' : '1px dashed var(--line)',
+                                background: 'transparent',
+                            }}
+                        >
+                            <span className="t-body min-w-0" style={{ color: 'var(--chalk)' }}>{recipe?.title}</span>
+                            <span className="t-mono shrink-0" style={{ fontSize: '12px', color: 'var(--chalk-dim)' }}>
+                                {recipe?.time ?? `${recipe?.cook_time_minutes ?? '—'}m`}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            <Button variant="ghost" onClick={onBrowseAll} className="w-full" style={{ marginTop: '16px' }}>
+                Browse the whole library
+            </Button>
+        </Sheet>
     );
 }

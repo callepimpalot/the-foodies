@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, X, PenLine, Check } from 'lucide-react';
+import { Plus, Trash2, X, PenLine, Check, CalendarClock } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { QuickAddModal } from './QuickAddModal';
 import { Button, IconButton } from './ui/Button';
 import { TicketCard } from './ui/TicketCard';
+import { Sheet } from './ui/Sheet';
+import { daysUntil, isoInDays, describeUseBy, EXPIRY_HORIZON_DAYS } from '../lib/useByDates';
+
+// Two taps to set a use-by date, which is the whole budget TASK_11 allows: tap the
+// item's date strip, tap a preset. No calendar, no scroll wheel — a heavy picker is
+// how this feature stops getting used.
+const USE_BY_PRESETS = [
+    { label: 'Today', offset: 0 },
+    { label: 'Tomorrow', offset: 1 },
+    { label: 'In 3 days', offset: 3 },
+    { label: 'In a week', offset: 7 },
+];
 
 export function Inventory() {
-    const { items, categories, addItem, removeItem, toggleFlag, addCategory } = useInventory();
+    const { items, categories, addItem, removeItem, toggleLowStock, setUseByDate, addCategory } = useInventory();
     const [newItemName, setNewItemName] = useState('');
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [isManaging, setIsManaging] = useState(false);
+    const [isDating, setIsDating] = useState(false);
+    const [datingItem, setDatingItem] = useState(null);
     const [showQuickAdd, setShowQuickAdd] = useState(false);
 
     const handleAddItem = (e) => {
@@ -56,14 +70,24 @@ export function Inventory() {
             <TicketCard style={{ marginBottom: '1.5rem' }}>
                 <div className="flex items-center justify-between" style={{ marginBottom: '1rem' }}>
                     <h2 className="t-heading-sm">Add to List</h2>
-                    <Button
-                        variant="ghost"
-                        onClick={() => setIsManaging(m => !m)}
-                        className="flex items-center gap-1"
-                    >
-                        {isManaging ? <Check size={14} /> : <PenLine size={14} />}
-                        {isManaging ? 'Done' : 'Manage'}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            onClick={() => { setIsDating(d => !d); setIsManaging(false); }}
+                            className="flex items-center gap-1"
+                        >
+                            {isDating ? <Check size={14} /> : <CalendarClock size={14} />}
+                            {isDating ? 'Done' : 'Use by'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => { setIsManaging(m => !m); setIsDating(false); }}
+                            className="flex items-center gap-1"
+                        >
+                            {isManaging ? <Check size={14} /> : <PenLine size={14} />}
+                            {isManaging ? 'Done' : 'Manage'}
+                        </Button>
+                    </div>
                 </div>
                 <form onSubmit={handleAddItem} style={{ display: 'flex', gap: '0.5rem' }}>
                     <input
@@ -90,6 +114,13 @@ export function Inventory() {
                 </p>
             )}
 
+            {isDating && (
+                <p className="t-body" style={{ color: 'var(--ink-dim)', marginTop: '-0.75rem', marginBottom: '1.5rem' }}>
+                    Tap an item to set when it needs using up. Anything due in the next{' '}
+                    <span className="t-mono">{EXPIRY_HORIZON_DAYS}</span> days shows on your home screen.
+                </p>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {categoriesWithItems.map(category => (
                     <TicketCard key={category.id}>
@@ -105,8 +136,10 @@ export function Inventory() {
                                     key={item.id}
                                     item={item}
                                     isManaging={isManaging}
-                                    onToggle={() => toggleFlag(item.id)}
+                                    isDating={isDating}
+                                    onToggle={() => toggleLowStock(item.id)}
                                     onRemove={() => removeItem(item.id)}
+                                    onSetDate={() => setDatingItem(item)}
                                 />
                             ))}
                         </div>
@@ -163,19 +196,35 @@ export function Inventory() {
                     onAdd={(picked) => picked.forEach(i => addItem(i))}
                 />
             )}
+
+            {datingItem && (
+                <UseBySheet
+                    item={datingItem}
+                    onPick={(iso) => { setUseByDate(datingItem.id, iso); setDatingItem(null); }}
+                    onClose={() => setDatingItem(null)}
+                />
+            )}
         </div>
     );
 }
 
-function EssentialItemCard({ item, isManaging, onToggle, onRemove }) {
+function EssentialItemCard({ item, isManaging, isDating, onToggle, onRemove, onSetDate }) {
+    const days = daysUntil(item?.useByDate);
+    const isDue = days != null && days <= EXPIRY_HORIZON_DAYS;
+    const isLow = !!item?.flagged;
+
+    const primaryLabel = isManaging
+        ? `Remove ${item?.name}`
+        : (isLow ? `Mark ${item?.name} as stocked` : `Mark ${item?.name} as running low`);
+
     return (
         <button
-            onClick={isManaging ? onRemove : onToggle}
-            aria-label={isManaging ? `Remove ${item.name}` : (item.flagged ? `Mark ${item.name} as stocked` : `Flag ${item.name} as needed`)}
+            onClick={isDating ? onSetDate : (isManaging ? onRemove : onToggle)}
+            aria-label={isDating ? `Set a use-by date for ${item?.name}` : primaryLabel}
             style={{
                 aspectRatio: '1',
-                background: item.flagged ? 'rgba(185, 133, 35, 0.12)' : 'var(--ticket-2)',
-                border: `1.5px solid ${item.flagged ? 'var(--grease)' : 'var(--ticket-shadow)'}`,
+                background: isLow ? 'rgba(185, 133, 35, 0.12)' : 'var(--ticket-2)',
+                border: `1.5px solid ${isLow ? 'var(--grease)' : 'var(--ticket-shadow)'}`,
                 borderRadius: 'var(--r-md)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -183,14 +232,41 @@ function EssentialItemCard({ item, isManaging, onToggle, onRemove }) {
                 justifyContent: 'center',
                 gap: '4px',
                 position: 'relative',
-                color: item.flagged ? 'var(--grease)' : 'var(--ink)',
+                color: isLow ? 'var(--grease)' : 'var(--ink)',
                 transition: 'background var(--t-fast), border-color var(--t-fast)',
             }}
         >
-            <div style={{ fontSize: '1.75rem' }}>{item.emoji || '📦'}</div>
+            <div style={{ fontSize: '1.75rem' }}>{item?.emoji || '📦'}</div>
             <div className="t-body" style={{ fontSize: '11px', textAlign: 'center', fontWeight: 600, lineHeight: 1.2 }}>
-                {item.name}
+                {item?.name}
             </div>
+
+            {/* A date already set reads at a glance without entering any mode. Not a
+                control — nesting a button inside this button would be invalid markup
+                and the taps would misfire. */}
+            {item?.useByDate && !isManaging && (
+                <div
+                    className="t-mono"
+                    style={{
+                        position: 'absolute', bottom: '4px', left: '4px', right: '4px',
+                        fontSize: '9px', textAlign: 'center', lineHeight: 1.2,
+                        color: isDue ? 'var(--grease)' : 'var(--ink-dim)',
+                    }}
+                >
+                    {describeUseBy(item.useByDate)}
+                </div>
+            )}
+
+            {isDating && (
+                <div style={{
+                    position: 'absolute', top: '4px', right: '4px',
+                    width: '20px', height: '20px', borderRadius: 'var(--r-xs)',
+                    background: 'var(--board-2)', color: 'var(--chalk)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    <CalendarClock size={11} />
+                </div>
+            )}
 
             {isManaging && (
                 <div style={{
@@ -203,5 +279,29 @@ function EssentialItemCard({ item, isManaging, onToggle, onRemove }) {
                 </div>
             )}
         </button>
+    );
+}
+
+function UseBySheet({ item, onPick, onClose }) {
+    return (
+        <Sheet onClose={onClose} title={`Use ${item?.name} by`} surface="ticket">
+            <div className="flex flex-col gap-3 pb-2">
+                {USE_BY_PRESETS.map((preset) => (
+                    <Button
+                        key={preset.label}
+                        variant="secondary"
+                        onClick={() => onPick(isoInDays(preset.offset))}
+                        className="w-full"
+                    >
+                        {preset.label}
+                    </Button>
+                ))}
+                {item?.useByDate && (
+                    <Button variant="ghost" onClick={() => onPick(null)} className="w-full">
+                        Clear the date
+                    </Button>
+                )}
+            </div>
+        </Sheet>
     );
 }

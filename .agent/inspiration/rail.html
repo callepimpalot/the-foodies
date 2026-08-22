@@ -357,7 +357,7 @@ const T=[
    shipped  — merged to main, live on Netlify
    ------------------------------------------------------ */
 const BRANCH="feat/tier-1-batch";
-const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"built","11":"queued","15":"queued","07":"needsyou","12":"needsyou"};
+const STATUS={"01":"built","02":"built","03":"built","04":"built","05":"built","06":"built","08":"built","09":"built","10":"built","11":"built","15":"queued","07":"needsyou","12":"needsyou"};
 const SLABEL={open:"Open",queued:"Queued · auto",running:"Running",needsyou:"Needs you",built:"Built · test it",verified:"Verified",shipped:"Shipped"};
 
 /* Hand-tests only you can run — no agent can reach your phone or dev server.
@@ -396,6 +396,15 @@ const TESTS={
       "Paste a URL with a note typed after it — same, old path",
       "On a URL capture, use 'Ask for changes' — refine must work exactly as it does on a typed recipe",
       "Save a URL capture, then check the recipe row in Supabase has source_url filled in"],
+"11":["THE REAL TEST IS WHETHER YOU KEEP USING IT. Phase 1 is an experiment, not a feature — give it a month, then decide honestly whether you kept it up to date. If you didn't, say so and we stop here rather than building quantities on a bad assumption",
+      "In Pantry, tap an item — it should mark as running low AND appear in Shop, exactly as flagging did before",
+      "Tick that item off in Shop — the flag clears, and it's no longer marked low either",
+      "Tap 'Use by' in Pantry, tap an item, pick a preset — that's the whole flow. If it took more than two taps, it's wrong",
+      "Set a date 2 days out, go Home — the item is under 'Use it up'. Set one 9 days out — it must NOT appear",
+      "Clear all dates, go Home — the 'Use it up' section must vanish completely. No empty box, no 'nothing expiring' message. If it nags you here, it will get ignored",
+      "Tap 'Find a recipe' on an expiring item — you get recipes that actually use it. Pick one and it opens the normal preview with Cook now / Add to plan",
+      "Reload the app — dates and low-stock flags survive",
+      "Sanity check on an old install: your existing pantry items must all still be there with nothing lost"],
 "10":["Cook something with 10+ ingredients — each step should show just the ones it needs, under the step text",
       "Change the servings mid-recipe — the per-step amounts must move with it, same as the full list",
       "Find a step like 'preheat the oven' — it must show NOTHING under it. No empty box, no 'no ingredients' label",
