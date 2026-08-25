@@ -389,8 +389,12 @@ session has **read-only** access to the repository. The proxy status endpoint re
 failures, which rules out the network path.
 
 **Five commits are sitting on `feat/tier-1-batch` locally and will die with this sandbox.** Because
-of that I published the whole thing as an applyable patch — the link is at the top of
-`DECISIONS_NEEDED.md`.
+of that, the whole report — this log, the decisions, the hand-test checklists, and the full five-commit
+patch ready to `git am` — is published here:
+
+**https://claude.ai/code/artifact/f7b41c3e-4c94-4913-8c2b-44074d709d74**
+
+The patch was also sent as a file (`tier-1-batch.patch`, 35 files, 2,958 insertions).
 
 **The fix:** grant the Claude GitHub App write access to `callepimpalot/the-foodies` (claude.ai
 Settings → Connectors → GitHub, or https://claude.ai/admin-settings/claude-tag). Then just re-run

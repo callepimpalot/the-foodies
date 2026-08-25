@@ -1,5 +1,10 @@
 # DECISIONS NEEDED
 
+> **Aug 22, 2026 — this file never reached GitHub.** The run that wrote it could not push (403,
+> read-only access — see the `infra` entry under OPEN). Everything below, plus the full run report
+> and the hand-test checklists, is published here instead:
+> **https://claude.ai/code/artifact/f7b41c3e-4c94-4913-8c2b-44074d709d74**
+
 Questions raised by autonomous runs that only the owner can answer. Agents append here; they
 never answer for him.
 
