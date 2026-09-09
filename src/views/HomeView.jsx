@@ -116,7 +116,7 @@ export function HomeView() {
                 <div>
                     <h1 className="t-heading-lg" style={{ color: 'var(--chalk)' }}>{greeting}</h1>
                     <p className="t-body" style={{ color: 'var(--chalk-dim)' }}>
-                        Your culinary week, organised.
+                        Your culinary week, organised — one meal at a time.
                     </p>
                 </div>
             </header>
