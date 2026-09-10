@@ -9,6 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Recipe-import pipeline artifacts (large, already imported to Supabase)
+data/*.json
 dist-ssr
 *.local
 .env
