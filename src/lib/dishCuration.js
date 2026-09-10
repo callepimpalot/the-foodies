@@ -1,9 +1,6 @@
-import { GoogleGenAI } from '@google/genai';
 import { RECIPE_SCHEMA, cleanJson, describeApiError } from './recipeExtraction';
 import { unitSystemInstruction } from './unitPreference';
-
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+import { geminiGenerateContent } from './geminiClient';
 
 export const REJECTION_REASONS = [
     'Too heavy',
@@ -68,18 +65,10 @@ Propose exactly one dish:
   option to balance yesterday's beef stew." This is shown directly to the user — make it genuinely
   specific to this batch, not generic filler.`;
 
-function assertConfigured() {
-    if (!ai) {
-        throw new Error('Dish curation is not configured — missing VITE_GEMINI_API_KEY.');
-    }
-}
-
 // Proposes one dish given what's already been accepted (to balance against) and what's already been
 // rejected for this specific slot (never repeated). Used both for the first proposal in a slot and
 // every "reject, try again" that follows.
 export async function proposeDish({ constraints, acceptedDishes, rejectedForThisSlot, libraryShortlist, forceGenerated, customRequest }) {
-    assertConfigured();
-
     const payload = {
         constraints: constraints ?? '',
         acceptedDishes: acceptedDishes ?? [],
@@ -91,9 +80,9 @@ export async function proposeDish({ constraints, acceptedDishes, rejectedForThis
 
     const prompt = PROPOSE_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
 
-    let response;
+    let text;
     try {
-        response = await ai.models.generateContent({
+        text = await geminiGenerateContent({
             model: 'gemini-2.5-flash',
             contents: `${prompt}\n\nDATA:\n${JSON.stringify(payload)}`,
             config: {
@@ -106,7 +95,7 @@ export async function proposeDish({ constraints, acceptedDishes, rejectedForThis
         throw describeApiError(err);
     }
 
-    const raw = cleanJson(response.text);
+    const raw = cleanJson(text);
     if (!raw) throw new Error('Gemini returned an empty response.');
     const parsed = JSON.parse(raw);
 

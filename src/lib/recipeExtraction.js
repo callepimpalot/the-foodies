@@ -1,10 +1,7 @@
-import { GoogleGenAI } from '@google/genai';
 import { normalizeImage, fileToBase64 } from './imageUtils';
 import { unitSystemInstruction } from './unitPreference';
 import { withValidStepIngredients } from './stepIngredients';
-
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+import { geminiGenerateContent } from './geminiClient';
 
 // Matches the real Supabase `recipes` columns (see scripts/import-to-supabase.ts),
 // not the stale .agent/DATA_MODELS.md interface.
@@ -111,17 +108,9 @@ export function cleanJson(text) {
     return (text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
 }
 
-function assertConfigured() {
-    if (!ai) {
-        throw new Error('Recipe capture is not configured — missing VITE_GEMINI_API_KEY.');
-    }
-}
-
 // Extracts a recipe from any combination of pasted text and attached images (screenshots/photos).
 // At least one of text or images must be provided.
 export async function extractRecipe({ text, images = [] } = {}) {
-    assertConfigured();
-
     const hasText = !!text?.trim();
     const hasImages = images.length > 0;
     if (!hasText && !hasImages) {
@@ -139,9 +128,9 @@ export async function extractRecipe({ text, images = [] } = {}) {
         parts.push({ inlineData: { mimeType, data: base64 } });
     }
 
-    let response;
+    let rawText;
     try {
-        response = await ai.models.generateContent({
+        rawText = await geminiGenerateContent({
             model: 'gemini-2.5-flash',
             contents: parts,
             config: {
@@ -154,7 +143,7 @@ export async function extractRecipe({ text, images = [] } = {}) {
         throw describeApiError(err);
     }
 
-    const raw = cleanJson(response.text);
+    const raw = cleanJson(rawText);
     if (!raw) throw new Error('Gemini returned an empty response — the image or text may be unreadable.');
     return withValidStepIngredients(JSON.parse(raw));
 }
@@ -162,15 +151,14 @@ export async function extractRecipe({ text, images = [] } = {}) {
 // Applies one follow-up instruction to an already-extracted recipe draft, e.g. "make it 4 servings"
 // or "swap carrots for cucumbers". Returns the updated recipe plus a short human-readable summary.
 export async function refineRecipe(currentRecipe, instruction) {
-    assertConfigured();
     if (!instruction?.trim()) {
         throw new Error('Describe what you want to change.');
     }
 
     const refinePrompt = REFINE_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
-    let response;
+    let text;
     try {
-        response = await ai.models.generateContent({
+        text = await geminiGenerateContent({
             model: 'gemini-2.5-flash',
             contents: `${refinePrompt}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
             config: {
@@ -183,7 +171,7 @@ export async function refineRecipe(currentRecipe, instruction) {
         throw describeApiError(err);
     }
 
-    const raw = cleanJson(response.text);
+    const raw = cleanJson(text);
     if (!raw) throw new Error('Gemini returned an empty response.');
     const parsed = JSON.parse(raw);
     return { recipe: withValidStepIngredients(parsed.recipe), changeSummary: parsed.changeSummary };
@@ -259,7 +247,7 @@ export function describeApiError(err) {
         return new Error(`Gemini rejected the request (${raw.slice(0, 200)}).`);
     }
     if (code === 401 || code === 403) {
-        return new Error('Gemini API key was rejected — check VITE_GEMINI_API_KEY.');
+        return new Error('Gemini API key was rejected — check GEMINI_API_KEY.');
     }
     return new Error(raw);
 }

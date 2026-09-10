@@ -1,10 +1,7 @@
-import { GoogleGenAI } from '@google/genai';
 import { RECIPE_SCHEMA, cleanJson, describeApiError } from './recipeExtraction';
 import { unitSystemInstruction } from './unitPreference';
 import { recentCookFeedback } from './cookFeedback';
-
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+import { geminiGenerateContent } from './geminiClient';
 
 const DAY_SCHEMA = {
     type: 'object',
@@ -122,17 +119,10 @@ function toIndexedProposal(currentProposal, libraryShortlist) {
     });
 }
 
-function assertConfigured() {
-    if (!ai) {
-        throw new Error('Week planner chat is not configured — missing VITE_GEMINI_API_KEY.');
-    }
-}
-
 // Sends the current proposal + a natural-language instruction to Gemini and returns the updated
 // proposal. Used for both the first message (currentProposal: []) and every follow-up turn — locked
 // days are passed through unchanged per PLAN_PROMPT's rules.
 export async function planWeek({ instruction, scopeDates, currentProposal, libraryShortlist }) {
-    assertConfigured();
     if (!instruction?.trim()) {
         throw new Error('Describe the week you want.');
     }
@@ -152,9 +142,9 @@ export async function planWeek({ instruction, scopeDates, currentProposal, libra
     };
 
     const planPrompt = PLAN_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
-    let response;
+    let text;
     try {
-        response = await ai.models.generateContent({
+        text = await geminiGenerateContent({
             model: 'gemini-2.5-flash',
             contents: `${planPrompt}\n\nDATA:\n${JSON.stringify(payload)}`,
             config: {
@@ -167,7 +157,7 @@ export async function planWeek({ instruction, scopeDates, currentProposal, libra
         throw describeApiError(err);
     }
 
-    const raw = cleanJson(response.text);
+    const raw = cleanJson(text);
     if (!raw) throw new Error('Gemini returned an empty response.');
     const parsed = JSON.parse(raw);
 
