@@ -22,10 +22,10 @@ Note: the codebase is **plain JavaScript, not TypeScript** — there is no `tsco
 - No `any` types — write JSDoc types (the code is JS, not TS)
 - Supabase is the source of truth once a table is live — `final_recipes.json` is only the offline fallback (older ingredient shape; reuse `consolidateIngredients.js` `normalizeIngredient()` to handle both shapes)
 - No hardcoded colors, fonts, or spacing — always reference `DESIGN_SYSTEM.md` tokens
-- Netlify env vars (set in Netlify, not committed): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY`
+- Netlify env vars (set in Netlify, not committed): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (client) + `GEMINI_API_KEY` (server, for the Gemini proxy function)
 
 ## Current status (Aug 2026)
 The Capture → Plan → Shop → Cook loop is **built and live in production** at https://thefoodi.netlify.app. See `.agent/FEATURES.md` for what shipped and what's next.
 
-## Known issue
-`VITE_GEMINI_API_KEY` is currently used client-side (baked into the bundle by Vite) — it's exposed to anyone who inspects the deployed JS. Planned fix: route Gemini calls through a Netlify function (see `AUDIT.md`).
+## Gemini
+All Gemini calls go through the Netlify function `netlify/functions/gemini.js` (server-side, holds `GEMINI_API_KEY`). The client (`src/lib/geminiClient.js`) POSTs to `/.netlify/functions/gemini`. The key never ships in the client bundle.
