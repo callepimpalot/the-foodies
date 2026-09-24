@@ -26,4 +26,13 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Netlify Functions run in Node, not the browser, so `process.env` is a real
+    // global there. Without this block every function using an env var trips
+    // no-undef, which is how gemini.js was already failing lint.
+    files: ['netlify/functions/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

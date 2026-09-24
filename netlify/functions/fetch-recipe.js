@@ -21,6 +21,92 @@ const DEFAULT_SERVINGS = 4;
 const DEFAULT_COOK_TIME_MINUTES = 30;
 const MIN_FALLBACK_TEXT_LENGTH = 200; // below this, there's nothing worth sending to Gemini
 const MAX_FALLBACK_TEXT_LENGTH = 15000; // cap what we forward, page bodies can be huge
+
+// ---------------------------------------------------------------------------
+// Social-post capture (Instagram / TikTok / YouTube Shorts)
+// ---------------------------------------------------------------------------
+// A social post is not a recipe web page: no JSON-LD, and the HTML is a login
+// shell. But its *caption* very often contains the whole recipe, written out
+// with quantities and steps. So this branch asks the social-ingest service on
+// the VPS (which has yt-dlp + ffmpeg; a Netlify Function cannot run either) for
+// the caption plus, when available, a spoken transcript — then hands that text
+// to the SAME Gemini path the generic fallback uses. No second AI integration,
+// no second recipe shape.
+//
+// Inert by default: with SOCIAL_INGEST_URL / SOCIAL_INGEST_TOKEN unset this
+// branch never runs and behaviour is byte-for-byte what it was before, so
+// shipping it can't break the existing capture flow.
+const SOCIAL_INGEST_TIMEOUT_MS = 8000; // under Netlify's 10s function limit
+const SOCIAL_TEXT_LENGTH_CAP = 8000;
+
+const SOCIAL_HOST_PATTERNS = [
+    /(^|\.)instagram\.com$/i,
+    /(^|\.)tiktok\.com$/i,
+    /(^|\.)youtube\.com$/i,
+    /(^|\.)youtu\.be$/i,
+];
+
+// Pure — imported by tests. True for a URL whose host serves social posts.
+export function isSocialPostUrl(str) {
+    let parsed;
+    try {
+        parsed = new URL(str);
+    } catch {
+        return false;
+    }
+    return SOCIAL_HOST_PATTERNS.some((re) => re.test(parsed.hostname));
+}
+
+export function socialIngestConfigured() {
+    return Boolean(process.env.SOCIAL_INGEST_URL && process.env.SOCIAL_INGEST_TOKEN);
+}
+
+// Pure — imported by tests. Turns the ingest service's bundle into the single
+// text blob Gemini reads. The provenance line is deliberate: the extraction
+// prompt already knows to take a poster's @handle as `creator` and to ignore
+// social-media chrome, so naming the source here is what makes that work.
+export function buildSocialText(bundle, fallbackUrl) {
+    const creator = bundle?.creator ? String(bundle.creator).trim() : '';
+    const url = bundle?.source_url || fallbackUrl || '';
+    const lines = [`Captured from a social post${creator ? ` by ${creator}` : ''}${url ? ` (${url})` : ''}.`];
+    const caption = (bundle?.caption ?? '').trim();
+    const transcript = (bundle?.transcript ?? '').trim();
+
+    if (caption) lines.push('', 'CAPTION:', caption);
+    if (transcript) lines.push('', 'SPOKEN TRANSCRIPT:', transcript);
+
+    return lines.join('\n').slice(0, SOCIAL_TEXT_LENGTH_CAP);
+}
+
+async function fetchSocialPost(url) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), SOCIAL_INGEST_TIMEOUT_MS);
+    try {
+        const base = String(process.env.SOCIAL_INGEST_URL).replace(/\/+$/, '');
+        const response = await fetch(`${base}/ingest`, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${process.env.SOCIAL_INGEST_TOKEN}`,
+            },
+            // deep:false is the caption/metadata path (~2-3s). Transcription is
+            // ~16s and cannot fit a serverless timeout — it stays a later,
+            // out-of-band job rather than something this function waits on.
+            body: JSON.stringify({ url, deep: false }),
+        });
+        if (!response.ok) return { error: `the social reader returned ${response.status}` };
+        const body = await response.json();
+        if (!body?.ok) return { error: body?.error || 'the social reader could not read that post' };
+        return { bundle: body };
+    } catch (err) {
+        if (err?.name === 'AbortError') return { error: 'timeout' };
+        return { error: 'unreachable' };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 const USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 MealBuddyRecipeBot/1.0';
 
@@ -345,6 +431,43 @@ export default async (req) => {
     }
     if (!isFetchableUrl(requestedUrl)) {
         return jsonResponse(400, { error: 'That doesn\'t look like a fetchable web address.' });
+    }
+
+    // Social posts go to the VPS ingest service instead of being fetched here.
+    // Skipped entirely (and silently) when unconfigured, so the existing flow is
+    // untouched on any deploy that hasn't been given the two env vars yet.
+    if (isSocialPostUrl(requestedUrl) && socialIngestConfigured()) {
+        const { bundle, error } = await fetchSocialPost(requestedUrl);
+
+        if (error === 'timeout') {
+            return jsonResponse(504, {
+                error: "That post took too long to read. Try again in a moment, or paste the recipe text directly.",
+            });
+        }
+        if (error) {
+            return jsonResponse(502, {
+                error: "Couldn't read that post right now. Try again in a moment, or paste the recipe text directly.",
+            });
+        }
+
+        const pageText = buildSocialText(bundle, requestedUrl);
+        const hasBody = (bundle?.caption ?? '').trim() || (bundle?.transcript ?? '').trim();
+        if (!hasBody) {
+            return jsonResponse(422, {
+                error: "That post has no caption or audio to read. Paste the recipe text directly instead.",
+            });
+        }
+
+        // Deliberately the SAME response shape as the generic page fallback
+        // below, so the client reuses extractRecipe({ text }) and we need no
+        // new code path, schema, or review screen.
+        return jsonResponse(200, {
+            source: 'fallback',
+            pageText,
+            pageTitle: bundle?.title || bundle?.creator || null,
+            source_url: bundle?.source_url || requestedUrl,
+            via: 'social',
+        });
     }
 
     const controller = new AbortController();
