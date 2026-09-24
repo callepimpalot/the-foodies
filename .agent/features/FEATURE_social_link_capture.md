@@ -101,5 +101,13 @@ complete recipe), an 11-slide carousel, and a single image post with a Danish ca
 - **Single point of failure:** if the VPS is down or the service isn't running, the branch
   returns a clear 502 with a "paste the recipe text instead" fallback. Nothing else in the app
   is affected.
-- **Durability:** there is no systemd unit for the service (installing one needs root), so a
-  VPS reboot leaves it down until something restarts it.
+- **Durability — resolved, but worth knowing how.** The service runs under systemd as a user
+  unit (`~/.config/systemd/user/social-ingest.service`, `Restart=always`), not as a
+  process spawned by an agent session. That matters: the first version *was* session-spawned and
+  died whenever the session was reset, which reads as a flaky feature rather than a lifecycle bug.
+  `Linger=yes` is enabled for the user, so it starts at boot with no login — the same mechanism
+  that keeps `hermes-gateway.service` alive. Verified: `kill -9` on the main PID → serving again
+  within 12 s. A Hermes cron watchdog (`~/.hermes/scripts/social_ingest_watchdog.sh`, every
+  15 min) stays silent when healthy, restarts the unit if it's down, and reports only when it had
+  to act — so a failure is never silent. Not reboot-tested (that would mean rebooting the VPS);
+  the mechanism is the same one the gateway already relies on.
