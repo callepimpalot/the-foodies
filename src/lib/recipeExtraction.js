@@ -215,12 +215,20 @@ export async function extractRecipeFromUrl(url) {
     }
 
     if (body?.source === 'jsonld' && body?.recipe) {
-        return body.recipe;
+        return { ...body.recipe, capture_image_url: body.imageUrl ?? null };
     }
 
     if (body?.source === 'fallback' && body?.pageText) {
         const recipe = await extractRecipe({ text: body.pageText });
-        return { ...recipe, source_url: body.source_url ?? trimmedUrl };
+        // capture_image_url is app metadata, not a Gemini field: it's the picture that came
+        // with the source (a social post's photo, or the blog's own image). The review screen
+        // attaches it and saving re-uploads it, so the stored recipe never hotlinks a CDN
+        // URL that expires.
+        return {
+            ...recipe,
+            source_url: body.source_url ?? trimmedUrl,
+            capture_image_url: body.imageUrl ?? null,
+        };
     }
 
     throw new Error("Couldn't find a recipe on that page. Try pasting the recipe text directly.");

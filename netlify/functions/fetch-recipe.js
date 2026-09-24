@@ -314,6 +314,16 @@ export function flattenInstructions(instructions) {
     return steps;
 }
 
+// Pure — imported by tests. The picture that ships with a recipe page: a plain string,
+// an array of them, or a schema.org ImageObject ({url}).
+export function extractImageUrl(node) {
+    const image = node?.image;
+    if (typeof image === 'string') return image.trim() || null;
+    if (Array.isArray(image)) return extractImageUrl({ image: image[0] });
+    if (image && typeof image === 'object') return firstString(image.url) || null;
+    return null;
+}
+
 // Maps a schema.org Recipe node to the app's recipe draft shape. Returns
 // null if the result isn't usable (no title, no steps) so the caller can
 // fall back to the Gemini text path instead of handing the review screen a
@@ -467,6 +477,10 @@ export default async (req) => {
             pageTitle: bundle?.title || bundle?.creator || null,
             source_url: bundle?.source_url || requestedUrl,
             via: 'social',
+            // The post's own picture, served by the ingest service (Instagram's CDN links
+            // are signed and expire within days, so they can't be stored directly). The
+            // client fetches this and copies it into the app's own storage on save.
+            imageUrl: bundle?.cover_image_url || null,
         });
     }
 
@@ -510,7 +524,7 @@ export default async (req) => {
     const recipe = recipeNode ? mapRecipeNode(recipeNode, requestedUrl) : null;
 
     if (recipe) {
-        return jsonResponse(200, { source: 'jsonld', recipe });
+        return jsonResponse(200, { source: 'jsonld', recipe, imageUrl: extractImageUrl(recipeNode) });
     }
 
     // No usable JSON-LD — fall back to handing the page's readable text to

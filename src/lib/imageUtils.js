@@ -38,3 +38,18 @@ export function fileToBase64(file) {
         reader.readAsDataURL(file);
     });
 }
+
+// Fetches a remote image and hands it back as a File, so a URL capture's own picture can go
+// through the exact same normalize/upload path as one the user picked themselves.
+// Returns null on any failure — no photo is a normal outcome, not an error worth surfacing.
+export async function imageFileFromUrl(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const blob = await response.blob();
+        if (!blob.type.startsWith('image/')) return null;
+        return new File([blob], `captured.${blob.type === 'image/png' ? 'png' : 'jpg'}`, { type: blob.type });
+    } catch {
+        return null;
+    }
+}

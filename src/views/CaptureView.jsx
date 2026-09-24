@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Camera, Image as ImageIcon, Plus, Trash2, ArrowLeft, X, Send, Utensils } from 'lucide-react';
 import { useRecipeCapture } from '../hooks/useRecipeCapture';
 import { useView } from '../context/ViewContext';
 import { useUnitPreference } from '../hooks/useUnitPreference';
 import { isUrlCapture as routesToUrlCapture } from '../lib/captureRouting';
+import { imageFileFromUrl } from '../lib/imageUtils';
 import { Button, IconButton } from '../components/ui/Button';
 import { TicketCard, BoardCard } from '../components/ui/TicketCard';
 
@@ -80,6 +81,23 @@ export function CaptureView() {
         if (dishPhoto) URL.revokeObjectURL(dishPhoto.previewUrl);
         setDishPhoto(null);
     };
+
+    // A URL capture can arrive with the source's own picture (a social post's photo, or the
+    // blog's image). Drop it into the same dishPhoto slot a hand-picked file would use, so
+    // saving copies it into Supabase Storage through the normal resize path — rather than
+    // storing a CDN link that expires in a few days. A photo the user picked by hand always
+    // wins, and a failed fetch just leaves the "Add a photo" button in place.
+    const captureImageUrl = draft?.capture_image_url ?? null;
+    useEffect(() => {
+        if (!captureImageUrl || status !== 'review') return undefined;
+        let cancelled = false;
+        (async () => {
+            const file = await imageFileFromUrl(captureImageUrl);
+            if (!file || cancelled) return;
+            setDishPhoto((prev) => (prev ? prev : { file, previewUrl: URL.createObjectURL(file) }));
+        })();
+        return () => { cancelled = true; };
+    }, [captureImageUrl, status]);
 
     const resetComposer = () => {
         images.forEach((img) => URL.revokeObjectURL(img.previewUrl));

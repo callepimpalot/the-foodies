@@ -37,8 +37,13 @@ export function useRecipeCapture() {
             const { recipe, changeSummary } = await refineRecipe(draft, instruction);
             // Gemini's refine schema doesn't carry source_url (it's app metadata, not something
             // we want an AI model trying to fill in for text/photo captures) — preserve it across
-            // the refine turn instead of losing it when the draft gets replaced.
-            setDraft({ ...recipe, source_url: draft?.source_url ?? recipe?.source_url });
+            // the refine turn instead of losing it when the draft gets replaced. Same for
+            // capture_image_url, or refining would silently drop the photo the capture attached.
+            setDraft({
+                ...recipe,
+                source_url: draft?.source_url ?? recipe?.source_url,
+                capture_image_url: draft?.capture_image_url ?? null,
+            });
             setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary }]);
         } catch (err) {
             console.error('Recipe refine failed:', err);
