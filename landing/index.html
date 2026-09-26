@@ -3,16 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meal Buddy</title>
+<title>Meal Buddy — one plan for the whole kitchen</title>
 
 <!--
-  FONT DIVERGENCE NOTE:
-  The live app self-hosts Anton, Zilla Slab, IBM Plex Sans and IBM Plex Mono via
-  @fontsource npm packages (see src/index.css). This file is a standalone static
-  page with no build step, so it can't import those packages — it loads the same
-  four families from Google Fonts instead, each with a real system fallback stack
-  matching the app's --f-display / --f-head / --f-body / --f-mono roles.
+  ============================================================================
+  LANDING PAGE v2  (branch: feat/landing-page-v2)
+  ============================================================================
+  Premise change, 2026-09-26: this page previously pitched a solo, account-free
+  personal tool ("No accounts", "a personal tool, not a product"). The product
+  direction is now multi-household — family and friends first, public sign-up
+  possible later — so the page is rewritten to match. Anything still asserting
+  "no accounts" is stale by definition.
+
+  WHAT IS REAL vs NOT WIRED (keep this honest, it is the point of the page):
+    real      — the four-stage loop, described from shipped code
+    real      — households, sharing and per-member attribution are the design
+                in .agent/features/FEATURE_family_households.md
+    NOT WIRED — the sign-up form. There is no auth yet and no endpoint behind it.
+                It degrades to an honest message. Wire it when auth ships.
+    MISSING   — og:image and favicon (see the assets queue in the PR). LinkedIn
+                and Slack will render this page without a preview card until the
+                og:image exists, so it is listed as a blocking asset, not a nice-to-have.
+
+  FONT NOTE: the app self-hosts Anton / Zilla Slab / IBM Plex Sans / IBM Plex Mono
+  via @fontsource. This is a standalone static page with no build step, so it loads
+  the same four families from Google Fonts, each with a real fallback stack matching
+  the app's --f-display / --f-head / --f-body / --f-mono roles.
 -->
+
+<meta name="description" content="Capture recipes from anywhere, plan a few days ahead, and keep one shopping list the whole household can see. Built for families who cook.">
+<meta name="theme-color" content="#14211B">
+<link rel="canonical" href="https://thefoodi.netlify.app/">
+
+<!-- Social preview — the whole reason this page exists for a LinkedIn post.
+     og:image is intentionally absent rather than pointing at a file that does not
+     exist; see the assets queue. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Meal Buddy">
+<meta property="og:title" content="Meal Buddy — one plan for the whole kitchen">
+<meta property="og:description" content="Capture recipes from anywhere, plan a few days ahead, and keep one shopping list the whole household can see.">
+<meta property="og:url" content="https://thefoodi.netlify.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Meal Buddy — one plan for the whole kitchen">
+<meta name="twitter:description" content="Capture recipes from anywhere, plan a few days ahead, and keep one shopping list the whole household can see.">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Zilla+Slab:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -73,9 +107,7 @@
     width: 100%;
   }
 
-  body {
-    -webkit-font-smoothing: antialiased;
-  }
+  body { -webkit-font-smoothing: antialiased; }
 
   img, svg { max-width: 100%; }
 
@@ -84,11 +116,15 @@
     margin: 0 auto;
     padding: 0 var(--sp-4);
   }
+  .wrap-wide { max-width: 940px; }
 
   /* ===== Header ===== */
   header.chrome {
     background: var(--board-2);
     border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
   header.chrome .wrap {
     display: flex;
@@ -96,6 +132,7 @@
     justify-content: space-between;
     padding-top: var(--sp-4);
     padding-bottom: var(--sp-4);
+    gap: var(--sp-4);
   }
   .wordmark {
     font-family: var(--f-head);
@@ -103,10 +140,22 @@
     font-size: 19px;
     color: var(--chalk);
     letter-spacing: 0.01em;
+    white-space: nowrap;
   }
-  .wordmark .dot {
-    color: var(--grease);
+  .wordmark .dot { color: var(--grease); }
+  .nav-cta {
+    font-family: var(--f-body);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--chalk);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 8px 14px;
+    white-space: nowrap;
+    transition: background 150ms ease;
   }
+  .nav-cta:hover { background: var(--line); }
 
   /* ===== Hero ===== */
   .hero {
@@ -130,13 +179,26 @@
     margin: 0 0 var(--sp-5) 0;
     color: var(--chalk);
   }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--grease);
+  }
   .hero p.lede {
     font-family: var(--f-body);
     font-size: 17px;
     line-height: 1.6;
     color: var(--chalk-dim);
-    max-width: 480px;
+    max-width: 520px;
     margin: 0 auto var(--sp-8) auto;
+  }
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+  @media (min-width: 560px) {
+    .hero-actions { flex-direction: row; justify-content: center; }
   }
 
   /* CTA — the ONE stamp element on this page */
@@ -154,9 +216,36 @@
     letter-spacing: 0.02em;
     box-shadow: var(--shadow-card);
     transition: transform 150ms ease;
+    cursor: pointer;
   }
   .btn-stamp:hover { transform: scale(0.98); }
   .btn-stamp:active { transform: scale(0.96); }
+
+  .btn-ghost {
+    display: inline-block;
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--chalk-dim);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 14px 30px;
+    text-decoration: none;
+    transition: color 150ms ease, border-color 150ms ease;
+  }
+  .btn-ghost:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+
+  /* small print under the fold — the honest bit */
+  .hero-fine {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--chalk-dim);
+    margin: var(--sp-6) auto 0 auto;
+    max-width: 440px;
+    letter-spacing: 0.02em;
+  }
 
   /* ===== Section shell ===== */
   section {
@@ -175,6 +264,62 @@
     color: var(--chalk);
     margin: 0;
   }
+  .section-head .sub {
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--chalk-dim);
+    max-width: 520px;
+    margin: var(--sp-3) auto 0 auto;
+  }
+
+  /* ===== Household — why shared matters ===== */
+  .house-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+  @media (min-width: 620px) {
+    .house-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .house-card {
+    background: var(--board-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--sp-5);
+  }
+  .house-card .tick {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--grease);
+    display: block;
+    margin-bottom: var(--sp-3);
+  }
+  .house-card h3 {
+    font-family: var(--f-head);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--chalk);
+    margin: 0 0 var(--sp-2) 0;
+  }
+  .house-card p {
+    font-family: var(--f-body);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--chalk-dim);
+    margin: 0;
+  }
+  .house-card code {
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    color: var(--chalk);
+    background: rgba(237,231,216,0.07);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xs);
+    padding: 1px 5px;
+  }
 
   /* ===== The loop — ticket cards ===== */
   .loop-rail {
@@ -191,6 +336,7 @@
     display: flex;
     gap: var(--sp-5);
     align-items: flex-start;
+    z-index: 1;
   }
   .ticket .num {
     font-family: var(--f-mono);
@@ -239,9 +385,7 @@
 
   /* connecting line between rail items on desktop */
   @media (min-width: 640px) {
-    .loop-rail {
-      position: relative;
-    }
+    .loop-rail { position: relative; }
     .loop-rail::before {
       content: "";
       position: absolute;
@@ -288,31 +432,98 @@
     color: var(--done);
     margin-right: var(--sp-2);
   }
-
   .isnt-summary {
     font-family: var(--f-body);
     font-style: italic;
     font-size: 15px;
     color: var(--chalk-dim);
     text-align: center;
-    max-width: 460px;
+    max-width: 500px;
     margin: var(--sp-8) auto 0 auto;
     line-height: 1.6;
   }
 
-  /* ===== Secondary CTA row (not a stamp — text link) ===== */
-  .cta-row {
+  /* ===== Sign-up ===== */
+  .signup {
+    background: var(--board-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: var(--sp-8) var(--sp-6);
     text-align: center;
-    padding-top: var(--sp-4);
   }
-  .cta-row a {
+  .signup h2 {
+    font-family: var(--f-head);
+    font-weight: 700;
+    font-size: 25px;
+    color: var(--chalk);
+    margin: 0 0 var(--sp-3) 0;
+  }
+  .signup p {
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--chalk-dim);
+    max-width: 460px;
+    margin: 0 auto var(--sp-6) auto;
+  }
+  .signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  @media (min-width: 520px) {
+    .signup-form { flex-direction: row; }
+  }
+  .signup-form input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--f-body);
+    font-size: 15px;
+    color: var(--chalk);
+    background: var(--board);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: 14px 16px;
+  }
+  .signup-form input::placeholder { color: var(--chalk-dim); }
+  .signup-form input:focus {
+    outline: none;
+    border-color: var(--grease);
+  }
+  .signup-form button {
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ticket);
+    background: var(--stamp);
+    border: 2px solid var(--stamp-ink);
+    border-radius: var(--r-sm);
+    padding: 14px 24px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .signup-form button:hover { transform: scale(0.99); }
+  .signup-note {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+    color: var(--chalk-dim);
+    margin: var(--sp-5) auto 0 auto;
+    max-width: 440px;
+  }
+  .signup-msg {
     font-family: var(--f-body);
     font-size: 14px;
-    font-weight: 500;
-    color: var(--chalk);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    line-height: 1.6;
+    color: var(--grease);
+    margin: var(--sp-5) auto 0 auto;
+    max-width: 440px;
+    display: none;
   }
+  .signup-msg.show { display: block; }
 
   /* ===== Footer ===== */
   footer {
@@ -333,11 +544,13 @@
     color: var(--chalk-dim);
     margin: 0;
   }
-  footer .foot-count {
+  footer .foot-meta {
     font-family: var(--f-mono);
     font-variant-numeric: tabular-nums;
     color: var(--chalk-dim);
+    font-size: 11.5px;
   }
+  footer a { color: var(--chalk-dim); text-decoration: underline; text-underline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -345,20 +558,80 @@
 <header class="chrome">
   <div class="wrap">
     <div class="wordmark">Meal Buddy<span class="dot">.</span></div>
+    <a class="nav-cta" href="#signup">Get in</a>
   </div>
 </header>
 
 <main>
   <section class="hero">
     <div class="wrap">
-      <div class="eyebrow">A personal culinary companion</div>
-      <h1>Capture what you<br>cook. Plan what's<br>next.</h1>
+      <div class="eyebrow">A shared kitchen companion</div>
+      <h1>One plan.<br>Everyone knows<br>what's for <em>dinner</em>.</h1>
       <p class="lede">
-        A place to keep your own recipes, plan a few days ahead, and cook with
-        your phone propped against the spice rack. Built for one household,
-        not a market.
+        Save the recipes your family actually cooks — pasted, photographed, or
+        lifted off a link. Plan a few days ahead. Then walk into the shop with
+        one list, not four screenshots.
       </p>
-      <a class="btn-stamp" href="https://thefoodi.netlify.app">Open the app</a>
+      <div class="hero-actions">
+        <a class="btn-stamp" href="#signup">Create your household</a>
+        <a class="btn-ghost" href="#loop">See how it works</a>
+      </div>
+      <p class="hero-fine">
+        Live · one household per family · everyone in the house sees the same plan
+      </p>
+    </div>
+  </section>
+
+  <section id="household">
+    <div class="wrap wrap-wide">
+      <div class="section-head">
+        <div class="eyebrow">Built for a household</div>
+        <h2>Not one device. One kitchen.</h2>
+        <p class="sub">
+          Most recipe apps hand you a catalog and call it personal. This one
+          belongs to the people you cook with — and it remembers who did what.
+        </p>
+      </div>
+
+      <div class="house-grid">
+        <div class="house-card">
+          <span class="tick">01 · Shared</span>
+          <h3>One recipe book, owned by the family</h3>
+          <p>
+            Everything you capture goes into the household's book, not into a
+            public library. Your recipes stay yours — they aren't pooled with
+            strangers' by default.
+          </p>
+        </div>
+
+        <div class="house-card">
+          <span class="tick">02 · Shared</span>
+          <h3>One plan you both look at</h3>
+          <p>
+            Plan on the sofa; the same plan is on the other phone in the
+            supermarket. Gaps are fine. Leftover nights borrow the night before.
+          </p>
+        </div>
+
+        <div class="house-card">
+          <span class="tick">03 · Individual</span>
+          <h3>See who planned what</h3>
+          <p>
+            Visibility inside the household, attribution per person — so the
+            plan is <code>Calle</code> put this on Tuesday, not a nameless edit.
+            It's also what makes "cook that one we both liked" answerable.
+          </p>
+        </div>
+
+        <div class="house-card">
+          <span class="tick">04 · Shared</span>
+          <h3>One list, consolidated</h3>
+          <p>
+            Lock the plan and every ingredient across every recipe collapses
+            into a single checked-off list, summed and sorted by aisle.
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -367,6 +640,7 @@
       <div class="section-head">
         <div class="eyebrow">How it works</div>
         <h2>The loop</h2>
+        <p class="sub">Capture → Plan → Shop → Cook. All four stages are built and live.</p>
       </div>
 
       <div class="loop-rail">
@@ -375,12 +649,12 @@
           <div class="body">
             <h3>Capture</h3>
             <p>
-              Paste a recipe as text, attach a photo or screenshot, or both
-              at once. It gets pulled into a structured recipe, and before
-              anything saves you can ask for changes in a back-and-forth
-              conversation until it's right.
+              Paste a recipe as text, attach a photo or screenshot, or both at
+              once — or drop in a link from a recipe blog or a social post and
+              let it read the caption. It comes back as a structured recipe, and
+              before anything saves you can ask for changes until it's right.
             </p>
-            <span class="tag">Text + photo, combined</span>
+            <span class="tag">Text + photo + link</span>
           </div>
         </div>
 
@@ -389,10 +663,12 @@
           <div class="body">
             <h3>Plan</h3>
             <p>
-              One meal a day, laid out a few days at a time. Tap a day, pick
-              a saved recipe, mark it as leftovers from another day, or just
-              leave a note. Gaps are fine — it's a plan, not a contract.
+              One meal a day, laid out a few days at a time. Pick a saved
+              recipe, mark a night as leftovers, or leave yourself a note. There
+              is also a planning chat that curates a shortlist with you instead
+              of guessing at a whole week.
             </p>
+            <span class="tag">Manual or curate-with-chat</span>
           </div>
         </div>
 
@@ -401,10 +677,9 @@
           <div class="body">
             <h3>Shop</h3>
             <p>
-              Once the plan is locked, the ingredients from every recipe on
-              it get pulled together into one checkable list, consolidated
-              and sorted by category so you're not reading four recipes in
-              the store.
+              Once the plan is locked, the ingredients from every recipe on it
+              get pulled together into one checkable list, consolidated, sorted
+              and ready to hand to whoever is in the shop.
             </p>
           </div>
         </div>
@@ -415,8 +690,8 @@
             <h3>Cook</h3>
             <p>
               A step-by-step view for when your hands are actually busy — a
-              servings stepper that scales quantities live, and a simple
-              countdown timer built in, so you're not switching apps mid-recipe.
+              servings stepper that scales quantities live, and a countdown
+              timer built in, so you're not switching apps mid-recipe.
             </p>
           </div>
         </div>
@@ -433,30 +708,54 @@
 
       <div class="isnt-grid">
         <div class="isnt-card">
-          <h3><span class="mark">&mdash;</span>No accounts</h3>
-          <p>Nobody signs up, nobody signs in. It's just there.</p>
-        </div>
-        <div class="isnt-card">
-          <h3><span class="mark">&mdash;</span>No subscription</h3>
-          <p>Nothing to renew, nothing that stops working if a card expires.</p>
-        </div>
-        <div class="isnt-card">
-          <h3><span class="mark">&mdash;</span>No ads</h3>
+          <h3><span class="mark">&mdash;</span>No ads, ever</h3>
           <p>Nothing trying to sell you a different recipe than the one you saved.</p>
         </div>
         <div class="isnt-card">
-          <h3><span class="mark">&mdash;</span>Your own recipes</h3>
-          <p>What's in it is what you or your family cooked — not a catalog to browse.</p>
+          <h3><span class="mark">&mdash;</span>No public catalog</h3>
+          <p>What's in it is what your household cooked — not a feed to scroll, not a browsable market.</p>
+        </div>
+        <div class="isnt-card">
+          <h3><span class="mark">&mdash;</span>No strangers in your kitchen</h3>
+          <p>Other families can't see your recipes, your plan or your list. That separation is enforced by the database, not by good manners.</p>
+        </div>
+        <div class="isnt-card">
+          <h3><span class="mark">&mdash;</span>No growing pile of screenshots</h3>
+          <p>Recipes stop living in your camera roll and your messages app, and start living somewhere both of you can find them.</p>
         </div>
       </div>
 
       <p class="isnt-summary">
-        Most recipe apps make their money on your attention or your card.
-        This one doesn't need to — it just needs to work in the kitchen.
+        Most recipe apps make their money on your attention or your card. This
+        one is built to be used at 6pm on a Tuesday.
       </p>
+    </div>
+  </section>
 
-      <div class="cta-row">
-        <a href="https://thefoodi.netlify.app">Open the app &rarr;</a>
+  <section id="signup">
+    <div class="wrap">
+      <div class="signup">
+        <h2>Want a household?</h2>
+        <p>
+          It's live and in daily use. Households are created by invite while the
+          account system lands — leave an email and you'll get one.
+        </p>
+
+        <!--
+          NOT WIRED YET. There is no auth and no endpoint behind this form.
+          It deliberately degrades to an honest message rather than pretending
+          a signup happened. Wire it to Supabase Auth (or a list endpoint) as
+          part of FEATURE_family_households.md, then delete this comment.
+        -->
+        <form class="signup-form" id="signup-form" novalidate>
+          <input type="email" id="signup-email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          <button type="submit">Request an invite</button>
+        </form>
+        <p class="signup-msg" id="signup-msg"></p>
+        <p class="signup-note">
+          One household per family · two or more adults, each with their own
+          account · recipes shared inside the household, never outside it
+        </p>
       </div>
     </div>
   </section>
@@ -464,10 +763,39 @@
 
 <footer>
   <div class="wrap">
-    <p>Meal Buddy &mdash; a personal tool, not a product.</p>
-    <p class="foot-count">v1</p>
+    <p>Meal Buddy — planning built for a household, not a device.</p>
+    <p class="foot-meta">Built in Denmark · <a href="https://thefoodi.netlify.app">open the app</a></p>
   </div>
 </footer>
+
+<script>
+  // Sign-up is intentionally not connected yet — see the comment above the form.
+  // This shows an honest message instead of silently doing nothing.
+  (function () {
+    var form = document.getElementById('signup-form');
+    var msg = document.getElementById('signup-msg');
+    var email = document.getElementById('signup-email');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var value = (email.value || '').trim();
+      var ok = value.indexOf('@') > 0 && value.indexOf('.', value.indexOf('@')) > -1;
+
+      if (!ok) {
+        msg.textContent = 'That email looks incomplete — mind checking it?';
+        msg.classList.add('show');
+        email.focus();
+        return;
+      }
+
+      // TODO: POST to Supabase Auth / a list endpoint when it exists.
+      msg.textContent =
+        'Noted, ' + value + ' — invites go out by hand right now, so it may take a day or two.';
+      msg.classList.add('show');
+      form.reset();
+    });
+  })();
+</script>
 
 </body>
 </html>
