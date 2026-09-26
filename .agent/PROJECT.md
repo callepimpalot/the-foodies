@@ -13,20 +13,33 @@ Last updated: Aug 6, 2026 — POC loop built and live in production.
 
 **Design soul:** The Chit Rail — a kitchen order ticket rail above a line cook's station. Dark chalkboard green, warm kraft paper, and rubber-stamp red accents. Self-hosted fonts via @fontsource (Anton, Zilla Slab, IBM Plex Sans/Mono) imported in src/index.css.
 
-**Who it is built for:** One dad, solo use. No auth, no family sharing, no moonshots in v1.
+**Who it is built for:** Started as one dad, solo. **Direction changed 2026-09-26** — it is now being
+built out as a real multi-household app: family and a few friends first, with public sign-up possible
+later, its own domain and landing page. The purpose includes gaining the experience of running a real
+product. Captured recipes, accounts and household sharing are therefore **in scope**, not vaulted.
+
+**Product premise (new):** this is treated as a small company's product, not a personal toy. That
+reframes the open work: market/competitor/unit-economics questions are legitimate here now, and
+"is it worth building" is no longer the default filter — "does it make the product viable" is.
 
 ---
 
 🗃️ Deferred / Vault (not v1 — do not build without a new brief)
 
 - Globe view of recipe library (visual universe of recipes by cuisine/origin)
-- Family sharing and multi-user profiles
-- Authentication / accounts
 - Swipe-based recipe discovery
 - Creator subscriptions
 - Print-on-demand cookbooks
 - Post-cook share cards ("Strava for Food")
 - Recipe forking / customisation (AI rewrite of a saved recipe into a personal variant) — the Capture "Ask for changes" chat covers pre-save refinement; post-save forking is still deferred
+
+**Promoted out of the vault (2026-09-26) — these now have briefs:**
+- **Authentication / accounts + Family sharing and multi-user profiles** → `FEATURE_family_households.md`.
+  Premise approved; **six schema decisions in that brief are still unanswered and remain the owner's.**
+- **Landing page / public face + domain** → `.agent/inspiration/TASK_06_landing_page.md`.
+- The prerequisite for both is **`TASK_07_plan_shop_to_supabase.md`** — Plan/Shop/Essentials moved into
+  Supabase. The family brief states plainly that it should ship first and be lived with, because it
+  delivers the real benefit (two phones, one plan) with no login screen at all.
 
 ---
 
@@ -34,7 +47,18 @@ Last updated: Aug 6, 2026 — POC loop built and live in production.
 
 **Current phase:** POC loop live in production at https://thefoodi.netlify.app — iterating on top of it.
 **Source of truth files:** DESIGN_SYSTEM.md, DATA_MODELS.md (rewritten Aug 6 against the real schema — trust it over this file for data shapes), FEATURES.md, AGENTS.md (legacy Gemini CTO Gem framework — retired, see CLAUDE.md's workflow note)
-**Deploy:** Netlify, auto-deploys from GitHub `main`. Requires `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY` set as Netlify environment variables (not secret-flagged — they're baked into the client bundle by design). The app is a PWA with a service worker; after any deploy, do a full close-and-reopen (not just refresh) before testing, or you may see a stale cached version.
+**Deploy:** Netlify, auto-deploys from GitHub `main`. Requires `VITE_SUPABASE_URL` and
+`VITE_SUPABASE_ANON_KEY` set as Netlify environment variables (not secret-flagged — they are
+necessarily in the client bundle). **Server-side secrets** (`GEMINI_API_KEY`, `SOCIAL_INGEST_URL`,
+`SOCIAL_INGEST_TOKEN`) live in Netlify env vars too but are **never** exposed to the client — all
+Gemini traffic goes through `netlify/functions/gemini.js`. The app is a PWA with a service worker;
+after any deploy, do a full close-and-reopen (not just refresh) before testing, or you may see a
+stale cached version.
+
+> **Corrected 2026-09-26.** Earlier revisions of this file stated that `VITE_GEMINI_API_KEY` was
+> "baked into the client bundle by design". That was true once and is **no longer**: commit
+> `b32e44a` moved Gemini calls server-side to stop leaking the key, and no `VITE_GEMINI_API_KEY`
+> remains in the client. Treat the client bundle as containing **no secrets**.
 
 ---
 
