@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Meal Buddy">
+  <title>Meal Buddy</title>
+  <!--
+    Meal Buddy mark — "The Chit Rail" (DESIGN_SYSTEM.md v3.0).
+
+    A kitchen order ticket clipped to the rail above the line. Flat vector, no
+    gradients, no font dependencies — deliberately text-free so it renders
+    identically in every context (standalone file, <img>, favicon, OG card) and
+    stays legible at 32px. The wordmark is live HTML text beside it on the page,
+    set in Zilla Slab, so it always uses the real typeface rather than an SVG
+    fallback.
+
+    Palette is taken verbatim from DESIGN_SYSTEM.md §2:
+      board #14211B · ticket #F1E7CC · ticket-shadow #D8C495
+      stamp #C1442C · grease #B98523 · chalk-dim #93A395
+  -->
+  <g>
+    <!-- the rail -->
+    <rect x="2" y="9" width="60" height="3" rx="1.5" fill="#93A395"/>
+    <rect x="2" y="13" width="60" height="1.5" rx="0.75" fill="#33493B"/>
+
+    <!-- the ticket, hanging below the rail, torn across the bottom -->
+    <path d="M10 15 H54 V49 L50.5 45.5 L47 49 L43.5 45.5 L40 49 L36.5 45.5 L33 49 L29.5 45.5 L26 49 L22.5 45.5 L19 49 L15.5 45.5 L10 51 Z"
+          fill="#F1E7CC"/>
+
+    <!-- punch hole, centred under the rail -->
+    <circle cx="32" cy="21" r="2.6" fill="#14211B"/>
+
+    <!-- fold line -->
+    <path d="M15 30.5 H49" stroke="#D8C495" stroke-width="1.6" stroke-dasharray="3 2.6" stroke-linecap="round"/>
+
+    <!-- grease-pencil tick: the meal is planned -->
+    <path d="M18 37.5 L23 42.5 L33 32.5" fill="none" stroke="#B98523" stroke-width="2.6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- the stamp — the one round element in the system, used once -->
+    <circle cx="46.5" cy="39" r="8.5" fill="#C1442C"/>
+    <path d="M43 39 L45.6 41.6 L50.2 36.4" fill="none" stroke="#F1E7CC" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

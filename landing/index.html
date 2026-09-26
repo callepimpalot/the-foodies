@@ -21,9 +21,11 @@
                 in .agent/features/FEATURE_family_households.md
     NOT WIRED — the sign-up form. There is no auth yet and no endpoint behind it.
                 It degrades to an honest message. Wire it when auth ships.
-    MISSING   — og:image and favicon (see the assets queue in the PR). LinkedIn
-                and Slack will render this page without a preview card until the
-                og:image exists, so it is listed as a blocking asset, not a nice-to-have.
+    SHIPPED   — og:image, favicon.svg/.ico and the four app screenshots, all in
+                landing/assets/ (see the asset notes at the top of <head>). The app
+                screenshots are real captures of the live app, not mock-ups: a plan
+                was built in the app first so the Plan and Shop shots show a real
+                week and its consolidated list rather than empty states.
 
   FONT NOTE: the app self-hosts Anton / Zilla Slab / IBM Plex Sans / IBM Plex Mono
   via @fontsource. This is a standalone static page with no build step, so it loads
@@ -35,17 +37,36 @@
 <meta name="theme-color" content="#14211B">
 <link rel="canonical" href="https://thefoodi.netlify.app/">
 
-<!-- Social preview — the whole reason this page exists for a LinkedIn post.
-     og:image is intentionally absent rather than pointing at a file that does not
-     exist; see the assets queue. -->
+<!-- Favicons — generated marks from landing/assets/. SVG first (crisp at every size,
+     most browsers want it), the multi-size .ico as the fallback for the rest. -->
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/x-icon" href="assets/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="assets/favicon.ico">
+
+<!-- Social preview — the reason this page exists for a LinkedIn post.
+     og:image is an ABSOLUTE URL on purpose: Slack, LinkedIn and WhatsApp do not
+     resolve relative image paths. It points at the copy of the card that the app
+     itself serves (repo path public/og-image.png -> https://thefoodi.netlify.app/
+     og-image.png) rather than the copy sitting next to this page, so the card
+     resolves no matter where this landing page is eventually hosted.
+     landing/assets/og-image.png is the source of truth; public/og-image.png is the
+     deployed copy. If you re-render the card, update both (see the regen steps in
+     landing/assets/og-image.src.html). -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Meal Buddy">
 <meta property="og:title" content="Meal Buddy — one plan for the whole kitchen">
 <meta property="og:description" content="Capture recipes from anywhere, plan a few days ahead, and keep one shopping list the whole household can see.">
 <meta property="og:url" content="https://thefoodi.netlify.app/">
+<meta property="og:image" content="https://thefoodi.netlify.app/og-image.png">
+<meta property="og:image:secure_url" content="https://thefoodi.netlify.app/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Meal Buddy — One plan. Everyone knows what's for dinner.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Meal Buddy — one plan for the whole kitchen">
 <meta name="twitter:description" content="Capture recipes from anywhere, plan a few days ahead, and keep one shopping list the whole household can see.">
+<meta name="twitter:image" content="https://thefoodi.netlify.app/og-image.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,7 +162,12 @@
     color: var(--chalk);
     letter-spacing: 0.01em;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
+    text-decoration: none;
   }
+  .wordmark img { width: 30px; height: 30px; display: block; flex-shrink: 0; }
   .wordmark .dot { color: var(--grease); }
   .nav-cta {
     font-family: var(--f-body);
@@ -443,6 +469,70 @@
     line-height: 1.6;
   }
 
+  /* ===== Real app screenshots =====
+     Captured from the live app (thefoodi.netlify.app) at a 390x844 phone viewport
+     and a 1440x900 desktop one, at devicePixelRatio 2, which is why the files are
+     780x1688 and 1440x900. Nothing here is mocked up. */
+  .shots {
+    margin-top: var(--sp-8);
+    display: flex;
+    gap: var(--sp-5);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;          /* design system: no visible scrollbar */
+    padding-bottom: var(--sp-2);
+  }
+  .shots::-webkit-scrollbar { display: none; }
+  .shots figure {
+    margin: 0;
+    flex: 0 0 208px;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 760px) {
+    .shots { overflow: visible; }
+    .shots figure { flex: 1 1 0; }
+  }
+  .shots img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-hero);
+    background: var(--board);
+  }
+  .shots figcaption {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--chalk-dim);
+    margin-top: var(--sp-3);
+    line-height: 1.6;
+  }
+  .shots figcaption b {
+    display: block;
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 13.5px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--chalk);
+    margin-bottom: 2px;
+  }
+  .shot-wide { margin-top: var(--sp-6); }
+  .shot-wide img { width: 100%; height: auto; border-radius: var(--r-md); border: 1px solid var(--line); box-shadow: var(--shadow-card); }
+  .shot-wide figcaption {
+    font-family: var(--f-mono); font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--chalk-dim); margin-top: var(--sp-3);
+  }
+  .shots-note {
+    font-family: var(--f-body);
+    font-size: 13px;
+    color: var(--chalk-dim);
+    margin: var(--sp-4) 0 0 0;
+  }
+
   /* ===== Sign-up ===== */
   .signup {
     background: var(--board-2);
@@ -557,7 +647,9 @@
 
 <header class="chrome">
   <div class="wrap">
-    <div class="wordmark">Meal Buddy<span class="dot">.</span></div>
+    <a class="wordmark" href="#top">
+      <img src="assets/logo.svg" alt="" width="30" height="30">Meal Buddy<span class="dot">.</span>
+    </a>
     <a class="nav-cta" href="#signup">Get in</a>
   </div>
 </header>
@@ -632,6 +724,33 @@
           </p>
         </div>
       </div>
+      <div class="shots">
+        <figure>
+          <img src="assets/screenshot-home-phone.png" width="390" height="844" loading="lazy"
+               alt="Meal Buddy home screen on a phone: the week ahead with the next meal, tonight's plan, and the pantry.">
+          <figcaption><b>Home</b>What's next, tonight</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/screenshot-plan-phone.png" width="390" height="844" loading="lazy"
+               alt="Meal Buddy plan screen on a phone: a few days planned, one night marked as leftovers.">
+          <figcaption><b>Plan</b>A few days, one meal each</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/screenshot-shop-phone.png" width="390" height="844" loading="lazy"
+               alt="Meal Buddy shopping list on a phone: every ingredient from the locked plan, consolidated and sorted by aisle.">
+          <figcaption><b>Shop</b>One list, sorted by aisle</figcaption>
+        </figure>
+      </div>
+
+      <figure class="shot-wide">
+        <img src="assets/screenshot-home-desktop.png" width="1440" height="900" loading="lazy"
+             alt="Meal Buddy on a laptop: the same household plan and recipe book at desktop width.">
+        <figcaption>The same household plan, on the laptop</figcaption>
+      </figure>
+
+      <p class="shots-note">
+        Real screens from the live app — a week planned in it, then photographed.
+      </p>
     </div>
   </section>
 
