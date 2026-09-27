@@ -1,7 +1,11 @@
 # Meal Buddy — Project Context
 
 ## What this is
-A personal culinary companion for one dad who talks to AI to capture recipes, plans a few days ahead, and cooks with his phone in the kitchen. Solo use v1 — no auth, no family sharing, no moonshots.
+A culinary companion for a household: talk to AI to capture recipes, plan a few days ahead, and cook with your phone in the kitchen.
+
+**Direction changed 2026-09-26 — this file previously said "Solo use v1 — no auth, no family sharing, no moonshots." That is no longer the premise.** The app is being built out as a real multi-household product: family and a few friends first, public sign-up possible later, with its own domain and landing page. **Auth, accounts and household sharing are IN SCOPE.** The six schema decisions are settled in `.agent/features/FEATURE_family_households.md` (all six recorded, with the owner's override that the seeded recipes are deleted rather than kept).
+
+**Consequence for any agent working here:** do not treat auth, sharing or "moonshots" as out of bounds, and do not cite this file's older wording as a reason to refuse that work. If a doc contradicts this paragraph, this paragraph wins — except that `.agent/DESIGN_SYSTEM.md` and `.agent/DATA_MODELS.md` still win on their own subjects.
 
 The loop: Capture → Plan → Shop → Cook → Iterate.
 
