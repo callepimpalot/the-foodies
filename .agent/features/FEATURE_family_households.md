@@ -2,17 +2,47 @@
 # Meal Buddy / The Foodies
 # Purpose: Turn the app from one dad on one device into a household of adults who share one plan, one list and one recipe book — safely.
 # Audience: Whoever builds it (planning + execution in Claude Code). Mostly engineer-mandate work; one small creator-mandate surface (the join/onboarding screen).
-# Status: **PROPOSAL — NOT APPROVED, NOT STARTED.** Six decisions below are the owner's and are deliberately left open.
+# Status: **DECISIONS ANSWERED 2026-09-26 — NOT STARTED.** All six questions below are answered; see *Decisions recorded* immediately after this block. The build has not begun: it is gated on TASK_07 having shipped and been lived with.
 
 > **Read this first.** `PROJECT.md` lists *Authentication / accounts* and *Family sharing and
 > multi-user profiles* under **Deferred / Vault — do not build without a new brief**. This file is
 > that brief, written from `TASK_12_family_households.md` so the idea can be reacted to instead of
-> re-derived. It does **not** approve the build. Nothing here should be implemented until the six
-> **UNDECIDED** questions have answers, because four of them change the schema, and schema is the
-> expensive thing to get wrong.
+> re-derived. It did not approve the build on its own — the six questions it raised are now answered
+> (2026-09-26), which is the approval it was waiting for. The build is still gated on TASK_07 having
+> shipped and been lived with, and that gate has not moved.
+>
+> **Answered 2026-09-26.** The six questions in *OPEN QUESTIONS* below are now decided — four of them
+> as recommended, two deliberately against it (Q2, where the imported recipes are deleted, and Q4,
+> owner + member). The answers are written under each question, marked *ANSWERED*, so this file can be
+> read top to bottom without cross-referencing.
 >
 > Written by an autonomous agent run on Aug 22, 2026. Every judgement call is marked as a
 > recommendation, never as a decision.
+
+---
+
+## DECISIONS RECORDED — 2026-09-26
+
+| # | Question | Answer | Against the recommendation? |
+|---|---|---|---|
+| Q1 | Are captured recipes private? | **A — private by default** | no |
+| Q2 | Do the 400 imported recipes stay global? | **Neither — they are deleted.** See Q2. | **yes, deliberately** |
+| Q3 | Can one person belong to two households? | **A — allowed in the schema, one exposed in the UI** | no |
+| Q4 | Roles, or all members equal? | **B — owner + member.** The owner creates the household and can invite/remove; every member does everything else. | yes |
+| Q5 | What happens to the plan when a member leaves? | **A — the household keeps everything, attribution intact** | no |
+| Q6 | How is a non-technical person onboarded? | **A — invite link + password**, with the code as unadvertised small print | no |
+
+Also settled the same day: the product name stays **Meal Buddy**; the owner is a *permission*, not a
+title; the landing page stays **unrouted** until the owner says otherwise.
+
+**Consequence for Q2 that a reviewer must not miss.** Deleting the imported rows is a destructive
+change to live data, so it is delivered as reviewable SQL that has never been run:
+`supabase/migrations/20260927_archive_seeded_recipes.sql` (archive the rows, then delete, with
+guards) and `supabase/rollback/20260927_restore_seeded_recipes.sql` (undo, deliberately outside
+`supabase/migrations/` so the CLI can never apply it automatically). The Q2-A work below — making
+the library global and read-only — is then moot for the imported set: there is no global library
+left to make read-only, and `household_id is null` in the `recipes` policies will match nothing.
+Every capture is household-owned from the first day of this feature, which is the simpler world.
 
 ---
 
@@ -155,8 +185,9 @@ preference. Going private → public later is a migration anyone can run. Going 
 is a conversation with every family who used your recipes. When one direction is cheap to reverse
 and the other is not, take the cheap one and let real demand pull you the other way.
 
-> **UNDECIDED — awaiting the owner**
-> ANSWER:
+> **ANSWERED 2026-09-26 — A, private by default.** A captured recipe belongs to the household that
+> captured it. `recipes.household_id` is set on every capture and no captures are shared across
+> households. A "share this recipe" action is a later feature, not part of this build.
 
 ---
 
@@ -177,8 +208,20 @@ the edit forks it into a household-owned copy, leaving the global one untouched.
 already-deferred "recipe forking" idea arriving through the back door — flagging it so it is a
 choice rather than a surprise.
 
-> **UNDECIDED — awaiting the owner**
-> ANSWER:
+> **ANSWERED 2026-09-26 — neither A nor B: the 400 imported rows are DELETED.** The owner's words:
+> *"I actually want the initial 400 removed from the app. I hate those recipes actually... The app
+> will grow with the user!"* It is delivered as reviewable, reversible SQL that has never been run —
+> `supabase/migrations/20260927_archive_seeded_recipes.sql` (archive, then delete, with guards) and
+> `supabase/rollback/20260927_restore_seeded_recipes.sql` (the undo, kept outside
+> `supabase/migrations/` so the CLI can never apply it automatically).
+>
+> Consequence for the schema, which is the part that changes the design below: **there is no global
+> library**, so `household_id is null` stops meaning "the library" and simply matches nothing. Two
+> things follow. First, every `recipes` row is household-owned once this feature ships, which makes
+> the policies simpler rather than more complex — the `household_id is not null` clauses that guard
+> INSERT and UPDATE become belt-and-braces rather than the load-bearing rule. Second, the "fork on
+> edit" question in the paragraph above disappears: there is no global row to fork. Keep the
+> `household_id is null` clause only if a shared library is wanted later, and say so when adding one.
 
 ---
 
@@ -202,8 +245,10 @@ because a member no longer has *one* household id to cache. Policies do a member
 That is one indexed lookup on a table with single-digit rows — irrelevant at this scale, but it is
 the reason B exists as an option.
 
-> **UNDECIDED — awaiting the owner**
-> ANSWER:
+> **ANSWERED 2026-09-26 — A.** Many-to-many in the schema, one household exposed in the UI, and no
+> household switcher until someone actually needs one. The composite primary key on
+> `household_members` stays exactly as written in *Data model reference*; the membership-lookup
+> policies stay as written too, with no `app_metadata` caching.
 
 ---
 
@@ -224,8 +269,24 @@ One consequence to be comfortable with under A: **any member can remove any othe
 including the last one. Recommend a single guard — a household must always keep at least one member
 — rather than a role system.
 
-> **UNDECIDED — awaiting the owner**
-> ANSWER:
+> **ANSWERED 2026-09-26 — B, owner + member. This is the one answer that goes against the
+> recommendation above.** The owner creates the household and is the only member who can invite or
+> remove; every member does everything else (plan, shop, capture, rename). `role` is therefore read
+> rather than reserved, and holds `'owner'` / `'member'`.
+>
+> Because this reverses the recommendation, the two problems the recommendation was avoiding are now
+> accepted deliberately rather than solved, and each needs its own answer during the build:
+>
+> 1. **"The owner is on holiday and nobody can invite the new person."** A real cost, accepted. It is
+>    why flow B still has to work well for the owner and why ownership must be *transferable* — the
+>    cheap fix is a transfer action in Profile, not loosening the invite permission.
+> 2. **"A household never drops to zero members" is no longer a sufficient guard.** Under B a
+>    household can still drop to zero *owners* — the last owner leaves — and from that moment nobody
+>    can ever invite or remove anyone again. Whatever guard is built must cover owner-count, not just
+>    member-count; the single-member trigger from the recommendation is the backstop, not the answer.
+>
+> Both are written down here rather than left to the implementation, because they are consequences of
+> this specific answer, not general risks.
 
 ---
 
@@ -246,8 +307,10 @@ reasons that are not about ownership: attribution is unrecoverable retroactively
 meals we both liked"* needs it. Note this is **attribution, not ownership** — the household still
 owns the row.
 
-> **UNDECIDED — awaiting the owner**
-> ANSWER:
+> **ANSWERED 2026-09-26 — A.** The household keeps everything: the plan, the list, the essentials,
+> the captured recipes, the cook feedback. Leaving is a membership row deleted and nothing else. The
+> `created_by_member_id` columns stay on captures and on `cook_feedback` — attribution, not
+> ownership, exactly as the paragraph above puts it.
 
 ---
 
@@ -271,8 +334,17 @@ deep-link handling on an installed PWA, which is genuinely finicky and hard to t
 devices. If effort has to be cut somewhere in this task, this is the place where cutting is most
 tempting and most damaging — the whole point is that she does not have to care how it works.
 
-> **UNDECIDED — awaiting the owner**
-> ANSWER:
+> **ANSWERED 2026-09-26 — A, invite link + password, with the code as unadvertised small print.**
+> Flow B above is the flow to build. Concretely, so the small print cannot drift:
+>
+> - **No code is ever a primary path.** It must not appear on the join screen at equal weight, in the
+>   invite share text, or in any instruction — if it is on screen beside the link, it becomes the path
+>   people take, and it is the path that fails.
+> - The code's only job is the case where a link gets mangled by a messaging app, on a screen you
+>   reach after the link has already failed. Small print, copyable, nothing else.
+> - This is the highest-effort answer available here (PWA deep-link handling, real devices), and it is
+>   accepted at that price rather than trimmed later — noted because it is the most tempting place to
+>   cut, and cutting it is what makes the whole feature feel like an IT task to her.
 
 ---
 
