@@ -51,11 +51,20 @@
 --   is strictly looser than authenticated RLS. Do not let it become permanent —
 --   the swap is written out at the bottom of this file.
 --
--- SAFE TO RUN? It is purely additive: five new tables, their policies, two
+-- SAFE TO RUN? It is purely additive: six new tables, their policies, two
 -- helper functions and two RPCs. Nothing existing is altered or dropped. No
 -- data is touched. It has NOT been run (there are no credentials available to
 -- this session) — apply it in a branch of the database and run get_advisors
 -- before trusting it.
+--
+-- SAFE TO RUN TWICE? Yes, and that is what the `drop policy if exists` /
+-- `drop trigger if exists` lines are for. PostgreSQL has no
+-- `create policy if not exists`, so a bare `create policy` raises 42710 on a
+-- second application — and the Supabase CLI wraps a migration in a transaction,
+-- so that error rolls the whole file back and "just re-run it" turns red. Every
+-- policy and trigger below is therefore preceded by a matching drop, which is a
+-- no-op on a first application. scripts/migration_reapply_check.mjs asserts
+-- this; it is a static file-text check and does not prove the SQL executes.
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -131,11 +140,13 @@ comment on table public.households is
 
 alter table public.households enable row level security;
 
+drop policy if exists "household reads its own row" on public.households;
 create policy "household reads its own row"
   on public.households for select
   to anon, authenticated
   using (id = public.request_household_id());
 
+drop policy if exists "household renames itself" on public.households;
 create policy "household renames itself"
   on public.households for update
   to anon, authenticated
@@ -188,28 +199,33 @@ create table if not exists public.meal_plans (
 create index if not exists meal_plans_household_date_idx
   on public.meal_plans (household_id, plan_date);
 
+drop trigger if exists meal_plans_touch on public.meal_plans;
 create trigger meal_plans_touch
   before update on public.meal_plans
   for each row execute function public.touch_updated_at();
 
 alter table public.meal_plans enable row level security;
 
+drop policy if exists "household reads its own plan" on public.meal_plans;
 create policy "household reads its own plan"
   on public.meal_plans for select
   to anon, authenticated
   using (household_id = public.request_household_id());
 
+drop policy if exists "household writes its own plan" on public.meal_plans;
 create policy "household writes its own plan"
   on public.meal_plans for insert
   to anon, authenticated
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household updates its own plan" on public.meal_plans;
 create policy "household updates its own plan"
   on public.meal_plans for update
   to anon, authenticated
   using (household_id = public.request_household_id())
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household clears days from its own plan" on public.meal_plans;
 create policy "household clears days from its own plan"
   on public.meal_plans for delete
   to anon, authenticated
@@ -235,22 +251,26 @@ create table if not exists public.shopping_state (
     check (jsonb_typeof(checked_keys) = 'array')
 );
 
+drop trigger if exists shopping_state_touch on public.shopping_state;
 create trigger shopping_state_touch
   before update on public.shopping_state
   for each row execute function public.touch_updated_at();
 
 alter table public.shopping_state enable row level security;
 
+drop policy if exists "household reads its own shopping state" on public.shopping_state;
 create policy "household reads its own shopping state"
   on public.shopping_state for select
   to anon, authenticated
   using (household_id = public.request_household_id());
 
+drop policy if exists "household writes its own shopping state" on public.shopping_state;
 create policy "household writes its own shopping state"
   on public.shopping_state for insert
   to anon, authenticated
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household updates its own shopping state" on public.shopping_state;
 create policy "household updates its own shopping state"
   on public.shopping_state for update
   to anon, authenticated
@@ -286,28 +306,33 @@ create table if not exists public.essentials (
   primary key (household_id, item_id)
 );
 
+drop trigger if exists essentials_touch on public.essentials;
 create trigger essentials_touch
   before update on public.essentials
   for each row execute function public.touch_updated_at();
 
 alter table public.essentials enable row level security;
 
+drop policy if exists "household reads its own essentials" on public.essentials;
 create policy "household reads its own essentials"
   on public.essentials for select
   to anon, authenticated
   using (household_id = public.request_household_id());
 
+drop policy if exists "household writes its own essentials" on public.essentials;
 create policy "household writes its own essentials"
   on public.essentials for insert
   to anon, authenticated
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household updates its own essentials" on public.essentials;
 create policy "household updates its own essentials"
   on public.essentials for update
   to anon, authenticated
   using (household_id = public.request_household_id())
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household removes its own essentials" on public.essentials;
 create policy "household removes its own essentials"
   on public.essentials for delete
   to anon, authenticated
@@ -322,28 +347,33 @@ create table if not exists public.essentials_categories (
   primary key (household_id, category_id)
 );
 
+drop trigger if exists essentials_categories_touch on public.essentials_categories;
 create trigger essentials_categories_touch
   before update on public.essentials_categories
   for each row execute function public.touch_updated_at();
 
 alter table public.essentials_categories enable row level security;
 
+drop policy if exists "household reads its own essential categories" on public.essentials_categories;
 create policy "household reads its own essential categories"
   on public.essentials_categories for select
   to anon, authenticated
   using (household_id = public.request_household_id());
 
+drop policy if exists "household writes its own essential categories" on public.essentials_categories;
 create policy "household writes its own essential categories"
   on public.essentials_categories for insert
   to anon, authenticated
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household updates its own essential categories" on public.essentials_categories;
 create policy "household updates its own essential categories"
   on public.essentials_categories for update
   to anon, authenticated
   using (household_id = public.request_household_id())
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household removes its own essential categories" on public.essentials_categories;
 create policy "household removes its own essential categories"
   on public.essentials_categories for delete
   to anon, authenticated
@@ -364,22 +394,26 @@ create table if not exists public.plan_state (
   updated_at    timestamptz not null default now()
 );
 
+drop trigger if exists plan_state_touch on public.plan_state;
 create trigger plan_state_touch
   before update on public.plan_state
   for each row execute function public.touch_updated_at();
 
 alter table public.plan_state enable row level security;
 
+drop policy if exists "household reads its own plan state" on public.plan_state;
 create policy "household reads its own plan state"
   on public.plan_state for select
   to anon, authenticated
   using (household_id = public.request_household_id());
 
+drop policy if exists "household writes its own plan state" on public.plan_state;
 create policy "household writes its own plan state"
   on public.plan_state for insert
   to anon, authenticated
   with check (household_id = public.request_household_id());
 
+drop policy if exists "household updates its own plan state" on public.plan_state;
 create policy "household updates its own plan state"
   on public.plan_state for update
   to anon, authenticated
