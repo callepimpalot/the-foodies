@@ -95,16 +95,38 @@ check('archive insert happens before the delete',
 // ── the guards ────────────────────────────────────────────────────────────────────────────────
 // A (empty archive) and B (a personal row reached the archive) must fire *before* the delete.
 // C (deleted != archived) can only be evaluated after it — it is the post-condition.
-const guardA = sql.indexOf('if archived_count = 0 then');
+// The guard variables are named for what the *block* knows: `archived_total` is the archive's size
+// once the insert has run, `archived_count` is what this application added to it. Both are checked
+// against by name below, because which one guard C uses is the whole difference between a
+// re-appliable file and one that aborts on a second run.
+const guardA = sql.indexOf('if archived_total = 0 then');
+const guardA2 = sql.indexOf('if archived_total > 450 then');
 const guardB = sql.indexOf('if personal_count > 0 then');
 const guardC = sql.indexOf('if deleted_count <> archived_count then');
-check('a guard caps the blast radius (450)', /archived_count\s*>\s*450/.test(sql));
+check('a guard caps the blast radius (450)', guardA2 !== -1);
 check('a guard refuses an empty archive', guardA !== -1);
 check('a guard refuses personal rows in the archive', guardB !== -1 && /is_personal is true/.test(sql));
 check('a guard requires deleted = archived', guardC !== -1);
-check('guards A and B run before the delete',
-    guardA !== -1 && guardB !== -1 && guardA < deleteIdx && guardB < deleteIdx);
+check('guards A, A2 and B run before the delete',
+    guardA !== -1 && guardA2 !== -1 && guardB !== -1 &&
+    guardA < deleteIdx && guardA2 < deleteIdx && guardB < deleteIdx);
 check('guard C runs after the delete', guardC !== -1 && guardC > deleteIdx);
+
+// ── re-apply safety — the property the header claims ──────────────────────────────────────────
+// Guard C's right-hand side must be "rows archived BY THIS APPLICATION", not the archive's total.
+// If it goes back to the total, a second application compares 0 deleted against the ~400 rows
+// already sitting in the archive and aborts — a red failure on a file whose own header says it is
+// idempotent, on the one migration in this repo where a rushed operator's next move is to start
+// deleting guards until it runs. The mechanism is `get diagnostics archived_count = row_count`
+// straight after the insert, which is why the insert has to live inside the same block as the
+// delete: outside it, the block has no count of this application's own work.
+const doIdx = sql.indexOf('do $$');
+check('the archive insert runs inside the guarded block, so the block can count its own work',
+    insertIdx !== -1 && doIdx !== -1 && insertIdx > doIdx && insertIdx < deleteIdx);
+check('guard C compares against the rows this application archived, not the whole archive',
+    /get diagnostics archived_count = row_count/.test(sql) &&
+    /archived_total\s*:=\s*archived_before \+ archived_count/.test(sql) &&
+    guardC !== -1);
 
 // ── the archive is not part of the product ────────────────────────────────────────────────────
 check('archive has RLS enabled', /alter table public\.recipes_archive_20260927 enable row level security/.test(sql));

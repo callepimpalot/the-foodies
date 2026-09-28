@@ -15,6 +15,7 @@
 --   2. copies every row it is about to delete into that archive, skipping ids already archived
 --   3. deletes exactly those rows from public.recipes
 --   4. aborts the whole transaction if anything is not as expected — see the guards at the bottom
+--   5. is safe to apply twice: a re-run archives nothing, deletes nothing and commits cleanly
 --
 -- WHAT IT DOES NOT DO
 --   * It does not touch user-captured or AI-planned recipes. src/lib/saveRecipe.js always writes
@@ -51,41 +52,52 @@ begin;
 create table if not exists public.recipes_archive_20260927
   (like public.recipes including all);
 
--- 2 ── archive every imported-library row that is not already archived. Idempotent: re-running
---      this file archives nothing new and deletes nothing new.
-insert into public.recipes_archive_20260927
-select r.*
-from public.recipes r
-where coalesce(r.is_personal, false) = false
-  and not exists (
-    select 1 from public.recipes_archive_20260927 a where a.id = r.id
-  );
-
--- The archive is not part of the product. Lock it down: RLS on with no policies, and no grants.
-alter table public.recipes_archive_20260927 enable row level security;
-revoke all on public.recipes_archive_20260927 from anon, authenticated;
-comment on table public.recipes_archive_20260927 is
-  'Rows removed from public.recipes by 20260927_archive_seeded_recipes.sql (the 400 bulk-imported '
-  'Epicurious recipes). Restore with supabase/rollback/20260927_restore_seeded_recipes.sql.';
-
--- 3 ── delete, guarded. Identical predicate to the archive insert above, asserted by
---      scripts/recipe_deletion_check.mjs.
+-- 2 ── archive, then delete. Both steps now live in ONE block, and that is a fix, not a tidy-up.
+--      They used to be split: the insert ran outside the DO block, and guard C compared the
+--      delete count against the *whole* archive. That made the header's "Idempotent" claim false.
+--      A second application archives nothing new (the `not exists` is doing its job), so
+--      guard C compared 0 deleted against the 400 rows already sitting in the archive and aborted
+--      with 'deleted 0 rows but archived 400 rows'. Nothing was ever deleted by that abort — the
+--      guards did their job — but a file documented as idempotent that goes red on a re-run is a
+--      file an operator cannot trust with a delete.
+--      With both steps in one block, the block can compare "rows archived by THIS application"
+--      (get diagnostics row_count, taken straight after the insert) with "rows THIS application
+--      deleted". On a re-run that is 0 = 0 and the file commits cleanly.
+--
+--      Idempotent: re-running this file archives nothing new and deletes nothing new.
 do $$
 declare
-  archived_count integer;
-  deleted_count  integer;
-  personal_count integer;
+  archived_before integer;   -- rows already in the archive when this application started
+  archived_count  integer;   -- rows archived BY THIS APPLICATION
+  archived_total  integer;   -- archive size once the insert above has run
+  deleted_count   integer;
+  personal_count  integer;
 begin
-  select count(*) into archived_count from public.recipes_archive_20260927;
+  select count(*) into archived_before from public.recipes_archive_20260927;
 
-  -- Guard A — the archive must exist and hold the expected order of magnitude.
-  if archived_count = 0 then
+  insert into public.recipes_archive_20260927
+  select r.*
+  from public.recipes r
+  where coalesce(r.is_personal, false) = false
+    and not exists (
+      select 1 from public.recipes_archive_20260927 a where a.id = r.id
+    );
+  get diagnostics archived_count = row_count;
+
+  archived_total := archived_before + archived_count;
+
+  -- Guard A — there must be something in the archive to justify a delete. Keyed off the total,
+  -- not off this application's contribution: on a re-run nothing matches, and that is correct
+  -- rather than a reason to stop.
+  if archived_total = 0 then
     raise exception 'archive is empty: nothing matched the imported-library predicate, so the '
                     'predicate is wrong for this database. No rows deleted.';
   end if;
-  if archived_count > 450 then
+  -- Guard A2 — the blast radius, also measured on the archive as a whole so a re-run is held to
+  -- the same ceiling as a first run.
+  if archived_total > 450 then
     raise exception 'archive holds % rows, more than the 400 imported plus a small margin. '
-                    'Stop and read the predicate before deleting. No rows deleted.', archived_count;
+                    'Stop and read the predicate before deleting. No rows deleted.', archived_total;
   end if;
 
   -- Guard B — a captured recipe must never be in the archive. This is the guard that makes the
@@ -97,18 +109,33 @@ begin
                     'delete. No rows deleted.', personal_count;
   end if;
 
+  -- 3 ── delete, guarded. Identical predicate to the archive insert above, asserted by
+  --      scripts/recipe_deletion_check.mjs.
   delete from public.recipes
   where coalesce(is_personal, false) = false;
   get diagnostics deleted_count = row_count;
 
-  -- Guard C — the delete must remove exactly what was archived, no more and no less.
+  -- Guard C — the delete must remove exactly the rows THIS APPLICATION archived, no more and no
+  -- less. It also refuses one awkward case: a previously archived row that has reappeared in
+  -- public.recipes. The insert skips it (already archived) while the delete still removes it, so
+  -- the two counts disagree and the transaction rolls back for a human to look at, rather than
+  -- quietly deleting it for a second time.
   if deleted_count <> archived_count then
-    raise exception 'deleted % rows but archived % rows. Rolling back.', deleted_count, archived_count;
+    raise exception 'deleted % rows but this application archived % rows (the archive held % '
+                    'before it ran). Rolling back.', deleted_count, archived_count, archived_before;
   end if;
 
-  raise notice 'archived % rows, deleted % rows from public.recipes.', archived_count, deleted_count;
+  raise notice 'archived % new row(s) (archive now %), deleted % row(s) from public.recipes.',
+               archived_count, archived_total, deleted_count;
 end
 $$;
+
+-- The archive is not part of the product. Lock it down: RLS on with no policies, and no grants.
+alter table public.recipes_archive_20260927 enable row level security;
+revoke all on public.recipes_archive_20260927 from anon, authenticated;
+comment on table public.recipes_archive_20260927 is
+  'Rows removed from public.recipes by 20260927_archive_seeded_recipes.sql (the 400 bulk-imported '
+  'Epicurious recipes). Restore with supabase/rollback/20260927_restore_seeded_recipes.sql.';
 
 commit;
 
