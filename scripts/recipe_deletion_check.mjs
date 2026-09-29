@@ -114,6 +114,21 @@ check('guards A, A2 and B run before the delete',
     guardA < deleteIdx && guardA2 < deleteIdx && guardB < deleteIdx);
 check('guard C runs after the delete', guardC !== -1 && guardC > deleteIdx);
 
+// B2 and D were added after the first review pass and had no assertion of their own until now — the
+// two guards carrying the file's central promise (a capture cannot be deleted) were the two the
+// suite did not read. B2 covers the one row the predicate cannot classify; D is the only guard that
+// measures the live table rather than the archive.
+const guardB2 = sql.indexOf('if unknown_count > 0 then');
+const guardD = sql.indexOf('if personal_live_after <> personal_live_before then');
+check('a guard refuses archived rows whose is_personal is NULL',
+    guardB2 !== -1 && /where is_personal is null/.test(sql));
+check('guard B2 runs before the delete', guardB2 !== -1 && guardB2 < deleteIdx);
+check("a guard counts the live table's personal rows before and after the delete",
+    /select count\(\*\) into personal_live_before from public\.recipes where is_personal is true/.test(sql) &&
+    /select count\(\*\) into personal_live_after from public\.recipes where is_personal is true/.test(sql));
+check("guard D (the live-table personal count) runs after the delete",
+    guardD !== -1 && guardD > deleteIdx);
+
 // ── re-apply safety — the property the header claims ──────────────────────────────────────────
 // Guard C's right-hand side must be "rows archived BY THIS APPLICATION", not the archive's total.
 // If it goes back to the total, a second application compares 0 deleted against the ~400 rows
@@ -143,6 +158,10 @@ check('restore script is NOT inside supabase/migrations',
     !MIGRATION.startsWith(RESTORE) && RESTORE.includes('/rollback/'));
 check('restore inserts back into public.recipes',
     /insert into public\.recipes/.test(restore));
+check('restore names the target columns explicitly (not a positional insert)',
+    /insert into public\.recipes\s*\(\s*id\s*,/.test(restore));
+check('restore no longer relies on column order (`select a.*` is gone)',
+    !/\bselect\s+a\.\*\s+from\s+public\.recipes_archive_20260927/.test(restore));
 check('restore reads from the archive', /public\.recipes_archive_20260927/.test(restore));
 check('restore keeps original ids (on conflict (id) do nothing)',
     /on conflict \(id\) do nothing/.test(restore));
