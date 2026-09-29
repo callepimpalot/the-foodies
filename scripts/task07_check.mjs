@@ -13,6 +13,7 @@
  * in the PR description as the reviewer's checklist.
  */
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const {
@@ -210,6 +211,73 @@ check('after a confirmed save it will not run again',
         legacyKeys: ['meal_buddy_plan'],
         targetCacheKey: 'meal_buddy_plan_doc',
     }).alreadyDone, true);
+
+// ---------------------------------------------------------------------------
+// The migration file itself.
+//
+// Everything above checks the *code* half of TASK_07. These check the three
+// schema promises the code half leans on, which until now were made only in
+// prose in the migration's header: the join code's shape, the fact that a
+// recipe day is renderable, and the transaction the file is applied in. They are
+// still file-text checks — no engine is involved, and none is available here —
+// but they fail if the migration and the mapper drift apart, which is the
+// failure mode that would otherwise only appear on the first real application.
+//
+// The file is read relative to this script, so it must be run from a checkout of
+// the branch that owns it.
+// ---------------------------------------------------------------------------
+
+console.log('\nThe migration — the schema promises the mapper depends on');
+
+const sql = readFileSync(
+    new URL('../supabase/migrations/20260926_task07_household_planning.sql', import.meta.url),
+    'utf8',
+);
+/** Whitespace-collapsed, so reformatting a file cannot fail a check. */
+const flat = sql.replace(/\s+/g, ' ');
+
+const codeShape = flat.match(
+    /constraint households_join_code_shape check \(join_code ~ '([^']+)'\)/,
+);
+const generatorAlphabet = flat.match(/alphabet text := '([A-Z0-9]+)'/)?.[1];
+
+check('households.join_code is constrained by a CHECK, not only by the generator',
+    codeShape != null, true);
+
+check("the CHECK's alphabet is exactly the alphabet create_household draws from",
+    codeShape?.[1]?.match(/\[([A-Z0-9]+)\]/)?.[1], generatorAlphabet);
+
+check("the CHECK's length is the length the generator produces",
+    Number(codeShape?.[1]?.match(/\{(\d+)\}/)?.[1]),
+    Number(flat.match(/for _ in 1\.\.(\d+) loop/)?.[1]));
+
+check('the constraint is declared twice — once inline, once in an idempotent guard',
+    (flat.match(/households_join_code_shape/g) ?? []).length, 3);
+
+check('the guard checks pg_constraint first, so a re-run is a no-op',
+    /if not exists \( select 1 from pg_constraint where conrelid = 'public\.households'::regclass and conname = 'households_join_code_shape' \) then alter table public\.households add constraint households_join_code_shape/.test(flat),
+    true);
+
+check('a recipe day is required to carry a snapshot, not just servings',
+    /constraint meal_plans_payload_matches_kind check \( \(kind = 'recipe' and servings is not null and recipe_snapshot is not null\)/.test(flat),
+    true);
+
+check('every recipe-day row the mapper writes carries a non-null snapshot',
+    dayEntryToRow('2026-09-26', { recipe: RECIPE }, HID).recipe_snapshot != null, true);
+
+check('…including a recipe with no id of its own',
+    dayEntryToRow('2026-09-26', { recipe: { title: 'id-less' } }, HID).recipe_snapshot != null,
+    true);
+
+check('create_household re-raises a uuid collision instead of blaming the join code',
+    /exception when unique_violation then.*?if exists \(select 1 from public\.households h where h\.id = new_id\) then raise;.*?end if;.*?attempts := attempts \+ 1;/.test(flat),
+    true);
+
+check('the file is wrapped in exactly one explicit begin;/commit; pair',
+    sql.split('\n').filter((line) => /^(begin|commit);\s*$/.test(line)), ['begin;', 'commit;']);
+
+check('commit; is the last statement in the file',
+    sql.trimEnd().endsWith('commit;'), true);
 
 console.log(`\n${failures === 0 ? 'all checks passed' : `${failures} CHECK(S) FAILED`}\n`);
 process.exit(failures === 0 ? 0 : 1);
