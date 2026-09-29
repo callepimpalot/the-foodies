@@ -31,7 +31,7 @@ The Capture → Plan → Shop → Cook loop is built and live in production. Mos
 | Feature | Brief File | Status |
 |---|---|---|
 | Taste Model — post-meal feedback feeding AI suggestions | FEATURE_taste_model.md | 🔴 NOT STARTED — promoted from PROJECT.md's Deferred/Vault at user's request; its open questions are now DECIDED (see the brief's DECISIONS section); queued for build (Aug 21, 2026) |
-| Families & Households — two adults, one plan, real accounts | FEATURE_family_households.md | 🟠 PROPOSAL, NOT APPROVED — written from TASK_12 so it can be reacted to rather than re-derived. **Six decisions are open and are the owner's**; four of them change the schema, so none of this is buildable until they're answered. Depends on TASK_07 shipping first. (Aug 22, 2026) |
+| Families & Households — two adults, one plan, real accounts | FEATURE_family_households.md | 🟡 DECISIONS ANSWERED (2026-09-26), NOT STARTED — all six open questions are now answered in the brief (Q1 private captures, Q2 the 400 imported recipes are deleted, Q3 many-to-many in the schema, Q4 owner + member, Q5 the household keeps everything, Q6 invite link + password). Still gated on TASK_07 shipping first. (Aug 22, 2026; decisions Sept 26, 2026) |
 
 ---
 
