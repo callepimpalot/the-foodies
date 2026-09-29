@@ -6,9 +6,26 @@
 --    The app will grow with the user!"
 -- This file is that decision, written as reviewable SQL.
 --
--- ⚠️ THIS FILE HAS NEVER BEEN RUN. There were no database credentials in the environment it was
---    written in, by the owner's explicit instruction. Read it, run it against a database branch
---    first, then apply it deliberately. It is destructive and it is deliberately not applied.
+-- ✅ THIS FILE HAS BEEN RUN — applied to production 2026-09-29, owner-approved on the record.
+--    Result: `recipes` 408 → 8; the 400 imported rows are in public.recipes_archive_20260927; the
+--    8 user-captured rows (is_personal = true) untouched. Verified through the client's own path
+--    with the anon key the app bundle ships (Content-Range: 0-7/8), not only from the owner
+--    connection.
+--
+--    It was rehearsed three times before that, each run sealed with ROLLBACK instead of COMMIT. A
+--    database branch was not used because branching needs the Pro plan and this project is Free
+--    (create_branch → 402 entitlement_required); the rollback seal needs no entitlement and runs
+--    against the real production row counts. The three passes: verbatim; applied twice in one
+--    transaction (the idempotency claim in item 5 below holds); and migration-then-restore, with
+--    md5 fingerprints over the deleted ids and over every column of all 408 rows matching exactly.
+--    Evidence: https://github.com/callepimpalot/the-foodies/pull/8#issuecomment-5897020057
+--
+--    Re-running it is a no-op, and that is proven rather than asserted. UNDO:
+--    supabase/rollback/20260927_restore_seeded_recipes.sql.
+--
+-- Historical note, kept because it explains this file's shape: it was written with no database
+-- credentials in the environment, by the owner's explicit instruction, so it was authored as
+-- reviewable SQL that could not run itself.
 --
 -- WHAT IT DOES — all of it inside one transaction:
 --   1. creates public.recipes_archive_20260927 (a full copy of the `recipes` shape) if absent
