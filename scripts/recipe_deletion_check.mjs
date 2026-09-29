@@ -143,6 +143,41 @@ check('guard C compares against the rows this application archived, not the whol
     /archived_total\s*:=\s*archived_before \+ archived_count/.test(sql) &&
     guardC !== -1);
 
+// ── width-proofing: neither the archive insert nor the undo may depend on column ORDER ────────
+// The live `recipes` table gains columns (FEATURE_family_households.md plans two more), the archive
+// is created once as `(like public.recipes including all)` and its shape is then frozen. A
+// positional `insert … select r.*` compares by position, so the first added column makes it 19
+// expressions into 18 columns → 42601, and the deletion stops being appliable at all. The undo was
+// fixed for this; these two assertions keep the forward insert fixed the same way, and keep the two
+// column lists equal so "archived" and "restored" cannot drift apart.
+const archivedCols = (sql.match(/insert into public\.recipes_archive_20260927\s*\(([^)]*)\)/s)?.[1] ?? '')
+    .split(',').map((c) => c.trim()).filter(Boolean);
+const restoredCols = (restore.match(/insert into public\.recipes\s*\(([^)]*)\)/s)?.[1] ?? '')
+    .split(',').map((c) => c.trim()).filter(Boolean);
+check('the archive insert names its target columns (not a positional `select r.*`)',
+    archivedCols.length > 0, `parsed ${archivedCols.length}`);
+check('the archive insert no longer selects `r.*`',
+    !/\bselect\s+r\.\*\s+from\s+public\.recipes\b/.test(sql));
+check('the archive insert lists all 18 live recipes columns (DATA_MODELS §1)',
+    archivedCols.length === 18, `found ${archivedCols.length}: ${archivedCols.join(', ')}`);
+check('the two width-critical columns are in the archive insert',
+    archivedCols.includes('source_url') && archivedCols.includes('step_ingredients'));
+check('archive and restore name the same columns in the same order',
+    archivedCols.join(',') === restoredCols.join(','),
+    `archive: ${archivedCols.join(',')}\n       restore: ${restoredCols.join(',')}`);
+check('the archive insert selects every column it names (no positional select)',
+    archivedCols.length > 0 &&
+    archivedCols.every((c) => new RegExp(`\\br\\.${c}\\b`).test(sql)));
+// The strongest static proxy available for "this insert is well-formed": with no Postgres here, a
+// mismatch between the column list and the select list is exactly the 42601 that would only be
+// discovered by applying it. Counted, not eyeballed.
+const insertBlock = insertIdx === -1 ? '' : sql.slice(insertIdx, sql.indexOf('from public.recipes r', insertIdx));
+const selectExprs = (insertBlock.match(/\bselect\b([\s\S]*)$/)?.[1] ?? '')
+    .split(',').map((s) => s.trim()).filter(Boolean);
+check('the archive insert names as many columns as it selects (a count mismatch is 42601)',
+    selectExprs.length > 0 && selectExprs.length === archivedCols.length,
+    `${archivedCols.length} column(s) vs ${selectExprs.length} expression(s)`);
+
 // ── the archive is not part of the product ────────────────────────────────────────────────────
 check('archive has RLS enabled', /alter table public\.recipes_archive_20260927 enable row level security/.test(sql));
 check('archive revokes anon/authenticated grants',
