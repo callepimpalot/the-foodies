@@ -119,6 +119,29 @@ export function HomeView() {
                         Your culinary week, organised — one meal at a time.
                     </p>
                 </div>
+                {/* TASK_07. The only way into the household screen. Deliberately not a
+                    seventh bottom-nav item: DESIGN_SYSTEM.md pins that bar at six, and
+                    this is a settings-shaped screen rather than a daily destination. */}
+                <button
+                    onClick={() => setCurrentView(VIEWS.HOUSEHOLD)}
+                    aria-label="Household"
+                    title="Household"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        minHeight: '44px',
+                        padding: '0 12px',
+                        background: 'transparent',
+                        border: '1px solid var(--line)',
+                        borderRadius: 'var(--r-sm)',
+                        color: 'var(--chalk-dim)',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                    }}
+                >
+                    <Users size={18} />
+                </button>
             </header>
 
             {/* HERO CAROUSEL: Next 3 days, as torn order tickets */}

@@ -1,13 +1,16 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useCallback } from 'react';
 import {
     withFlagToggled,
     withLowStockToggled,
     withUseByDate,
     withFlagsCleared,
 } from '../lib/pantryItems';
+import { useHousehold } from './HouseholdContext';
+import { useSyncedDocument } from '../hooks/useSyncedDocument';
+import { supabase } from '../lib/supabase';
 
-const STORAGE_KEY_ITEMS = 'meal_buddy_essentials_items';
-const STORAGE_KEY_CATEGORIES = 'meal_buddy_essentials_categories';
+const CACHE_KEY = 'meal_buddy_essentials_doc';
+const LEGACY_KEYS = ['meal_buddy_essentials_items', 'meal_buddy_essentials_categories'];
 
 const InventoryContext = createContext();
 
@@ -33,51 +36,193 @@ const DEFAULT_ITEMS = [
     { id: 'seed-5', name: 'Dish Soap', emoji: '🧼', category: 'household', flagged: false },
 ];
 
-function loadCategories() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES);
-        return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
-    } catch {
-        return DEFAULT_CATEGORIES;
-    }
+const FALLBACK_DOC = { items: DEFAULT_ITEMS, categories: DEFAULT_CATEGORIES };
+
+// Deletions are namespaced into tokens so one hook can carry removals for two
+// tables — see the note on useSyncedDocument's `removed`.
+const itemToken = (id) => `item:${id}`;
+const categoryToken = (id) => `category:${id}`;
+
+/** InventoryItem -> an essentials row. */
+function itemToRow(item, householdId) {
+    return {
+        household_id: householdId,
+        item_id: String(item?.id),
+        name: item?.name ?? '(unnamed)',
+        emoji: item?.emoji ?? null,
+        category: item?.category ?? 'other',
+        flagged: item?.flagged === true,
+        low_stock: item?.lowStock === true,
+        use_by_date: item?.useByDate ?? null,
+    };
 }
 
-function loadItems() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY_ITEMS);
-        if (!saved) return DEFAULT_ITEMS;
-        const parsed = JSON.parse(saved);
-        // TASK_11 Phase 1 added `lowStock` and `useByDate`. Both are OPTIONAL and both
-        // absent is a valid item — everything reads them with `?.`, so items stored
-        // before this shipped need no migration and lose nothing.
-        return Array.isArray(parsed) ? parsed : DEFAULT_ITEMS;
-    } catch {
-        return DEFAULT_ITEMS;
-    }
+/** An essentials row -> InventoryItem. */
+function rowToItem(row) {
+    const item = {
+        id: row.item_id,
+        name: row.name,
+        emoji: row.emoji ?? '📦',
+        category: row.category ?? 'other',
+        flagged: row.flagged === true,
+    };
+    // Only set what is actually there: writing `lowStock: false` onto an item that
+    // never had the field would change its shape on a round trip for no reason,
+    // and DATA_MODELS §2 is explicit that both fields being absent is valid.
+    if (row.low_stock === true) item.lowStock = true;
+    if (row.use_by_date) item.useByDate = row.use_by_date;
+    return item;
 }
 
+function itemsMatch(a, b) {
+    if (!a || !b) return false;
+    return (
+        a.item_id === b.item_id &&
+        a.name === b.name &&
+        (a.emoji ?? null) === (b.emoji ?? null) &&
+        a.category === b.category &&
+        a.flagged === b.flagged &&
+        a.low_stock === b.low_stock &&
+        (a.use_by_date ?? null) === (b.use_by_date ?? null)
+    );
+}
+
+function categoriesMatch(a, b) {
+    if (!a || !b) return false;
+    return a.category_id === b.category_id && a.name === b.name && a.position === b.position;
+}
+
+/**
+ * TASK_07 — Essentials (the Pantry tab), from localStorage to Supabase.
+ *
+ * Public API unchanged: `items`, `categories`, `addItem`, `removeItem`,
+ * `toggleFlag`, `toggleLowStock`, `setUseByDate`, `clearFlags`, `addCategory`,
+ * `removeCategory`.
+ *
+ * One deliberate call worth reviewing: a household whose remote row set is empty
+ * keeps the local defaults instead of being replaced by an empty pantry. A brand
+ * new household has to start with the five seed items and eleven categories
+ * exactly as a fresh device does today, and remotely there is no difference
+ * between "never used" and "deliberately emptied". The seed items are pushed on
+ * the first edit rather than at creation, so nothing is written for a household
+ * that never opens the Pantry tab.
+ */
 export function InventoryProvider({ children }) {
-    const [categories, setCategories] = useState(loadCategories);
-    const [items, setItems] = useState(loadItems);
+    const { id: householdId } = useHousehold();
 
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-    }, [categories]);
+    const loadRemote = useCallback(async () => {
+        if (!supabase || !householdId) throw new Error('Supabase unavailable');
 
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
-    }, [items]);
+        const [itemsRes, categoriesRes] = await Promise.all([
+            supabase.from('essentials').select('*').eq('household_id', householdId),
+            supabase.from('essentials_categories').select('*').eq('household_id', householdId).order('position'),
+        ]);
+        if (itemsRes.error) throw itemsRes.error;
+        if (categoriesRes.error) throw categoriesRes.error;
+
+        const itemRows = itemsRes.data ?? [];
+        const categoryRows = categoriesRes.data ?? [];
+
+        // See the note above: an empty household keeps its local defaults.
+        if (!itemRows.length && !categoryRows.length) return { rows: [], value: null };
+
+        return {
+            rows: { items: itemRows, categories: categoryRows },
+            value: {
+                items: itemRows.map(rowToItem),
+                categories: categoryRows.length
+                    ? categoryRows.map((c) => ({ id: c.category_id, name: c.name }))
+                    : DEFAULT_CATEGORIES,
+            },
+        };
+    }, [householdId]);
+
+    const saveRemote = useCallback(async (doc, { rows, removed = [] } = {}) => {
+        if (!supabase || !householdId) throw new Error('Supabase unavailable');
+
+        const knownItems = new Map((rows?.items ?? []).map((r) => [r.item_id, r]));
+        const knownCategories = new Map((rows?.categories ?? []).map((r) => [r.category_id, r]));
+
+        const itemRows = (doc?.items ?? []).map((item) => itemToRow(item, householdId));
+        const categoryRows = (doc?.categories ?? []).map((c, i) => ({
+            household_id: householdId,
+            category_id: c.id,
+            name: c.name,
+            position: i,
+        }));
+
+        const changedItems = itemRows.filter((row) => !itemsMatch(row, knownItems.get(row.item_id)));
+        const changedCategories = categoryRows.filter(
+            (row) => !categoriesMatch(row, knownCategories.get(row.category_id))
+        );
+
+        if (changedItems.length) {
+            const { error } = await supabase
+                .from('essentials')
+                .upsert(changedItems, { onConflict: 'household_id,item_id' });
+            if (error) throw error;
+        }
+
+        if (changedCategories.length) {
+            const { error } = await supabase
+                .from('essentials_categories')
+                .upsert(changedCategories, { onConflict: 'household_id,category_id' });
+            if (error) throw error;
+        }
+
+        const removedItemIds = removed.filter((t) => t.startsWith('item:')).map((t) => t.slice(5));
+        const removedCategoryIds = removed.filter((t) => t.startsWith('category:')).map((t) => t.slice(9));
+
+        if (removedItemIds.length) {
+            const { error } = await supabase
+                .from('essentials').delete().eq('household_id', householdId).in('item_id', removedItemIds);
+            if (error) throw error;
+        }
+
+        if (removedCategoryIds.length) {
+            const { error } = await supabase
+                .from('essentials_categories').delete().eq('household_id', householdId).in('category_id', removedCategoryIds);
+            if (error) throw error;
+        }
+    }, [householdId]);
+
+    const { value, update, status } = useSyncedDocument({
+        cacheKey: CACHE_KEY,
+        householdId,
+        loadRemote,
+        saveRemote,
+        fallback: FALLBACK_DOC,
+        legacyKeys: LEGACY_KEYS,
+        fromLegacy: (legacy) => ({
+            items: Array.isArray(legacy?.['meal_buddy_essentials_items'])
+                ? legacy['meal_buddy_essentials_items']
+                : DEFAULT_ITEMS,
+            categories: Array.isArray(legacy?.['meal_buddy_essentials_categories'])
+                ? legacy['meal_buddy_essentials_categories']
+                : DEFAULT_CATEGORIES,
+        }),
+    });
+
+    const items = value?.items ?? DEFAULT_ITEMS;
+    const categories = value?.categories ?? DEFAULT_CATEGORIES;
 
     const addCategory = (name) => {
         const id = name.toLowerCase().replace(/\s+/g, '-');
-        if (!categories.find(c => c.id === id)) {
-            setCategories(prev => [...prev, { id, name }]);
-        }
+        update((doc) => (
+            doc.categories.find((c) => c.id === id)
+                ? doc
+                : { ...doc, categories: [...doc.categories, { id, name }] }
+        ));
     };
 
     const removeCategory = (id) => {
-        setCategories(prev => prev.filter(c => c.id !== id));
-        setItems(prev => prev.map(i => i.category === id ? { ...i, category: 'other' } : i));
+        update((doc) => ({
+            categories: doc.categories.filter((c) => c.id !== id),
+            // Items in the removed category are re-pointed at 'other' rather than
+            // orphaned — unchanged behaviour, now applied to what the other phone
+            // can see too.
+            items: doc.items.map((i) => (i.category === id ? { ...i, category: 'other' } : i)),
+        }), { removed: [categoryToken(id)] });
     };
 
     // Accepts either a plain name string (defaults to 'other', 📦) or an
@@ -94,27 +239,31 @@ export function InventoryProvider({ children }) {
         }
         if (!name?.trim()) return;
 
-        const alreadyTracked = items.find(i => i.name.toLowerCase() === name.toLowerCase());
-        if (alreadyTracked) return;
-
-        setItems(prev => [...prev, {
-            id: crypto.randomUUID(),
-            name,
-            emoji,
-            category: itemCategory,
-            flagged: false,
-        }]);
+        update((doc) => {
+            // Duplicates are rejected case-insensitively, as before.
+            if (doc.items.find((i) => i.name.toLowerCase() === name.toLowerCase())) return doc;
+            return {
+                ...doc,
+                items: [...doc.items, {
+                    id: crypto.randomUUID(),
+                    name,
+                    emoji,
+                    category: itemCategory,
+                    flagged: false,
+                }],
+            };
+        });
     };
 
     const removeItem = (id) => {
-        setItems(prev => prev.filter(i => i.id !== id));
+        update((doc) => ({ ...doc, items: doc.items.filter((i) => i.id !== id) }), { removed: [itemToken(id)] });
     };
 
     // The transitions themselves live in src/lib/pantryItems.js as pure functions, so
     // the flag-to-shopping-list behaviour TASK_11 warns twice about regressing can be
-    // asserted directly (src/scripts/pantry_check.js) instead of reasoned about.
+    // asserted directly instead of reasoned about. TASK_07 does not touch them.
     const updateItem = (id, fn) => {
-        setItems(prev => prev.map(i => (i?.id === id ? fn(i) : i)));
+        update((doc) => ({ ...doc, items: doc.items.map((i) => (i?.id === id ? fn(i) : i)) }));
     };
 
     const toggleFlag = (id) => updateItem(id, withFlagToggled);
@@ -122,7 +271,10 @@ export function InventoryProvider({ children }) {
     const setUseByDate = (id, isoDate) => updateItem(id, (i) => withUseByDate(i, isoDate));
 
     const clearFlags = () => {
-        setItems(prev => prev.map(i => (i?.flagged || i?.lowStock ? withFlagsCleared(i) : i)));
+        update((doc) => ({
+            ...doc,
+            items: doc.items.map((i) => (i?.flagged || i?.lowStock ? withFlagsCleared(i) : i)),
+        }));
     };
 
     return (
@@ -137,6 +289,7 @@ export function InventoryProvider({ children }) {
             clearFlags,
             addCategory,
             removeCategory,
+            syncStatus: status,
         }}>
             {children}
         </InventoryContext.Provider>

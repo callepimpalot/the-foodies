@@ -9,6 +9,7 @@ import { ShopView } from './views/ShopView'
 import { PantryView } from './views/PantryView'
 import { CookModeView } from './views/CookModeView'
 import { CaptureView } from './views/CaptureView'
+import { HouseholdView } from './views/HouseholdView'
 
 function AppContent() {
   const { currentView, VIEWS } = useView();
@@ -23,6 +24,7 @@ function AppContent() {
       case VIEWS.PANTRY: return <PantryView />;
       case VIEWS.CAPTURE: return <CaptureView />;
       case VIEWS.COOK_MODE: return <CookModeView />;
+      case VIEWS.HOUSEHOLD: return <HouseholdView />;
       default: return <HomeView />;
     }
   };
