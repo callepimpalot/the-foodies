@@ -65,6 +65,27 @@
 -- policy and trigger below is therefore preceded by a matching drop, which is a
 -- no-op on a first application. scripts/migration_reapply_check.mjs asserts
 -- this; it is a static file-text check and does not prove the SQL executes.
+--
+-- HOW TO UNDO IT
+--   supabase/rollback/20260926_task07_rollback.sql — kept OUT of supabase/migrations/ on purpose,
+--   for the same reason as the seeded-recipe restore script: a rollback must only ever run because a
+--   human decided to run it. It drops the six tables and four functions and refuses to drop anything
+--   while a household row still exists.
+--
+-- BY-INSPECTION GAPS — written down, deliberately NOT fixed here, because each one needs a database
+-- to verify and this environment has none:
+--   1. Nothing in SQL rate-limits create_household() or resolve_join_code(). Both are anon-callable
+--      RPCs by design, so anyone holding the anon key can call them in a loop — creating households,
+--      or guessing join codes. The code is the only secret in this design (see above). A lockout or a
+--      CAPTCHA belongs in front of the RPC, not in it.
+--   2. `force row level security` is deliberately NOT set on any table below. The table owner bypasses
+--      RLS, and that is exactly what lets create_household() insert a household — there is no INSERT
+--      policy on public.households on purpose. Forcing RLS here would break that RPC; it has to
+--      arrive with the TASK_12 membership checks, not before them.
+--   3. touch_updated_at() is a trigger function, so PostgREST also exposes it at
+--      /rpc/touch_updated_at. Revoking EXECUTE from anon/authenticated is the usual hardening, but
+--      whether that is safe for a trigger that fires during an anon write cannot be tested without a
+--      Postgres — a wrong guess here breaks every planner write. Verify on a database branch first.
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -380,7 +401,7 @@ create policy "household removes its own essential categories"
   using (household_id = public.request_household_id());
 
 -- ---------------------------------------------------------------------------
--- 5. plan_state — one row per household
+-- 6. plan_state — one row per household
 -- ---------------------------------------------------------------------------
 -- `isPlanConfirmed` has lived in localStorage next to the plan since the
 -- one-meal-per-day simplification, and the Shop tab is gated on it. It needs a
@@ -421,7 +442,7 @@ create policy "household updates its own plan state"
   with check (household_id = public.request_household_id());
 
 -- ---------------------------------------------------------------------------
--- 6. The join flow — two RPCs, no accounts
+-- 7. The join flow — two RPCs, no accounts
 -- ---------------------------------------------------------------------------
 -- Both are SECURITY DEFINER because the caller is not yet (and, in this task,
 -- never is) a member: an invitee cannot read the households table to find the
@@ -489,7 +510,7 @@ comment on function public.resolve_join_code(text) is
   'TASK_07. Join code -> household id, or NULL. Anyone holding the anon key can call this; codes are the only protection, which is a TASK_12 item.';
 
 -- ---------------------------------------------------------------------------
--- 7. THE SWAP, WHEN TASK_12 LANDS
+-- 8. THE SWAP, WHEN TASK_12 LANDS
 -- ---------------------------------------------------------------------------
 -- Every policy above keeps its shape and loses one clause. With a members table
 -- and a session:
