@@ -1,15 +1,17 @@
 /**
  * Recipe-deletion checks — `node scripts/recipe_deletion_check.mjs`
  *
- * The deletion of the 400 bulk-imported recipes is destructive-adjacent and it is never applied in
- * this repo's overnight environment (no credentials, by the owner's instruction), so the only
- * thing that can actually be verified here is the SQL's own structure: that the archive and the
- * delete cannot drift apart, that a captured recipe cannot slip through, and that the file is
- * undoable. That is what this script asserts — statically, on the file text.
+ * The deletion of the 400 bulk-imported recipes is destructive-adjacent. It was written with no
+ * credentials available (by the owner's instruction) and has since been APPLIED to production on
+ * 2026-09-29, after three non-persisting rehearsals. What this script can verify statically, on the
+ * file text, is the SQL's own structure: that the archive and the delete cannot drift apart, that a
+ * captured recipe cannot slip through, that the file is undoable, and that the header's claim about
+ * whether it has been run is present and true.
  *
- * What is NOT covered, and cannot be: whether the SQL applies, whether the predicate matches the
- * right rows in the live project, and whether Postgres accepts the DO blocks. Those need a real
- * database and are the reviewer's checklist in the PR description.
+ * What is NOT covered, and cannot be here: whether the SQL applies, whether the predicate matches
+ * the right rows in the live project, and whether Postgres accepts the DO blocks. Those were settled
+ * against the real database — see the PR #8 evidence comment and the rehearsal scripts in
+ * `~/.hermes/recipe-ingest/rehearsal/`.
  *
  * Plain script, non-zero exit on failure — same shape as scripts/task07_check.mjs.
  */
@@ -150,9 +152,27 @@ check('restore does not silently delete anything', !/\bdelete\s+from\b/i.test(re
 check('migration points at the restore script',
     /supabase\/rollback\/20260927_restore_seeded_recipes\.sql/.test(migration));
 
-// ── not applied, and says so ──────────────────────────────────────────────────────────────────
-check('migration header states it has never been run',
-    /never been run/i.test(migration));
+// ── application status: stated, and TRUE ───────────────────────────────────────────────────────
+// This assertion's intent was INVERTED on 2026-09-29, deliberately. It used to read
+// "not applied, and says so" (`/never been run/i`) because the deletion could not be applied from
+// here. It has since been applied to production, so the old wording asserted the opposite of the
+// truth — and a header still claiming the migration is unapplied is exactly how a future session
+// concludes the 400 recipes are still in the app.
+//
+// The invariant is not "contains phrase X". It is that the header's claim of application status is
+// unambiguous, matches what actually happened, and carries the evidence and the undo. If this
+// migration is ever rolled back for real, these assertions must be inverted again — the point is
+// that they cannot quietly agree with a stale header.
+check('migration header records that it HAS been applied',
+    /THIS FILE HAS BEEN RUN/i.test(migration));
+check('migration header no longer claims it has never been run',
+    !/never been run/i.test(migration));
+check('migration header states the applied result (408 -> 8)',
+    /408\s*(?:→|->)\s*8/.test(migration));
+check('migration header cites the evidence of the run',
+    /pull\/8#issuecomment-\d+/.test(migration));
+check('migration header names the undo path',
+    /supabase\/rollback\/20260927_restore_seeded_recipes\.sql/.test(migration));
 
 // ── the archive approach means no app change is required ──────────────────────────────────────
 // If a soft-delete flag had been used instead, some file under src/ would have to filter on it.
@@ -180,4 +200,5 @@ if (failures > 0) {
     console.log(`${failures} check(s) FAILED`);
     process.exit(1);
 }
-console.log('all checks passed — SQL structure only; it has not been executed anywhere.');
+console.log('all checks passed — SQL structure only; this script does not execute anything. The '
+    + 'migration itself HAS been executed, against production, on 2026-09-29 (see its header).');
