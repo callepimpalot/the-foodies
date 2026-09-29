@@ -95,8 +95,30 @@ declare
 begin
   select count(*) into archived_before from public.recipes_archive_20260927;
 
+  -- The target columns are NAMED, not positional. `insert into … select r.*` worked only because
+  -- the archive was created as `(like public.recipes including all)` and the two shapes therefore
+  -- matched at that instant. That stops being true the moment `recipes` gains a column: the archive
+  -- is created once and its shape is frozen, so a positional select then has more expressions than
+  -- the target has columns and the whole file fails with 42601 — before the delete, so nothing is
+  -- lost, but the deletion can no longer be applied at all. FEATURE_family_households.md plans two
+  -- such columns (`household_id`, `created_by_member_id`), and this is the same defect that was
+  -- fixed in the undo (supabase/rollback/20260927_restore_seeded_recipes.sql) — a delete whose undo
+  -- is width-proof while the delete is not is only half fixed.
+  --
+  -- The list is the 18 live `recipes` columns as documented in .agent/DATA_MODELS.md §1, verified
+  -- column by column: id, title, description, image_url, cook_time_minutes, difficulty, kcal,
+  -- base_servings, meal_type, tags, archetypes, ingredients, steps, is_personal, creator,
+  -- source_url, step_ingredients, created_at. It is deliberately identical to the restore's list, so
+  -- "what was archived" and "what the undo writes back" cannot drift apart. A column added to
+  -- `recipes` later is simply not archived (and not restored), which is the correct behaviour for an
+  -- undo of a point-in-time deletion.
   insert into public.recipes_archive_20260927
-  select r.*
+    (id, title, description, image_url, cook_time_minutes, difficulty, kcal, base_servings,
+     meal_type, tags, archetypes, ingredients, steps, is_personal, creator, source_url,
+     step_ingredients, created_at)
+  select r.id, r.title, r.description, r.image_url, r.cook_time_minutes, r.difficulty, r.kcal,
+         r.base_servings, r.meal_type, r.tags, r.archetypes, r.ingredients, r.steps, r.is_personal,
+         r.creator, r.source_url, r.step_ingredients, r.created_at
   from public.recipes r
   where coalesce(r.is_personal, false) = false
     and not exists (
