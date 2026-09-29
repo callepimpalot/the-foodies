@@ -89,6 +89,7 @@ declare
   archived_total  integer;   -- archive size once the insert above has run
   deleted_count   integer;
   personal_count  integer;
+  unknown_count   integer;   -- archived rows whose is_personal is NULL
 begin
   select count(*) into archived_before from public.recipes_archive_20260927;
 
@@ -124,6 +125,23 @@ begin
   if personal_count > 0 then
     raise exception 'archive contains % personal (user-captured) row(s). Aborting before the '
                     'delete. No rows deleted.', personal_count;
+  end if;
+
+  -- Guard B2 — the one case where "seeded" and "captured" cannot be told apart. The predicate is
+  -- `coalesce(is_personal, false) = false`, so a row with a NULL is_personal is archived and
+  -- deleted, while guard B only ever looks for `is true`. The live table was measured on
+  -- 2026-09-27 as exactly 400 false / 7 true / 0 null, so this guard costs nothing on the run it
+  -- was written for. It exists for the run after that: a NULL means some write path that does not
+  -- set the column has been at this table, and a row whose provenance is unknowable is not a row
+  -- to delete on a predicate's say-so. Measured on the archive, like A, A2 and B, so a re-run is
+  -- held to the same standard as a first run.
+  select count(*) into unknown_count
+  from public.recipes_archive_20260927 where is_personal is null;
+  if unknown_count > 0 then
+    raise exception 'archive holds % row(s) with a NULL is_personal. The predicate reads NULL as '
+                    'non-personal, so these would be deleted with no evidence they belong to the '
+                    'imported library. No rows deleted — decide what these rows are first.',
+                    unknown_count;
   end if;
 
   -- 3 ── delete, guarded. Identical predicate to the archive insert above, asserted by
