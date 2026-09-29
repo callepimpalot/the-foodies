@@ -90,6 +90,8 @@ declare
   deleted_count   integer;
   personal_count  integer;
   unknown_count   integer;   -- archived rows whose is_personal is NULL
+  personal_live_before integer;   -- personal rows in public.recipes before the delete
+  personal_live_after  integer;   -- ... and after it
 begin
   select count(*) into archived_before from public.recipes_archive_20260927;
 
@@ -146,9 +148,27 @@ begin
 
   -- 3 ── delete, guarded. Identical predicate to the archive insert above, asserted by
   --      scripts/recipe_deletion_check.mjs.
+  --
+  -- Guard D's before-count. Guard B only looks at the archive; nothing until now checked the live
+  -- table. The predicate should make the delete incapable of touching a personal row — that is the
+  -- whole safety argument — and this is the assertion that the argument held on the run that
+  -- mattered. Counting here rather than in a follow-up query means a violation aborts the
+  -- transaction instead of being noticed afterwards, by hand, from the file's own instructions.
+  select count(*) into personal_live_before from public.recipes where is_personal is true;
+
   delete from public.recipes
   where coalesce(is_personal, false) = false;
   get diagnostics deleted_count = row_count;
+
+  -- Guard D — a captured recipe must survive the delete, measured on the table the app actually
+  -- reads. Cheap (one count on a few hundred rows) and it fails closed.
+  select count(*) into personal_live_after from public.recipes where is_personal is true;
+  if personal_live_after <> personal_live_before then
+    raise exception 'public.recipes held % personal (user-captured) row(s) before the delete and % '
+                    'after it. The predicate was supposed to make that impossible. Rolling back — '
+                    'do not re-run this file until you know why.', personal_live_before,
+                    personal_live_after;
+  end if;
 
   -- Guard C — the delete must remove exactly the rows THIS APPLICATION archived, no more and no
   -- less. It also refuses one awkward case: a previously archived row that has reappeared in
