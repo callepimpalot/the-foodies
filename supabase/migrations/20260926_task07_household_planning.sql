@@ -66,6 +66,19 @@
 -- no-op on a first application. scripts/migration_reapply_check.mjs asserts
 -- this; it is a static file-text check and does not prove the SQL executes.
 --
+-- ONE TRANSACTION, WRITTEN DOWN
+--   This file opens with `begin;` and ends with `commit;`, exactly as the
+--   seeded-recipe migration and both rollback scripts do. The reason is the
+--   runner, not the SQL: if a migration is applied with `psql -f`, every
+--   statement autocommits, so a failure at statement 30 of 60 leaves six
+--   half-built tables and 12 policies behind, and the retry has to work around
+--   them. If the runner already wraps the file in a transaction (what the
+--   Supabase CLI does, and what this file's previous revision relied on), the
+--   explicit pair is inert: `begin;` inside a transaction is a warning, and the
+--   trailing `commit;` ends the same transaction the runner would have ended.
+--   So the wrap is free where it is redundant and load-bearing where it is not.
+--   scripts/task07_check.mjs asserts the pair exists.
+--
 -- HOW TO UNDO IT
 --   supabase/rollback/20260926_task07_rollback.sql — kept OUT of supabase/migrations/ on purpose,
 --   for the same reason as the seeded-recipe restore script: a rollback must only ever run because a
@@ -86,7 +99,24 @@
 --      /rpc/touch_updated_at. Revoking EXECUTE from anon/authenticated is the usual hardening, but
 --      whether that is safe for a trigger that fires during an anon write cannot be tested without a
 --      Postgres — a wrong guess here breaks every planner write. Verify on a database branch first.
+--
+-- HARDENING PASS 2026-09-29 — four changes, each a narrowing of what the schema accepts. None of them
+-- has been parsed by a Postgres (this environment has no engine, and no credential will be sought);
+-- all four are file-text-asserted by scripts/task07_check.mjs and named here so a reviewer sees them:
+--   A. `households.join_code` now has a CHECK constraint — the shape the code generator can actually
+--      produce (8 chars, alphabet 0/O/1/I/L/S/5 removed). Before it, the column was `text not null
+--      unique` and only the generator's own behaviour kept it resolvable; any other writer could store
+--      a code that resolve_join_code() would never match, and the failure would be a silent "unknown
+--      code". See §2.
+--   B. A `kind = 'recipe'` day now requires a non-null `recipe_snapshot` — the column the day is
+--      rendered from. See §3.
+--   C. create_household() now tells its two `unique_violation` cases apart and re-raises the one that
+--      retrying cannot fix, instead of reporting "could not allocate a unique join code" for a uuid
+--      collision. See §7.
+--   D. The explicit `begin;` / `commit;` wrap described above.
 -- ============================================================================
+
+begin;
 
 -- ---------------------------------------------------------------------------
 -- 1. Helpers
@@ -153,8 +183,36 @@ create table if not exists public.households (
   -- deliberately NOT the household id: the id is the bearer token, and putting
   -- it in a screen someone reads aloud is how tokens leak.
   join_code   text        not null unique,
+  -- The shape the generator in §7 can actually produce: 8 characters from
+  -- 'ABCDEFGHJKMNPQRSTUVWXYZ23456789' (0/O/1/I/L/S/5 removed so a code survives
+  -- being read aloud). Without this the column is `text not null unique` and
+  -- nothing but the generator's good behaviour keeps a code resolvable — a code
+  -- written by any other path would never match resolve_join_code() and would
+  -- fail as a silent "unknown code" on the joining phone. The regex is asserted
+  -- against the generator's own alphabet by scripts/task07_check.mjs, so the two
+  -- cannot drift apart silently.
+  constraint households_join_code_shape
+    check (join_code ~ '^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$'),
   created_at  timestamptz not null default now()
 );
+
+-- The same constraint again, idempotently, for the one case `create table if not
+-- exists` cannot cover: a `households` table created by an earlier application of
+-- this file (before the constraint existed) is left alone by the statement above,
+-- so it would never acquire the constraint. A no-op on every fresh install.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.households'::regclass
+      and conname = 'households_join_code_shape'
+  ) then
+    alter table public.households
+      add constraint households_join_code_shape
+      check (join_code ~ '^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$');
+  end if;
+end
+$$;
 
 comment on table public.households is
   'TASK_07. The family. Planning rows belong to it, not to a device.';
@@ -207,8 +265,18 @@ create table if not exists public.meal_plans (
   -- with no source date, or a `note` day with no text. Without this, last-write-
   -- wins between two phones can produce exactly the incoherent row TASK_07 warns
   -- about, and nothing downstream could tell.
+  -- A recipe day must carry a snapshot, not just servings. `recipe_id` is
+  -- `on delete set null`, so removing a recipe row leaves the id NULL while the
+  -- day stays — and the day is rendered from `recipe_snapshot` (see
+  -- src/lib/planRows.js rowToDayEntry). With servings alone in the constraint, a
+  -- recipe day whose snapshot was absent would satisfy every check and render as
+  -- an empty day, which is the incoherent row this constraint exists to prevent.
+  -- Every write path in this repo sets it: planRows.js assigns it from
+  -- `entry.recipe` inside `if (entry.recipe)`, so a non-null object is the only
+  -- thing that can reach the column for kind = 'recipe' — asserted in
+  -- scripts/task07_check.mjs. Do not relax this without reading that mapper.
   constraint meal_plans_payload_matches_kind check (
-    (kind = 'recipe'   and servings is not null) or
+    (kind = 'recipe'   and servings is not null and recipe_snapshot is not null) or
     (kind = 'leftover' and leftover_of_date is not null) or
     (kind = 'note'     and note is not null)
   ),
@@ -475,6 +543,17 @@ begin
       values (new_id, coalesce(nullif(btrim(p_name), ''), 'Our household'), code);
       exit;                                   -- inserted, done
     exception when unique_violation then
+      -- Two different collisions land here, and only one of them is retryable.
+      -- If the *code* is taken, regenerating the code is exactly the fix. If the
+      -- *id* is taken (a fixed new_id, or a call that reuses one), the loop would
+      -- regenerate the code eight times and then report "could not allocate a
+      -- unique join code", which sends the reader to the wrong column and hides
+      -- the real cause. Asking the table which of the two it was is name-free:
+      -- a row with this id means retrying with the same id can never succeed.
+      if exists (select 1 from public.households h where h.id = new_id) then
+        raise;                                -- re-raise the original violation
+      end if;
+
       attempts := attempts + 1;
       if attempts >= 8 then
         raise exception 'could not allocate a unique join code after % attempts', attempts;
@@ -532,3 +611,5 @@ comment on function public.resolve_join_code(text) is
 --   2. Backfill households into households + household_members (create_household
 --      already gives you the id and name to migrate), rather than recreating
 --      them — the plan rows hang off those ids.
+
+commit;
