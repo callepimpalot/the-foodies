@@ -38,6 +38,16 @@ begin
   on conflict (id) do nothing;
   get diagnostics restored_count = row_count;
 
+  -- Guard: what was computed must equal what was done. `missing_count` is the set the insert was
+  -- aimed at; `restored_count` is what the insert reports it actually restored. They can only
+  -- differ if the two statements disagree about what "missing" means — and a silent difference
+  -- would be a restore that leaves rows unfilled while printing a clean summary. Both statements
+  -- are in this block, so the comparison is free.
+  if restored_count <> missing_count then
+    raise exception 'computed % missing row(s) but restored % — rolling back rather than leave the '
+                    'restore half done.', missing_count, restored_count;
+  end if;
+
   raise notice 'archive holds % rows; % were missing from recipes; % restored.',
     archived_count, missing_count, restored_count;
 end
