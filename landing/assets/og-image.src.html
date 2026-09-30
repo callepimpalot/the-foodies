@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meal Buddy — og:image source (1200x630)</title>
+<!--
+  ============================================================================
+  SOURCE for landing/assets/og-image.png  —  not a page anyone visits.
+  ============================================================================
+  The OG card is rendered from HTML rather than drawn in an image editor so it
+  uses the real design tokens and the real webfonts, and so it can be regenerated
+  when the headline changes.
+
+  Regenerate:
+    1. serve the repo:      python3 -m http.server 8099 --directory <repo>
+    2. open               http://127.0.0.1:8099/landing/assets/og-image.src.html
+    3. screenshot the 1200x630 viewport at deviceScaleFactor 1
+       (CDP: Emulation.setDeviceMetricsOverride width=1200 height=630, then
+        Page.captureScreenshot captureBeyondViewport=false) -> og-image.png
+  Keep the size exactly 1200x630: LinkedIn, Slack and WhatsApp crop anything else.
+
+  Copy note: the headline is the landing page's own <h1>, verbatim. The subline is
+  the page's meta description. Nothing on this card is a slogan invented for it.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Zilla+Slab:wght@600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --board: #14211B; --board-2: #1C2C24; --line: #33493B;
+    --chalk: #EDE7D8; --chalk-dim: #93A395;
+    --ticket: #F1E7CC; --ticket-2: #EADFBE; --ticket-shadow: #D8C495;
+    --ink: #251C10; --ink-dim: #6B5D45;
+    --stamp: #C1442C; --stamp-ink: #9C3620; --grease: #B98523; --done: #5C7A4E;
+    --f-display: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+    --f-head: 'Zilla Slab', Georgia, serif;
+    --f-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --f-mono: 'IBM Plex Mono', Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 1200px; height: 630px; overflow: hidden;
+    background: var(--board); color: var(--chalk); font-family: var(--f-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  .card { position: relative; width: 1200px; height: 630px; padding: 64px 72px; display: flex; gap: 56px; }
+
+  /* the rail across the top — the one structural motif */
+  .rail { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: var(--line); }
+  .rail::after { content: ""; position: absolute; top: 8px; left: 0; right: 0; height: 1px; background: rgba(237,231,216,0.10); }
+
+  .col { display: flex; flex-direction: column; justify-content: center; }
+  .col-text { flex: 1 1 auto; min-width: 0; }
+
+  .eyebrow {
+    font-family: var(--f-mono); font-size: 13px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--grease); margin-bottom: 22px;
+  }
+  h1 {
+    font-family: var(--f-display); font-weight: 400; font-size: 78px; line-height: 1.02;
+    margin: 0 0 26px 0; color: var(--chalk); letter-spacing: 0.005em;
+  }
+  h1 em { font-style: normal; color: var(--grease); }
+  .lede { font-size: 21px; line-height: 1.5; color: var(--chalk-dim); margin: 0; max-width: 620px; }
+
+  .foot { margin-top: 38px; display: flex; align-items: center; gap: 14px; }
+  .foot .url { font-family: var(--f-mono); font-size: 15px; color: var(--chalk); }
+  .foot .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--done); }
+
+  /* the mark, sitting on a kraft ticket */
+  .col-mark { flex: 0 0 372px; align-items: center; justify-content: center; }
+  .ticket-card {
+    position: relative; width: 372px; padding: 44px 34px 34px 34px;
+    background: var(--ticket); border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: rotate(-1.4deg);
+  }
+  .ticket-card::before {
+    content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border-radius: 50%; background: var(--board);
+  }
+  .ticket-card img { display: block; width: 304px; height: 304px; margin: 0 auto; }
+  .ticket-card .cap {
+    margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--ticket-shadow);
+    text-align: center; font-family: var(--f-mono); font-size: 13px;
+    letter-spacing: 0.06em; color: var(--ink-dim); text-transform: uppercase;
+  }
+  .stamp {
+    position: absolute; right: -18px; bottom: -18px; width: 104px; height: 104px;
+    border-radius: 50%; background: var(--stamp); border: 3px solid var(--stamp-ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--f-mono); font-size: 15px; font-weight: 500; line-height: 1.15;
+    color: var(--ticket); text-align: center; letter-spacing: 0.04em;
+    transform: rotate(8deg); box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="rail"></div>
+
+    <div class="col col-text">
+      <div class="eyebrow">A shared kitchen companion</div>
+      <h1>One plan.<br>Everyone knows<br>what's for <em>dinner</em>.</h1>
+      <p class="lede">
+        Capture recipes from anywhere, plan a few days ahead, and keep one
+        shopping list the whole household can see.
+      </p>
+      <div class="foot">
+        <span class="dot"></span>
+        <span class="url">thefoodi.netlify.app</span>
+      </div>
+    </div>
+
+    <div class="col col-mark">
+      <div class="ticket-card">
+        <img src="logo.svg" alt="Meal Buddy">
+        <div class="cap">Meal Buddy</div>
+        <div class="stamp">IN<br>USE</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

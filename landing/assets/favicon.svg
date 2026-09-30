@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Meal Buddy">
+  <title>Meal Buddy</title>
+  <!--
+    Favicon — a simplified cut of landing/assets/logo.svg (same mark, fewer parts).
+    At 16px the rail, fold line and tick all turn to mush, so only three things
+    survive: the board tile that gives it contrast in a browser tab, the kraft
+    ticket, and the one stamp-red disc. No text, no fonts, deterministic paths.
+
+    The .ico twin (favicon.ico) is generated from this same geometry by
+    landing/assets/make-favicon-ico.py at 16/32/48.
+  -->
+  <!-- board tile -->
+  <rect x="0" y="0" width="64" height="64" rx="10" fill="#14211B"/>
+  <!-- rail -->
+  <rect x="6" y="11" width="52" height="3" rx="1.5" fill="#93A395"/>
+  <!-- ticket -->
+  <path d="M12 17 H52 V45 L48.5 41.5 L45 45 L41.5 41.5 L38 45 L34.5 41.5 L31 45 L27.5 41.5 L24 45 L20.5 41.5 L17 45 L13.5 41.5 L12 47 Z"
+        fill="#F1E7CC"/>
+  <!-- punch hole -->
+  <circle cx="32" cy="23" r="2.6" fill="#14211B"/>
+  <!-- the stamp -->
+  <circle cx="44" cy="40" r="9.5" fill="#C1442C"/>
+  <path d="M40.2 40 L42.9 42.7 L47.8 37.2" fill="none" stroke="#F1E7CC" stroke-width="2.6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -28,3 +28,9 @@ build
 *.sln
 *.sw?
 *.code-workspace
+
+# Overnight status page — generated, served locally, not source
+landing/status.html
+# Overnight working files — agent scratch, not source
+OVERNIGHT-BRIEF.md
+MORNING-BRIEF.md
