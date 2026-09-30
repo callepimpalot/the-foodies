@@ -89,11 +89,36 @@ declare
   archived_total  integer;   -- archive size once the insert above has run
   deleted_count   integer;
   personal_count  integer;
+  unknown_count   integer;   -- archived rows whose is_personal is NULL
+  personal_live_before integer;   -- personal rows in public.recipes before the delete
+  personal_live_after  integer;   -- ... and after it
 begin
   select count(*) into archived_before from public.recipes_archive_20260927;
 
+  -- The target columns are NAMED, not positional. `insert into … select r.*` worked only because
+  -- the archive was created as `(like public.recipes including all)` and the two shapes therefore
+  -- matched at that instant. That stops being true the moment `recipes` gains a column: the archive
+  -- is created once and its shape is frozen, so a positional select then has more expressions than
+  -- the target has columns and the whole file fails with 42601 — before the delete, so nothing is
+  -- lost, but the deletion can no longer be applied at all. FEATURE_family_households.md plans two
+  -- such columns (`household_id`, `created_by_member_id`), and this is the same defect that was
+  -- fixed in the undo (supabase/rollback/20260927_restore_seeded_recipes.sql) — a delete whose undo
+  -- is width-proof while the delete is not is only half fixed.
+  --
+  -- The list is the 18 live `recipes` columns as documented in .agent/DATA_MODELS.md §1, verified
+  -- column by column: id, title, description, image_url, cook_time_minutes, difficulty, kcal,
+  -- base_servings, meal_type, tags, archetypes, ingredients, steps, is_personal, creator,
+  -- source_url, step_ingredients, created_at. It is deliberately identical to the restore's list, so
+  -- "what was archived" and "what the undo writes back" cannot drift apart. A column added to
+  -- `recipes` later is simply not archived (and not restored), which is the correct behaviour for an
+  -- undo of a point-in-time deletion.
   insert into public.recipes_archive_20260927
-  select r.*
+    (id, title, description, image_url, cook_time_minutes, difficulty, kcal, base_servings,
+     meal_type, tags, archetypes, ingredients, steps, is_personal, creator, source_url,
+     step_ingredients, created_at)
+  select r.id, r.title, r.description, r.image_url, r.cook_time_minutes, r.difficulty, r.kcal,
+         r.base_servings, r.meal_type, r.tags, r.archetypes, r.ingredients, r.steps, r.is_personal,
+         r.creator, r.source_url, r.step_ingredients, r.created_at
   from public.recipes r
   where coalesce(r.is_personal, false) = false
     and not exists (
@@ -126,11 +151,46 @@ begin
                     'delete. No rows deleted.', personal_count;
   end if;
 
+  -- Guard B2 — the one case where "seeded" and "captured" cannot be told apart. The predicate is
+  -- `coalesce(is_personal, false) = false`, so a row with a NULL is_personal is archived and
+  -- deleted, while guard B only ever looks for `is true`. The live table was measured on
+  -- 2026-09-27 as exactly 400 false / 7 true / 0 null, so this guard costs nothing on the run it
+  -- was written for. It exists for the run after that: a NULL means some write path that does not
+  -- set the column has been at this table, and a row whose provenance is unknowable is not a row
+  -- to delete on a predicate's say-so. Measured on the archive, like A, A2 and B, so a re-run is
+  -- held to the same standard as a first run.
+  select count(*) into unknown_count
+  from public.recipes_archive_20260927 where is_personal is null;
+  if unknown_count > 0 then
+    raise exception 'archive holds % row(s) with a NULL is_personal. The predicate reads NULL as '
+                    'non-personal, so these would be deleted with no evidence they belong to the '
+                    'imported library. No rows deleted — decide what these rows are first.',
+                    unknown_count;
+  end if;
+
   -- 3 ── delete, guarded. Identical predicate to the archive insert above, asserted by
   --      scripts/recipe_deletion_check.mjs.
+  --
+  -- Guard D's before-count. Guard B only looks at the archive; nothing until now checked the live
+  -- table. The predicate should make the delete incapable of touching a personal row — that is the
+  -- whole safety argument — and this is the assertion that the argument held on the run that
+  -- mattered. Counting here rather than in a follow-up query means a violation aborts the
+  -- transaction instead of being noticed afterwards, by hand, from the file's own instructions.
+  select count(*) into personal_live_before from public.recipes where is_personal is true;
+
   delete from public.recipes
   where coalesce(is_personal, false) = false;
   get diagnostics deleted_count = row_count;
+
+  -- Guard D — a captured recipe must survive the delete, measured on the table the app actually
+  -- reads. Cheap (one count on a few hundred rows) and it fails closed.
+  select count(*) into personal_live_after from public.recipes where is_personal is true;
+  if personal_live_after <> personal_live_before then
+    raise exception 'public.recipes held % personal (user-captured) row(s) before the delete and % '
+                    'after it. The predicate was supposed to make that impossible. Rolling back — '
+                    'do not re-run this file until you know why.', personal_live_before,
+                    personal_live_after;
+  end if;
 
   -- Guard C — the delete must remove exactly the rows THIS APPLICATION archived, no more and no
   -- less. It also refuses one awkward case: a previously archived row that has reappeared in
