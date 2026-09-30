@@ -13,6 +13,7 @@
  * in the PR description as the reviewer's checklist.
  */
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const {
@@ -210,6 +211,138 @@ check('after a confirmed save it will not run again',
         legacyKeys: ['meal_buddy_plan'],
         targetCacheKey: 'meal_buddy_plan_doc',
     }).alreadyDone, true);
+
+// ---------------------------------------------------------------------------
+// The migration file itself.
+//
+// Everything above checks the *code* half of TASK_07. These check the three
+// schema promises the code half leans on, which until now were made only in
+// prose in the migration's header: the join code's shape, the fact that a
+// recipe day is renderable, and the transaction the file is applied in. They are
+// still file-text checks — no engine is involved, and none is available here —
+// but they fail if the migration and the mapper drift apart, which is the
+// failure mode that would otherwise only appear on the first real application.
+//
+// The file is read relative to this script, so it must be run from a checkout of
+// the branch that owns it.
+// ---------------------------------------------------------------------------
+
+console.log('\nThe migration — the schema promises the mapper depends on');
+
+const sql = readFileSync(
+    new URL('../supabase/migrations/20260926_task07_household_planning.sql', import.meta.url),
+    'utf8',
+);
+/** Whitespace-collapsed, so reformatting a file cannot fail a check. */
+const flat = sql.replace(/\s+/g, ' ');
+
+const codeShape = flat.match(
+    /constraint households_join_code_shape check \(join_code ~ '([^']+)'\)/,
+);
+const generatorAlphabet = flat.match(/alphabet text := '([A-Z0-9]+)'/)?.[1];
+
+check('households.join_code is constrained by a CHECK, not only by the generator',
+    codeShape != null, true);
+
+check("the CHECK's alphabet is exactly the alphabet create_household draws from",
+    codeShape?.[1]?.match(/\[([A-Z0-9]+)\]/)?.[1], generatorAlphabet);
+
+check("the CHECK's length is the length the generator produces",
+    Number(codeShape?.[1]?.match(/\{(\d+)\}/)?.[1]),
+    Number(flat.match(/for _ in 1\.\.(\d+) loop/)?.[1]));
+
+check('the constraint is declared twice — once inline, once in an idempotent guard',
+    (flat.match(/households_join_code_shape/g) ?? []).length, 3);
+
+check('the guard checks pg_constraint first, so a re-run is a no-op',
+    /if not exists \( select 1 from pg_constraint where conrelid = 'public\.households'::regclass and conname = 'households_join_code_shape' \) then alter table public\.households add constraint households_join_code_shape/.test(flat),
+    true);
+
+check('a recipe day is required to carry a snapshot, not just servings',
+    /constraint meal_plans_payload_matches_kind check \( \(kind = 'recipe' and servings is not null and recipe_snapshot is not null\)/.test(flat),
+    true);
+
+check('every recipe-day row the mapper writes carries a non-null snapshot',
+    dayEntryToRow('2026-09-26', { recipe: RECIPE }, HID).recipe_snapshot != null, true);
+
+check('…including a recipe with no id of its own',
+    dayEntryToRow('2026-09-26', { recipe: { title: 'id-less' } }, HID).recipe_snapshot != null,
+    true);
+
+check('create_household re-raises a uuid collision instead of blaming the join code',
+    /exception when unique_violation then.*?if exists \(select 1 from public\.households h where h\.id = new_id\) then raise;.*?end if;.*?attempts := attempts \+ 1;/.test(flat),
+    true);
+
+check('the file is wrapped in exactly one explicit begin;/commit; pair',
+    sql.split('\n').filter((line) => /^(begin|commit);\s*$/.test(line)), ['begin;', 'commit;']);
+
+check('commit; is the last statement in the file',
+    sql.trimEnd().endsWith('commit;'), true);
+
+// The rollback is the other half of the schema promise this file makes, and
+// until now nothing read it. Everything below is set arithmetic between the two
+// files: the rollback must drop every object the migration creates, no object it
+// does not create, each one once, and it must refuse to do it while rows exist.
+// The two files are read relative to this script, so it must be run from a
+// checkout of the branch that owns both.
+// ---------------------------------------------------------------------------
+
+console.log('\nThe rollback — the migration can be undone without improvising DDL');
+
+/** Line comments stripped: prose must not be able to satisfy a check. */
+const stripComments = (text) => text.replace(/^\s*--.*$/gm, '');
+const names = (text, re) => [...text.matchAll(re)].map((m) => m[1]).sort();
+
+const migrationCode = stripComments(sql);
+const rollbackSrc = readFileSync(
+    new URL('../supabase/rollback/20260926_task07_rollback.sql', import.meta.url),
+    'utf8',
+);
+const rollbackCode = stripComments(rollbackSrc);
+
+const createdTables = names(migrationCode, /create table if not exists public\.(\w+)/g);
+const createdFns = names(migrationCode, /create (?:or replace )?function public\.(\w+)\s*\(/g);
+const droppedTables = names(rollbackCode, /drop table if exists public\.(\w+)/g);
+const droppedFns = names(rollbackCode, /drop function if exists public\.(\w+)/g);
+
+check('the migration creates the six household tables and four functions this check assumes',
+    [createdTables.length, createdFns.length], [6, 4]);
+
+check('the rollback drops exactly the tables the migration creates — nothing left over',
+    createdTables.filter((t) => !droppedTables.includes(t)), []);
+
+check('…and nothing the migration does not create',
+    droppedTables.filter((t) => !createdTables.includes(t)), []);
+
+check('the rollback drops exactly the functions the migration creates — nothing left over',
+    createdFns.filter((f) => !droppedFns.includes(f)), []);
+
+check('…and nothing the migration does not create',
+    droppedFns.filter((f) => !createdFns.includes(f)), []);
+
+check('no object is dropped twice',
+    [...new Set([...droppedTables, ...droppedFns])].length, droppedTables.length + droppedFns.length);
+
+check('every drop is guarded by if exists, so a never-applied migration rolls back as a no-op',
+    /drop (?:table|function) (?!if exists)/.test(rollbackCode), false);
+
+check('the rollback does not use cascade, so an unlisted dependant fails loudly',
+    /\bcascade\b/i.test(rollbackCode), false);
+
+check('the rollback refuses to drop while rows exist',
+    /raise exception\s+'refusing to roll back/.test(rollbackCode.replace(/\s+/g, ' ')), true);
+
+check('the guard counts every table it is about to drop',
+    droppedTables.filter((t) => !rollbackCode.includes(`to_regclass('public.${t}')`)), []);
+
+check('a missing table reads as zero rows rather than as an error',
+    /to_regclass\('public\.households'\) is not null then execute/.test(rollbackCode.replace(/\s+/g, ' ')), true);
+
+check('the rollback is wrapped in exactly one explicit begin;/commit; pair',
+    rollbackSrc.split('\n').filter((line) => /^(begin|commit);\s*$/.test(line)), ['begin;', 'commit;']);
+
+check('the rollback lives outside supabase/migrations/, so no runner can execute it by accident',
+    rollbackSrc.includes('deliberately NOT in supabase/migrations/'), true);
 
 console.log(`\n${failures === 0 ? 'all checks passed' : `${failures} CHECK(S) FAILED`}\n`);
 process.exit(failures === 0 ? 0 : 1);
