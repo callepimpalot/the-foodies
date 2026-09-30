@@ -26,10 +26,17 @@
  *   functions — `create or replace function`
  *
  * WHAT IT IS NOT
- * This is a text check. No SQL engine, parser or database is involved and none exists in this
- * environment. A clean report means the file's own statements do not collide on a second
- * application; it does NOT mean the SQL applies, and it says nothing about whether the migration
- * is correct, safe or destructive. Non-zero exit on failure.
+ * This is a text check. No SQL engine, parser or database is touched by it. A clean report means the
+ * file's own statements do not collide on a second application; it does NOT mean the SQL applies,
+ * and it says nothing about whether the migration is correct, safe or destructive.
+ *
+ * AND IT CANNOT TELL YOU ANYTHING ABOUT A FILE WITH NO DDL
+ * A file that only deletes or updates rows — 20260927_archive_seeded_recipes.sql is one — declares
+ * no `create`/`add` statement, so every check below inspects zero objects and the file collects the
+ * same seven `ok` lines as a file that was genuinely read. That reports as `vacuous` here rather
+ * than as a pass, because "7 ok" on an unread file is the shape of evidence this repository keeps
+ * mistaking for evidence. Exit status is unchanged (0) so a caller iterating the directory does not
+ * start failing on it; pass `--strict` to make a vacuous file non-zero. Non-zero exit on failure.
  *
  * Plain script, no dependencies — same shape as scripts/task07_check.mjs and
  * scripts/recipe_deletion_check.mjs. Point it at a file outside this checkout when the migration
@@ -43,6 +50,9 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const DEFAULT_DIR = join(ROOT, 'supabase/migrations');
 
 let failures = 0;
+let vacuous = 0;
+const vacuousFiles = [];
+const STRICT = process.argv.slice(2).includes('--strict');
 function check(name, cond, detail = '') {
     if (cond) {
         console.log(`  ok   ${name}`);
@@ -187,10 +197,29 @@ for (const path of targets) {
         !/\bcreate\s+(?:schema|type|extension)\b/.test(low),
         'create schema / create type / create extension have no IF NOT EXISTS form — guard them in a DO block',
     );
+
+    // --- did any of the above actually read anything? --------------------------------------------
+    // Without this, a file that declares no DDL collects seven `ok` lines for inspecting nothing —
+    // the archive pair's rollback (drop-only) is exactly that file. Reporting it as a pass is how a
+    // vacuous check gets quoted as evidence, so it is reported as `vacuous` instead.
+    const inspected = policyCount + triggerCount + tables.length + indexes.length + addCols.length + funcs.length;
+    if (inspected === 0) {
+        vacuous += 1;
+        vacuousFiles.push(label);
+        console.log(
+            '  vacuous  nothing to re-apply: this file declares no create/add statement, so every check ' +
+                'above inspected 0 objects. NOT a pass, and not evidence of anything.',
+        );
+    } else {
+        console.log(`  read     ${inspected} object declaration(s) inspected`);
+    }
 }
 
 console.log(
-    `\n${failures === 0 ? 'all checks passed' : `${failures} check(s) FAILED`} — static file-text check only; ` +
-        'no SQL engine was involved and none is available here, so a clean report does not mean the SQL applies.',
+    `\n${failures === 0 ? 'all checks passed' : `${failures} check(s) FAILED`}` +
+        (vacuous > 0 ? ` · ${vacuous} vacuous (0 objects inspected): ${vacuousFiles.join(', ')}` : '') +
+        ' — static file-text check only; no database was contacted, so a clean report does not mean ' +
+        'the SQL applies.' +
+        (vacuous > 0 && !STRICT ? ' Re-run with --strict to fail on a vacuous file.' : ''),
 );
-process.exit(failures === 0 ? 0 : 1);
+process.exit(failures === 0 && !(STRICT && vacuous > 0) ? 0 : 1);
