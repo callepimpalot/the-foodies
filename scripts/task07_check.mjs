@@ -279,5 +279,70 @@ check('the file is wrapped in exactly one explicit begin;/commit; pair',
 check('commit; is the last statement in the file',
     sql.trimEnd().endsWith('commit;'), true);
 
+// The rollback is the other half of the schema promise this file makes, and
+// until now nothing read it. Everything below is set arithmetic between the two
+// files: the rollback must drop every object the migration creates, no object it
+// does not create, each one once, and it must refuse to do it while rows exist.
+// The two files are read relative to this script, so it must be run from a
+// checkout of the branch that owns both.
+// ---------------------------------------------------------------------------
+
+console.log('\nThe rollback — the migration can be undone without improvising DDL');
+
+/** Line comments stripped: prose must not be able to satisfy a check. */
+const stripComments = (text) => text.replace(/^\s*--.*$/gm, '');
+const names = (text, re) => [...text.matchAll(re)].map((m) => m[1]).sort();
+
+const migrationCode = stripComments(sql);
+const rollbackSrc = readFileSync(
+    new URL('../supabase/rollback/20260926_task07_rollback.sql', import.meta.url),
+    'utf8',
+);
+const rollbackCode = stripComments(rollbackSrc);
+
+const createdTables = names(migrationCode, /create table if not exists public\.(\w+)/g);
+const createdFns = names(migrationCode, /create (?:or replace )?function public\.(\w+)\s*\(/g);
+const droppedTables = names(rollbackCode, /drop table if exists public\.(\w+)/g);
+const droppedFns = names(rollbackCode, /drop function if exists public\.(\w+)/g);
+
+check('the migration creates the six household tables and four functions this check assumes',
+    [createdTables.length, createdFns.length], [6, 4]);
+
+check('the rollback drops exactly the tables the migration creates — nothing left over',
+    createdTables.filter((t) => !droppedTables.includes(t)), []);
+
+check('…and nothing the migration does not create',
+    droppedTables.filter((t) => !createdTables.includes(t)), []);
+
+check('the rollback drops exactly the functions the migration creates — nothing left over',
+    createdFns.filter((f) => !droppedFns.includes(f)), []);
+
+check('…and nothing the migration does not create',
+    droppedFns.filter((f) => !createdFns.includes(f)), []);
+
+check('no object is dropped twice',
+    [...new Set([...droppedTables, ...droppedFns])].length, droppedTables.length + droppedFns.length);
+
+check('every drop is guarded by if exists, so a never-applied migration rolls back as a no-op',
+    /drop (?:table|function) (?!if exists)/.test(rollbackCode), false);
+
+check('the rollback does not use cascade, so an unlisted dependant fails loudly',
+    /\bcascade\b/i.test(rollbackCode), false);
+
+check('the rollback refuses to drop while rows exist',
+    /raise exception\s+'refusing to roll back/.test(rollbackCode.replace(/\s+/g, ' ')), true);
+
+check('the guard counts every table it is about to drop',
+    droppedTables.filter((t) => !rollbackCode.includes(`to_regclass('public.${t}')`)), []);
+
+check('a missing table reads as zero rows rather than as an error',
+    /to_regclass\('public\.households'\) is not null then execute/.test(rollbackCode.replace(/\s+/g, ' ')), true);
+
+check('the rollback is wrapped in exactly one explicit begin;/commit; pair',
+    rollbackSrc.split('\n').filter((line) => /^(begin|commit);\s*$/.test(line)), ['begin;', 'commit;']);
+
+check('the rollback lives outside supabase/migrations/, so no runner can execute it by accident',
+    rollbackSrc.includes('deliberately NOT in supabase/migrations/'), true);
+
 console.log(`\n${failures === 0 ? 'all checks passed' : `${failures} CHECK(S) FAILED`}\n`);
 process.exit(failures === 0 ? 0 : 1);
