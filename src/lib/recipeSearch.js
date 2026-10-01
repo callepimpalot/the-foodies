@@ -60,20 +60,35 @@ export const QUICK_FILTERS = [
 // are captured with attribution. Returns null when no recipe has a creator yet, so
 // the filter sheet can skip rendering an empty section.
 export function buildCreatorGroup(recipes) {
-    const counts = new Map();
+    // Group on a case-folded key, not the raw string. The same creator captured twice with
+    // different casing ("Jamie Oliver" from a blog byline, "jamie oliver" typed by hand) is one
+    // person; two filter chips for them is the bug the user sees. The option keeps the *most
+    // common* spelling as its label so the sheet reads naturally, and matches case-insensitively
+    // so either spelling finds every recipe by that creator.
+    const counts = new Map();      // folded key -> how many recipes
+    const spellings = new Map();   // folded key -> Map(original spelling -> how many)
     (recipes || []).forEach((r) => {
         const name = r?.creator?.trim();
         if (!name) return;
-        counts.set(name, (counts.get(name) || 0) + 1);
+        const key = name.toLowerCase();
+        counts.set(key, (counts.get(key) || 0) + 1);
+        if (!spellings.has(key)) spellings.set(key, new Map());
+        const bySpelling = spellings.get(key);
+        bySpelling.set(name, (bySpelling.get(name) || 0) + 1);
     });
     if (counts.size === 0) return null;
 
+    const displayName = (key) => [...spellings.get(key).entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
+
     const options = [...counts.entries()]
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .map(([name, count]) => ({
-            id: name,
-            label: `${name} (${count})`,
-            match: (r) => r?.creator?.trim() === name,
+        .map(([key, count]) => ({
+            // The id is the folded key, so an already-selected filter survives a later recipe
+            // arriving with the other casing. option.label carries the pretty spelling.
+            id: key,
+            label: `${displayName(key)} (${count})`,
+            match: (r) => r?.creator?.trim().toLowerCase() === key,
         }));
 
     return { id: 'creator', label: 'Creator', options };
