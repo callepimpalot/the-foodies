@@ -2,9 +2,39 @@
 **Date:** 2026-09-09 · **Scope:** full codebase + all documentation
 **Bottom line:** the app code is healthy (~12k lines of clean React). The repo is carrying ~84 MB of unrelated/obsolete baggage and has one real security issue.
 
+
 ---
 
-## Tier 0 — Delete (dead weight, biggest wins)
+## Status — re-verified 2026-10-01 against `origin/main` (`5047fd9`)
+
+**This audit is dated 2026-09-09, and every actionable item in it has since been carried out.** The
+present-tense body below is kept verbatim for the trail as a historical record — do **not** read it as
+current state. Each line was checked by walking the git tree, not by trusting this file.
+
+| Audit item | State on `origin/main`, 2026-10-01 | Evidence |
+|---|---|---|
+| Tier 0 · `data/full_format_recipes.json` (35.2 MB) | **gone** | not in the tree |
+| Tier 0 · `data/stage1-passed.json`, `stage2-passed.json`, `stage3-final.json` | **gone** | only `import-manifest.md` and three `stage*-report.txt` files remain under `data/` |
+| Tier 0 · `Agents/` (344 files, 9.4 MB) | **gone** | `git ls-tree -r origin/main` matches **0** paths under `Agents/` |
+| Tier 1 · `CLAUDE.md` named "the #1 problem … says TypeScript" | **fixed** | `CLAUDE.md` now states the code is plain JavaScript (`.jsx`/`.js`, no `tsconfig`) and carries the 2026-09-26 multi-household direction note |
+| Tier 1 · `.agent/AGENTS.md`, `.agent/@creator.md`, `.agent/@engineer.md` | **gone** | not in the tree |
+| Tier 1 · `design/` and the `.agent/inspiration/` process cruft | **gone** | 0 paths under `design/`; `AGENT_LOG.md`, `QUEUE_PROTOCOL.md`, `DECISIONS_NEEDED.md`, `BATCH_2_CONTINUATION.md` are all absent, while the `TASK_*.md` set, `README.md` and `done/` were kept — as this file advised |
+| Tier 2 · `test_app.py`, `initial_state.png`, `shopping_list.png` | **gone** | not in the tree |
+| Tier 2 · `src/scripts/*.js` (~11 one-off audit/debug scripts) | **gone** | `src/scripts/` no longer exists |
+| Tier 2 · `scripts/*.ts` (7 pipeline files) | **gone** | **0** `.ts` files in the tree; `scripts/` now holds `migration_reapply_check.mjs`, `recipe_deletion_check.mjs`, `task07_check.mjs` |
+| Tier 2 · `public/images/recipes/*` vs `public/assets/recipe-refresh/*` | **STILL OPEN** | both sets are still present (**10** and **14** files); neither path is referenced from `src/` — someone still has to decide which set is dead |
+| Security 1 · `VITE_GEMINI_API_KEY` baked into the client bundle | **fixed** | `src/lib/geminiClient.js` POSTs to `/.netlify/functions/gemini`; `netlify/functions/gemini.js` exists; `git grep VITE_GEMINI origin/main` finds **no** hit under `src/` |
+| Security 2 · 25 npm vulnerabilities (1 critical) | **NOT re-verified** | no `npm audit` was run when this status block was written; treat the 2026-09-09 count as unconfirmed, including the *shape* claim below |
+
+**Still worth keeping from this file:** the keep-lists (the `.agent/` docs, `final_recipes.json`, the
+`TASK_*.md` candidate set) and the framing that the npm findings lived in dev/build dependencies rather
+than runtime code — though that count is stale and the claim was not re-checked here.
+
+---
+
+---
+
+## Tier 0 — Delete (dead weight, biggest wins) — ✅ all five items removed
 
 | Item | Size | Why |
 |---|---|---|
@@ -24,11 +54,11 @@ Inside `Agents/`, also note the **duplicates**:
 
 ---
 
-## Tier 1 — Documentation (your specific ask)
+## Tier 1 — Documentation (your specific ask) — ✅ addressed (kept as history)
 
 The `.agent/` docs are in *good* shape (maintained through Aug 22 — `DATA_MODELS.md` v2.0 even correctly says "plain JavaScript, NOT TypeScript"). The problem is a few stale/legacy files:
 
-### Stale (rewrite)
+### Stale (rewrite) — ✅ `CLAUDE.md` rewritten; it is no longer wrong
 - **`CLAUDE.md`** — the #1 problem. It's the entry-point file any AI reads first, and it's wrong: says **"TypeScript"** (the code is `.jsx`/`.js`, no `tsconfig`) and **"Current status (Feb 27) Mid-pivot, 5 features"** (the app is live in production since Aug). Directly contradicts `PROJECT.md` and `DATA_MODELS.md`. **Rewrite this first.**
 
 ### Redundant / retired (delete or archive)
@@ -47,7 +77,7 @@ The `.agent/` docs are in *good* shape (maintained through Aug 22 — `DATA_MODE
 
 ---
 
-## Tier 2 — Orphaned / legacy code
+## Tier 2 — Orphaned / legacy code — ✅ removed, except the two image sets (still open)
 
 | Item | Why |
 |---|---|
@@ -61,7 +91,7 @@ The `.agent/` docs are in *good* shape (maintained through Aug 22 — `DATA_MODE
 
 ---
 
-## Security (2 findings)
+## Security (2 findings) — ✅ finding 1 fixed; finding 2 not re-verified
 
 1. **`VITE_GEMINI_API_KEY` is baked into the client bundle** — `weekPlanChat.js` calls Gemini from the browser, and `VITE_` vars are inlined into the public JS. Anyone can extract the key from the deployed bundle. `PROJECT.md` even acknowledges this ("baked into the client bundle by design") — but it's a genuine leak. **Fix:** route Gemini calls through a Netlify function (server-side), like the existing `netlify/functions/fetch-recipe.js`.
 2. **25 npm vulnerabilities (1 critical)** — all in **dev/build** dependencies (`vite`, `ws`, `workbox-build`, `yaml`), *not* runtime app code. These are dev-server path-traversal/memory issues, not holes in your deployed app. **Fix:** `npm audit fix` + bump `vite` to ≥ 7.3.4.
