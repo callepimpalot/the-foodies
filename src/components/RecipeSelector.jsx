@@ -4,7 +4,7 @@ import { useRecipes } from '../hooks/useRecipes';
 import { Sheet } from './ui/Sheet';
 import { Chip } from './ui/Chip';
 
-export function RecipeSelector({ onSelect, onClose, slot, date }) {
+export function RecipeSelector({ onSelect, onClose, slot }) {
     const [search, setSearch] = useState('');
     const { recipes } = useRecipes();
 
