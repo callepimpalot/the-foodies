@@ -3,6 +3,8 @@
 # Source of Truth for actual data shapes in the codebase — verified against real code, not aspirational.
 # The app is plain JavaScript (.jsx/.js), NOT TypeScript, despite this file's earlier interface syntax.
 # Interfaces below are written in TS-like shorthand for readability only.
+# Sections renumbered 2026-10-02: old §5–§7 became §7–§9, to make room for §5 (the six TASK_07
+# household tables) and §6 (cook_feedback). References to §1–§4 elsewhere are unaffected.
 
 ---
 
@@ -12,7 +14,8 @@
 - Timestamps are ISO 8601 strings
 - Optional chaining (`?.`) is mandatory on all data access in the UI layer
 - Supabase is the source of truth for recipes once reachable — falls back to local `final_recipes.json` when unreachable (see useRecipes.js)
-- Plan, Shop, and Household Essentials data are NOT in Supabase — they are localStorage- or memory-only, per-device (see each section below)
+- Plan, Shop and Household Essentials data **are** in Supabase — TASK_07 shipped that on 2026-09-29: `meal_plans`, `plan_state`, `shopping_state`, `essentials` and `essentials_categories`, all scoped to a household. localStorage is a **cache**, not the source of truth: `src/hooks/useSyncedDocument.js` paints from the cache synchronously and reconciles with Supabase afterwards, parking a failed write on disk until the browser is online. *Corrected 2026-10-02 — this line said the opposite ("NOT in Supabase … localStorage- or memory-only, per-device") for the week after TASK_07 went live, which is exactly the sentence that would send a fresh session off writing localStorage code for tables that already exist.* See §5.
+- Two tables in the live schema have no household column: `recipes` (the shared library, §1) and `cook_feedback` (its `household_id` exists but nothing populates it yet — §6). Everything else is per household, and every request carries the household in an `x-household-id` header.
 
 ---
 
@@ -20,7 +23,11 @@
 
 The core content unit. Lives in the Supabase `recipes` table.
 
-### Real Supabase columns (verified from scripts/import-to-supabase.ts — no .sql schema files exist in the repo)
+### Real Supabase columns
+
+Verified against the live database (last pass 2026-08-22, the one that added `source_url` and `step_ingredients`).
+
+*Provenance corrected 2026-10-02.* This heading used to read *"verified from `scripts/import-to-supabase.ts` — no `.sql` schema files exist in the repo"*. Both halves of that are now false: `scripts/` holds three `*_check.mjs` text checks and nothing else (the one-shot `.ts` import pipeline was archived — `AUDIT.md`), and `supabase/migrations/` holds five `.sql` files plus `supabase/rollback/`. None of those **creates** `recipes` — they alter it, or copy its shape with `like` — so the list below still has no in-repo DDL to be checked against. The database remains the only authority for it.
 
 ```
 id                  uuid
@@ -66,7 +73,7 @@ Written by `src/hooks/useRecipeCapture.js` → `src/lib/recipeExtraction.js` (Ge
 
 ## 2. HOUSEHOLD ESSENTIALS (Pantry tab)
 
-Lives entirely in `src/context/InventoryContext.jsx` — **localStorage-backed, persists across page reloads**. Manages a user-editable grid of pantry items and categories. Defaults to 5 seed items if localStorage is empty or corrupted.
+Lives in `src/context/InventoryContext.jsx` (state, public API and the defaults below) and — since TASK_07 — in the Supabase tables `essentials` and `essentials_categories`, scoped to `household_id`. The two localStorage keys further down are the **cache** `useSyncedDocument` seeds from; every change is also pushed (debounced) to Supabase, so a second phone in the same household sees the same grid. Offline, the cache stays authoritative and the write is parked until the browser is online. Defaults to 5 seed items when the cache is empty **and** the remote has nothing. Manages a user-editable grid of pantry items and categories.
 
 ### Persistence
 
@@ -113,7 +120,11 @@ cook-time deduction. See `TASK_11_pantry_real_inventory.md` for the evidence beh
 pantry tracking is the most-abandoned feature in this product category, and the input cost is why.
 
 The transitions live as pure functions in `src/lib/pantryItems.js` and the date logic in
-`src/lib/useByDates.js`, both asserted by `node src/scripts/pantry_check.js`.
+`src/lib/useByDates.js`. **Correction, 2026-10-02:** this used to say both were *"asserted by
+`node src/scripts/pantry_check.js`"* — there is no `src/scripts/` directory in the repo and no such
+script, so **nothing asserts either of them today**. The repo's checks are the `scripts/*_check.mjs`
+text checks (SQL and file invariants; a runner for them lives on the unmerged `chore/checks-runner`
+branch). No check reads `src/lib/pantryItems.js` or `src/lib/useByDates.js`.
 
 ```
 Category {
@@ -156,7 +167,7 @@ oversight: a section that nags on every launch is one you learn to ignore.
 
 ## 3. WEEKLY PLAN (Plan tab)
 
-`src/context/PlanContext.jsx` — localStorage-backed, keys `meal_buddy_plan` and `meal_buddy_confirmed`.
+`src/context/PlanContext.jsx` holds the public API and the in-memory shape below; **since TASK_07 the bytes live in Supabase** — one row per planned day in `meal_plans`, keyed `(household_id, plan_date)` and mapped by `src/lib/planRows.js`, plus `plan_state.confirmed` for the week lock. `meal_buddy_plan` and `meal_buddy_confirmed` are the cache keys `useSyncedDocument` seeds from, not the source of truth. Only days **this** client cleared are deleted remotely, so one phone clearing an evening cannot erase the other phone's.
 
 **One meal per day** (not three meal-type slots — this was simplified from an earlier breakfast/lunch/dinner model to match the "drop meals on days" vision in PROJECT.md).
 
@@ -179,7 +190,7 @@ A day holds **at most one** of the three — never combined. `resolveDay(date)` 
 
 ## 4. SHOPPING LIST (Shop tab)
 
-**Not persisted anywhere.** Computed fresh on every render of `ShopView` via `buildShoppingList(weeklyPlan)` in `src/lib/consolidateIngredients.js`. Checked/unchecked state is local component state (`useState`) — it resets if you navigate away and back, or reload the page. This is an intentional POC simplification, not an oversight.
+Stored in Supabase as `shopping_state` — one row per household (`checked_keys jsonb`, `plan_fingerprint text`) — since TASK_07, 2026-09-29. The **list itself** is still computed fresh on every render of `ShopView` via `buildShoppingList(weeklyPlan)` in `src/lib/consolidateIngredients.js`; what is persisted is the ticked/un-ticked set, shared with every phone in the household, and the fingerprint records *which plan* those ticks belonged to so a rebuilt plan resets them instead of showing stale ticks. **Correction, 2026-10-02:** this section said *"Not persisted anywhere … an intentional POC simplification, not an oversight"* — accurate before TASK_07, false after it.
 
 ```
 buildShoppingList(weeklyPlan) → ShoppingItem[]
@@ -199,7 +210,45 @@ Only days with a `recipe` entry contribute ingredients — `leftover` and `note`
 
 ---
 
-## 5. NAVIGATION
+## 5. HOUSEHOLD AND THE SHARED TABLES (TASK_07, live since 2026-09-29)
+
+Six tables, created by `supabase/migrations/20260926_task07_household_planning.sql` (the authority for
+their exact shapes — this section is a map, not a replacement). All six have RLS enabled, and every
+policy is scoped by `public.request_household_id()`, which reads the `x-household-id` request header.
+
+| table | one row per | key columns | written by |
+|---|---|---|---|
+| `households` | household | `id uuid pk`, `name text`, `join_code text unique`, `created_at` | `src/lib/household.js` → RPC `create_household()` |
+| `meal_plans` | planned day | `(household_id, plan_date)` pk, `kind`, `recipe_id`, `recipe_snapshot jsonb`, `servings`, `leftover_of_date`, `note`, `updated_at` | §3 |
+| `plan_state` | household | `household_id` pk, `confirmed boolean`, `updated_at` | §3 (the week lock) |
+| `shopping_state` | household | `household_id` pk, `checked_keys jsonb`, `plan_fingerprint text` | §4 |
+| `essentials` | pantry item | `(household_id, item_id)` pk, `name`, `emoji`, `category`, `flagged`, `low_stock`, `use_by_date` | §2 |
+| `essentials_categories` | pantry category | `(household_id, category_id)` pk, `name`, `position` | §2 |
+
+`meal_plans.kind` is constrained to `'recipe' | 'leftover' | 'note'` — the one-meal-per-day model in §3,
+now enforced by the database as well as by the UI. `leftover_of_date` may not be its own `plan_date`.
+
+**There is no login.** A `household_id` in localStorage *is* the credential; it goes out in an
+`x-household-id` header, and `resolve_join_code()` is callable by anyone holding the anon key that ships
+in the public bundle. The join code is the only protection. That is deliberate and documented — the auth
+build (TASK_12, `.agent/features/FEATURE_family_households.md`) is what replaces it. Worth knowing before
+public sign-up; not a defect in TASK_07.
+
+---
+
+## 6. COOK FEEDBACK (taste model)
+
+`src/lib/cookFeedback.js` → the `cook_feedback` table, created by
+`supabase/migrations/20260822163401_create_cook_feedback.sql`. Seven columns, written when a cook is
+finished off: `recipe_id`, `rating`, `note`, plus `household_id uuid` and a member id that
+**exist but are never populated** — the code accepts them and stores `null`, on purpose, until a second
+adult is onboarded (`FEATURE_family_households.md` specifies the membership-scoped replacement). The
+table is read back to personalise the Week Planner chat. This section was missing entirely until
+2026-10-02, which is why it is listed in the changelog rather than silently inserted.
+
+---
+
+## 7. NAVIGATION
 
 No router — `src/context/ViewContext.jsx` holds `currentView` (a `VIEWS` enum value from `src/utils/constants.js`) and an ad-hoc `viewData` payload channel. `src/App.jsx` does a `switch(currentView)`.
 
@@ -209,16 +258,17 @@ VIEWS = { DASHBOARD, PLAN, RECIPES, SHOP, PANTRY, CAPTURE, COOK_MODE }
 
 ---
 
-## 6. REMOVED MODELS (do not resurrect without a new brief)
+## 8. REMOVED MODELS (do not resurrect without a new brief)
 
-The following data models existed in v1.0 of this file but describe features that were archived in the Feb 27 pivot and have since been deleted from the codebase entirely: `EssentialCheckSession` (session-based essentials — replaced by the stateless model in §2), `SwipeSession`, `PlanSlot`/multi-meal-type `WeeklyPlan`, `ShoppingListItem` with `sourceType`/`sourcePlanSlotId` provenance tracking, `RecipeFork`/`isPersonal` customisation lineage, `UserProfile`, `FamilyGroup`. None of these have any code in the current app.
+The following data models existed in v1.0 of this file but describe features that were archived in the Feb 27 pivot and have since been deleted from the codebase entirely: `EssentialCheckSession` (session-based essentials — replaced by the stateless model in §2), `SwipeSession`, `PlanSlot`/multi-meal-type `WeeklyPlan`, `ShoppingListItem` with `sourceType`/`sourcePlanSlotId` provenance tracking, `RecipeFork`/`isPersonal` customisation lineage, `UserProfile`, `FamilyGroup`. None of these have any code in the current app. (TASK_07's household model in §5 is **not** a resurrection of `FamilyGroup`: it is a join code with no auth, no membership table and no per-member attribution — see §5 and `FEATURE_family_households.md`.)
 
 ---
 
-## 7. CHANGELOG
+## 9. CHANGELOG
 
 | Date | Change |
 |---|---|
+| Oct 2 | **TASK_07 caught up with.** Four statements in this file contradicted the code that went live on 2026-09-29, and are corrected rather than quietly reworded: the General Rules line *"Plan, Shop, and Household Essentials data are NOT in Supabase"*; §2 *"lives entirely in InventoryContext — localStorage-backed"* (it queries `essentials` / `essentials_categories`); §3 *"localStorage-backed"* (it queries `meal_plans` / `plan_state`); §4 *"Not persisted anywhere"* (it queries `shopping_state`). Two new sections: **§5** maps the six TASK_07 tables (shapes from the migration, which is the authority) and states the no-login security model; **§6** documents `cook_feedback`, which was in the live schema and named nowhere in this file. Also corrected: §1's provenance line claimed the columns came from `scripts/import-to-supabase.ts` and that *"no .sql schema files exist in the repo"* — the `.ts` pipeline is gone and five `.sql` migrations exist; and §2 claimed `src/lib/pantryItems.js` / `useByDates.js` were *"asserted by `node src/scripts/pantry_check.js`"*, a path that does not exist — **nothing** asserts them. Sections §5–§7 renumbered to §7–§9 to make room. `scripts/data_models_coverage_check.mjs` now fails when the app queries a table this file does not name. |
 | Aug 22 | §2 — `InventoryItem` gains two OPTIONAL fields, `lowStock?: boolean` and `useByDate?: string \| null` (TASK_11 Phase 1). Existing stored items need no migration; both absent is valid. Documented how `lowStock` reaches the shopping list through the existing `flagged` mechanism rather than a parallel path, and flagged the two fields as candidates for collapsing if nothing else ever writes to the list. §1 — the live `recipes` table gained two nullable columns this same day: `source_url text` (TASK_08, the origin link on a URL capture) and `step_ingredients jsonb` (TASK_10, per-step ingredient indexes, parallel to `steps` because `steps` is `text[]` and cannot carry them inline). |
 | Aug 21 | §2 rewritten — Essentials now persist to localStorage (meal_buddy_essentials_items, meal_buddy_essentials_categories), not in-memory. Item shape is now { id, name, emoji, category, flagged } (removed quantity, targetQuantity, inPantry, isMaster, toBuy). Categories are user-editable. Removed stale inPantry-based Home screen counter bug and updated all docs to match actual code. |
 | Jul 26 | v2.0 — Full rewrite against actual code. Documented real Supabase columns, the local-fallback ingredient shape mismatch, in-memory-only Essentials, the new one-meal-per-day Plan model, and the non-persisted Shop model. Removed all models for deleted features (swipe, family, auth, customisation). |
