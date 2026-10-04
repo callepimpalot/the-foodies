@@ -10,6 +10,13 @@
 --
 -- Spec: .agent/features/FEATURE_taste_model.md (TASK_15).
 
+-- One explicit transaction. A migration applied with `psql -f` autocommits every statement, so a
+-- failure halfway through leaves half-built objects behind and the retry has to work around them.
+-- The explicit begin;/commit; pair is inert where the runner already wraps the file in a
+-- transaction (what the Supabase CLI does, and what 20260926_task07 and 20260927_archive already
+-- do), and load-bearing where it does not. Verified statically only; no SQL engine is available.
+begin;
+
 create table if not exists public.cook_feedback (
   id           uuid primary key default gen_random_uuid(),
   recipe_id    uuid references public.recipes(id) on delete cascade,
@@ -54,6 +61,8 @@ begin
       for insert to public with check (true);
   end if;
 end $$;
+
+commit;
 
 -- No UPDATE or DELETE policy by design: feedback is write-once. Correcting a rating
 -- means cooking it again and rating it again, which is also more honest data.
