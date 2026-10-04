@@ -25,6 +25,12 @@
  *   columns   — `alter table ... add column if not exists`
  *   functions — `create or replace function`
  *
+ * TRANSACTION WRAP
+ * A file that opens `begin;` must close it with `commit;`, and any file containing `delete from`,
+ * `truncate` or `drop table` must open one. Under `psql -f` every statement autocommits, so an
+ * unwrapped destructive file that fails partway leaves production half-changed with no record; the
+ * wrap is inert where the runner already provides one. Asserted here so it cannot silently regress.
+ *
  * WHAT IT IS NOT
  * This is a text check. No SQL engine, parser or database is involved and none exists in this
  * environment. A clean report means the file's own statements do not collide on a second
@@ -180,6 +186,35 @@ for (const path of targets) {
     const funcs = low.match(/\bcreate\s+(?:or\s+replace\s+)?function\b/g) ?? [];
     const funcsIdem = low.match(/\bcreate\s+or\s+replace\s+function\b/g) ?? [];
     check(`every create function is "or replace" (${funcs.length} function(s))`, funcs.length === funcsIdem.length);
+
+    // --- transaction wrap -----------------------------------------------------------------------
+    // A file applied with `psql -f` autocommits every statement, so a failure halfway through
+    // leaves half-built objects behind and the retry has to work around them. Opening the file
+    // with `begin;` and closing it with `commit;` makes the whole file atomic where the runner
+    // does not already wrap it, and is inert where it does. The pair must be balanced: an
+    // unmatched `begin;` leaves a transaction open at end of file, and a stray `commit;` with no
+    // opener hides the mistake. This is the property #25 and #11 add to five migration files; it
+    // is asserted here so a future file cannot quietly drop it.
+    const begins = (low.match(/^[ \t]*begin\s*;/gm) ?? []).length;
+    const commits = (low.match(/^[ \t]*commit\s*;/gm) ?? []).length;
+    check(
+        `transaction wrap is paired (${begins} begin;, ${commits} commit;)`,
+        begins === commits,
+        `${begins} top-level "begin;" vs ${commits} top-level "commit;" — a file that opens a ` +
+            'transaction must close it, or the migration is left uncommitted at end of file',
+    );
+
+    // Any file that removes rows or objects must do so inside that transaction. `delete from`,
+    // `truncate` and `drop table` cannot be undone by re-running; unwrapped, a failure after one
+    // of them leaves production half-changed with nothing recording it.
+    const destructive = /\b(?:delete\s+from|truncate|drop\s+table)\b/.test(low);
+    check(
+        destructive
+            ? 'file that deletes/truncates/drops tables opens a transaction'
+            : 'no row/table-removing statement to wrap',
+        !destructive || begins >= 1,
+        'a file containing delete from / truncate / drop table must open with "begin;"',
+    );
 
     // --- the one thing that makes a whole-file re-run impossible ---------------------------------
     check(
