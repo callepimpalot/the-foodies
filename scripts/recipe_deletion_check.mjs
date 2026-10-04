@@ -66,6 +66,12 @@ function stripComments(sql) {
 const sql = stripComments(migration);
 const flat = normalizePredicate(sql);
 
+// The restore script is checked the same way, and it has to be: its own header *documents* the
+// `on conflict (id) do nothing` behaviour in prose. Testing the raw text made that assertion pass
+// off the comment alone — delete the real clause from the statement and the check still went green.
+// Statement checks therefore run against `restoreSql`, never the raw file.
+const restoreSql = stripComments(restore);
+
 console.log('Archive-then-delete migration');
 
 // ── the transaction ───────────────────────────────────────────────────────────────────────────
@@ -142,13 +148,13 @@ check('restore script exists', restore.length > 0);
 check('restore script is NOT inside supabase/migrations',
     !MIGRATION.startsWith(RESTORE) && RESTORE.includes('/rollback/'));
 check('restore inserts back into public.recipes',
-    /insert into public\.recipes/.test(restore));
-check('restore reads from the archive', /public\.recipes_archive_20260927/.test(restore));
+    /insert into public\.recipes/.test(restoreSql));
+check('restore reads from the archive', /public\.recipes_archive_20260927/.test(restoreSql));
 check('restore keeps original ids (on conflict (id) do nothing)',
-    /on conflict \(id\) do nothing/.test(restore));
+    /on conflict \(id\) do nothing/.test(restoreSql));
 check('restore refuses to run against an empty archive',
-    /archive is empty/.test(restore));
-check('restore does not silently delete anything', !/\bdelete\s+from\b/i.test(restore));
+    /archive is empty/.test(restoreSql));
+check('restore does not silently delete anything', !/\bdelete\s+from\b/i.test(restoreSql));
 check('migration points at the restore script',
     /supabase\/rollback\/20260927_restore_seeded_recipes\.sql/.test(migration));
 
