@@ -25,7 +25,7 @@ import {
     MEASURE_WORDS,
     GENERIC_QUALIFIERS,
 // Explicit .js extension: this module is imported both by Vite and directly by
-// node (src/scripts/step_ingredients_check.js), and node ESM will not guess it.
+// node (scripts/step_ingredients_check.mjs), and node ESM will not guess it.
 } from './consolidateIngredients.js';
 
 // Words that carry no identity on their own. Matching on any of these would light up
