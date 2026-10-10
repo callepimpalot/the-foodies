@@ -14,7 +14,7 @@
 // is a mild annoyance. A wrong merge is an ingredient silently missing at cook time.
 
 // Explicit .js extension so this module also loads under plain `node` for
-// src/scripts/consolidation_check.js — Vite resolves it identically.
+// scripts/consolidation_check.mjs — Vite resolves it identically.
 import { commonItems } from '../data/commonItems.js';
 
 /* =========================================================
