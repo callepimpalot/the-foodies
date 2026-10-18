@@ -46,24 +46,36 @@ function mapRow(r, idx, localOverride = []) {
 
 /**
  * Maps a local final_recipes.json entry to the same UI shape.
- * Local file uses camelCase / different field names.
+ *
+ * The offline library does NOT use the DB's column names. Measured against the real
+ * `final_recipes.json` (38 rows): **38/38 carry `cooking_time`** (a display string such as `"20m"`,
+ * never a number of minutes) and **38/38 carry `instructions`**; **0/38** carry `cook_time`,
+ * `cookTimeMinutes` or `cook_time_minutes`, and **0/38** carry `steps`. Reading only the DB names
+ * meant every offline recipe lost its cooking time and its step list.
  */
 function mapLocalRow(r, idx) {
     const fallback = FALLBACKS[idx % FALLBACKS.length];
     const resolvedImageUrl = r?.image_url || r?.image || fallback;
     const cookMins = r?.cook_time_minutes ?? r?.cookTimeMinutes ?? null;
+    // A numeric column is still formatted; `cooking_time` is already display-ready and must not be
+    // suffixed with "m".
+    const cookText = r?.cooking_time ?? r?.cook_time ?? r?.time ?? null;
+    const timeValue = cookMins != null ? `${cookMins}m` : cookText;
 
     return {
         ...r,
         image_url: resolvedImageUrl,
         image: resolvedImageUrl,
-        cook_time: cookMins != null ? `${cookMins}m` : r?.cook_time ?? r?.time ?? null,
-        time: cookMins != null ? `${cookMins}m` : r?.cook_time ?? r?.time ?? null,
+        cook_time: timeValue,
+        time: timeValue,
         servings: r?.servings ?? r?.base_servings ?? r?.baseServings ?? null,
         baseServings: r?.servings ?? r?.base_servings ?? r?.baseServings ?? null,
         archetypes: Array.isArray(r?.archetypes) ? r.archetypes : [],
         tags: Array.isArray(r?.tags) ? r.tags : [],
-        steps: Array.isArray(r?.steps) ? r.steps : [],
+        // The library's field is `instructions`; the detail sheet renders `steps`.
+        steps: Array.isArray(r?.steps)
+            ? r.steps
+            : (Array.isArray(r?.instructions) ? r.instructions : []),
         ingredients: Array.isArray(r?.ingredients) ? r.ingredients : [],
     };
 }
