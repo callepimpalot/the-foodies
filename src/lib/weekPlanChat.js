@@ -158,7 +158,7 @@ export async function planWeek({ instruction, scopeDates, currentProposal, libra
     }
 
     const raw = cleanJson(text);
-    if (!raw) throw new Error('Gemini returned an empty response.');
+    if (!raw) throw new Error('The AI returned an empty response.');
     const parsed = JSON.parse(raw);
 
     // Translate the model's libraryIndex back into a real recipeId by direct array lookup —

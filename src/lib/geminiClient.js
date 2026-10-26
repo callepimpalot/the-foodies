@@ -32,7 +32,13 @@ export async function geminiGenerateContent({ model, contents, config }) {
     }
 
     if (!response.ok || body?.error) {
-        throw new Error(body?.error || `AI request failed (${response.status}).`);
+        // The HTTP status is attached rather than dropped. describeApiError() recognises a
+        // rate limit by its code, and going through this proxy used to lose the status — so
+        // a 429 arrived as an opaque string. With the provider behind a proxy, this is the
+        // only place the real status can survive.
+        const err = new Error(body?.error || `AI request failed (${response.status}).`);
+        err.status = response.status;
+        throw err;
     }
 
     return body.text;
