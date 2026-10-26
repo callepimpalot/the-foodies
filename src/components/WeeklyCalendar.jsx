@@ -1,22 +1,18 @@
 import React from 'react';
 import { usePlan } from '../context/PlanContext';
 import { DayCard } from './DayCard';
+import { toDateStr, visibleWeekDays } from '../lib/weekWindow';
 
 export function WeeklyCalendar({ onDayClick, onViewRecipe }) {
     const { isPlanConfirmed, clearDay, resolveDay } = usePlan();
 
-    // Generate next 7 days
-    const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() + i);
-        return {
-            dateStr: d.toISOString().split('T')[0],
-            dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
-            dayNum: d.getDate(),
-        };
-    });
+    // The seven days this tab shows. Defined in lib/weekWindow.js rather than here,
+    // because the Shop tab has to agree with this list exactly — when each view built
+    // its own window they drifted, and the shopping list filled up with meals from
+    // weeks the plan no longer displayed.
+    const days = visibleWeekDays();
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = toDateStr(new Date());
     const hasAnyPlanned = days.some((day) => resolveDay(day.dateStr));
 
     // A plain vertical list flowing inside App.jsx's own scrollable <main> — no nested scroll

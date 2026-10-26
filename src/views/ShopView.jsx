@@ -4,6 +4,7 @@ import { usePlan } from '../context/PlanContext';
 import { useInventory } from '../context/InventoryContext';
 import { useShop } from '../context/ShopContext';
 import { buildShoppingList, CATEGORY_ORDER, formatMeasure } from '../lib/consolidateIngredients';
+import { planInVisibleWeek } from '../lib/weekWindow';
 import { BoardCard } from '../components/ui/TicketCard';
 import { Button } from '../components/ui/Button';
 
@@ -54,8 +55,13 @@ export function ShopView() {
         });
     };
 
+    // Scoped to the week the Plan tab is showing. The plan document accumulates a day
+    // entry per date and nothing ever prunes the ones that have gone by, so passing it
+    // whole listed ingredients for meals that were no longer on screen — the plan said
+    // one thing and the list said another. planInVisibleWeek() asks the same module
+    // WeeklyCalendar renders from, so the two tabs cannot disagree.
     const recipeItems = useMemo(
-        () => (isPlanConfirmed ? buildShoppingList(weeklyPlan) : []),
+        () => (isPlanConfirmed ? buildShoppingList(planInVisibleWeek(weeklyPlan)) : []),
         [weeklyPlan, isPlanConfirmed]
     );
 
