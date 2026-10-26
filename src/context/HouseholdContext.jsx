@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import {
     clearHousehold,
     ensureHousehold,
@@ -7,39 +7,64 @@ import {
     getJoinCodeIsLocal,
     joinWithCode,
 } from '../lib/household';
+import {
+    acceptInvite,
+    clearCachedHouseholdData,
+    createInvite,
+    createOrClaimHousehold,
+    getMembership,
+    listMembers,
+    removeMember,
+    renameHousehold,
+    setActiveHouseholdHeader,
+    transferOwnership,
+} from '../lib/households';
+import { useAuth } from './AuthContext';
 
 const HouseholdContext = createContext();
 
-// Module-scope so simultaneous callers share one attempt — see the note in the
-// provider's mount effect. Cleared as soon as it settles; a later call starts a
-// fresh one, which is correct because ensureHousehold() re-reads the stored id
-// first and returns the existing household rather than making another.
-let inflight = null;
+// The legacy device path (no session) creates a household in Supabase if it can
+// and locally if it cannot. Two simultaneous providers must not create two
+// households — share one in-flight attempt at module scope, as TASK_07 did.
+let legacyInflight = null;
 
-function ensureHouseholdOnce() {
-    if (!inflight) {
-        inflight = ensureHousehold().finally(() => { inflight = null; });
+function ensureLegacyHouseholdOnce() {
+    if (!legacyInflight) {
+        legacyInflight = ensureHousehold().finally(() => { legacyInflight = null; });
     }
-    return inflight;
+    return legacyInflight;
 }
 
 /**
- * TASK_07 — who this device is planning for.
+ * FAMILY HOUSEHOLDS — resolves which household this device is planning for.
  *
- * Deliberately tiny. It exists so Plan/Shop/Inventory don't each read
- * localStorage for the household id (three copies of the same credential is how
- * one of them ends up stale), and so the join screen has one obvious home.
+ * The resolution has two arms, and the boundary is a session:
  *
- * On mount it ensures a household exists, creating one if this device has never
- * had one. `remote: false` means Supabase was unconfigured or unreachable and the
- * household is device-local — the app is fully usable, it just isn't shared yet,
- * and the UI says so instead of leaving Casper to wonder why.
+ *   signed in  -> the household comes from household_members. The id is the one
+ *                 the membership row says, decided by the database, never by a
+ *                 value this device asserts. A session with no membership yet
+ *                 (fresh sign-up) claims the device's legacy household or creates
+ *                 a new one, both through security-definer RPCs.
+ *   signed out -> the legacy TASK_07 path, unchanged: the device-held household
+ *                 id (localStorage), created locally when the backend is gone.
+ *                 This is the "he dismisses the sign-up prompt and the app keeps
+ *                 working exactly as before" arm (Flow A).
+ *
+ * The rest of the app never learns which arm is active: Plan/Shop/Inventory read
+ * `useHousehold().id` and get the right answer either way. That is the TASK_07
+ * context boundary holding one layer up, which is the whole point of the feature.
  */
 export function HouseholdProvider({ children }) {
+    const { user, loading: authLoading, signOut: authSignOut } = useAuth();
+
     const [state, setState] = useState(() => {
         const id = getHouseholdId();
         return {
             id,
+            name: 'Our household',
+            role: null,
+            isOwner: false,
+            members: [],
             joinCode: getJoinCode(),
             remote: id ? !getJoinCodeIsLocal() : false,
             ready: false,
@@ -48,22 +73,78 @@ export function HouseholdProvider({ children }) {
         };
     });
 
-    // StrictMode double-invokes effects in dev, and a remount must not strand the
-    // result: two concurrent `ensureHousehold()` calls would create two households
-    // (the loser becoming invisible), and a per-effect `cancelled` flag would drop
-    // the answer of a promise whose effect was already cleaned up. So one in-flight
-    // promise is shared at module scope, and whoever is mounted last adopts it.
     const mounted = useRef(true);
+    const userId = user?.id ?? null;
 
+    // Signed-in arm: resolve the household from membership, then its members.
     useEffect(() => {
+        if (authLoading) return;
+        if (!userId) return; // signed-out arm is a separate effect below
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                let membership = await getMembership();
+
+                if (!membership) {
+                    // A real session but no membership: claim the legacy device
+                    // household if there is one, otherwise create a fresh one.
+                    const legacyId = getHouseholdId();
+                    const created = await createOrClaimHousehold(legacyId);
+                    if (!created.ok) {
+                        if (!cancelled) setState((p) => ({ ...p, ready: true, status: 'error', error: created.error ?? new Error('household') }));
+                        return;
+                    }
+                    membership = { id: created.id, name: created.name, role: 'owner', isOwner: true, displayName: null };
+                }
+
+                setActiveHouseholdHeader(membership.id);
+
+                if (!cancelled) {
+                    setState((p) => ({
+                        ...p,
+                        id: membership.id,
+                        name: membership.name,
+                        role: membership.role,
+                        isOwner: membership.isOwner,
+                        ready: true,
+                        status: 'idle',
+                        error: null,
+                    }));
+                }
+
+                const members = await listMembers(membership.id);
+                if (!cancelled) setState((p) => ({ ...p, members }));
+            } catch (err) {
+                // Unreachable is not signed out. Keep whatever id we have; the
+                // synced documents treat a thrown loadRemote as offline.
+                console.warn('Meal Buddy: household resolution unavailable, staying on the current id.', err);
+                if (!cancelled) setState((p) => ({ ...p, ready: true, status: p.id ? 'idle' : 'error', error: err }));
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [userId, authLoading]);
+
+    // Signed-out arm: the legacy device path, unchanged.
+    useEffect(() => {
+        if (authLoading) return;
+        if (userId) return;
+
         mounted.current = true;
 
-        ensureHouseholdOnce()
+        ensureLegacyHouseholdOnce()
             .then((result) => {
                 if (!mounted.current) return;
-                setState((prev) => ({
-                    ...prev,
+                setActiveHouseholdHeader(result.id);
+                setState((p) => ({
+                    ...p,
                     id: result.id,
+                    name: 'Our household',
+                    role: null,
+                    isOwner: false,
+                    members: [],
                     joinCode: result.joinCode,
                     remote: result.remote,
                     ready: true,
@@ -72,29 +153,23 @@ export function HouseholdProvider({ children }) {
             })
             .catch((err) => {
                 if (!mounted.current) return;
-                setState((prev) => ({ ...prev, ready: true, status: 'error', error: err }));
+                setState((p) => ({ ...p, ready: true, status: 'error', error: err }));
             });
 
         return () => { mounted.current = false; };
-    }, []);
+    }, [userId, authLoading]);
 
-    /**
-     * Adopt a household from its code. On success the three synced documents
-     * reload themselves, because `id` changes and their load effect keys on it —
-     * which is the behaviour that matters: after joining, this device shows the
-     * other phone's plan, not its own.
-     */
+    /** Legacy join-by-code (the Q6 small-print fallback). Signed-out arm only. */
     const join = async (code) => {
-        setState((prev) => ({ ...prev, status: 'joining', error: null }));
+        setState((p) => ({ ...p, status: 'joining', error: null }));
         const result = await joinWithCode(code);
-
         if (!result.ok) {
-            setState((prev) => ({ ...prev, status: 'idle', error: result.reason }));
+            setState((p) => ({ ...p, status: 'idle', error: result.reason }));
             return result;
         }
-
-        setState((prev) => ({
-            ...prev,
+        setActiveHouseholdHeader(result.id);
+        setState((p) => ({
+            ...p,
             id: result.id,
             joinCode: String(code ?? '').trim().toUpperCase(),
             remote: true,
@@ -105,13 +180,14 @@ export function HouseholdProvider({ children }) {
         return result;
     };
 
-    /** Start over on this device. The old household's rows are left alone. */
+    /** Legacy "start over on this device". */
     const forget = () => {
         clearHousehold();
-        setState({ id: null, joinCode: '', remote: false, ready: false, status: 'creating', error: null });
-        ensureHousehold().then((result) => {
-            setState((prev) => ({
-                ...prev,
+        setState((p) => ({ ...p, id: null, joinCode: '', remote: false, ready: false, status: 'creating', error: null }));
+        ensureLegacyHouseholdOnce().then((result) => {
+            setActiveHouseholdHeader(result.id);
+            setState((p) => ({
+                ...p,
                 id: result.id,
                 joinCode: result.joinCode,
                 remote: result.remote,
@@ -121,8 +197,71 @@ export function HouseholdProvider({ children }) {
         });
     };
 
+    // ---- the authenticated surface (owner + member actions) ----------------
+
+    const refreshMembers = useCallback(async () => {
+        if (!state.id) return;
+        try {
+            const members = await listMembers(state.id);
+            setState((p) => ({ ...p, members }));
+        } catch { /* unreachable; keep the current list */ }
+    }, [state.id]);
+
+    const inviteMember = async () => {
+        if (!state.id) return { ok: false, reason: 'unconfigured' };
+        return createInvite(state.id);
+    };
+
+    const accept = async (token) => {
+        const result = await acceptInvite(token);
+        if (result.ok) await refreshMembers();
+        return result;
+    };
+
+    const remove = async (memberUserId) => {
+        if (!state.id) return { ok: false, reason: 'unconfigured' };
+        const result = await removeMember(state.id, memberUserId);
+        if (result.ok) await refreshMembers();
+        return result;
+    };
+
+    const rename = async (name) => {
+        if (!state.id) return { ok: false, reason: 'unconfigured' };
+        const result = await renameHousehold(state.id, name);
+        if (result.ok) setState((p) => ({ ...p, name }));
+        return result;
+    };
+
+    const transferOwner = async (newOwnerUserId) => {
+        if (!state.id) return { ok: false, reason: 'unconfigured' };
+        const result = await transferOwnership(state.id, newOwnerUserId);
+        if (result.ok) await refreshMembers();
+        return result;
+    };
+
+    /** Sign out: drop the session AND clear the cached household data, so the
+     *  next person to open the app on this device does not see this household's
+     *  plan, list or pantry (the brief names this edge case explicitly). */
+    const signOut = async () => {
+        clearCachedHouseholdData();
+        await authSignOut();
+    };
+
     return (
-        <HouseholdContext.Provider value={{ ...state, join, forget }}>
+        <HouseholdContext.Provider value={{
+            ...state,
+            isAuthed: Boolean(userId),
+            user,
+            join,
+            forget,
+            signOut,
+            inviteMember,
+            accept,
+            remove,
+            rename,
+            transferOwner,
+            refreshMembers,
+        }}>
             {children}
         </HouseholdContext.Provider>
     );

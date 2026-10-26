@@ -10,6 +10,8 @@ import { PantryView } from './views/PantryView'
 import { CookModeView } from './views/CookModeView'
 import { CaptureView } from './views/CaptureView'
 import { HouseholdView } from './views/HouseholdView'
+import { AuthView } from './views/AuthView'
+import { JoinView } from './views/JoinView'
 
 function AppContent() {
   const { currentView, VIEWS } = useView();
@@ -25,6 +27,8 @@ function AppContent() {
       case VIEWS.CAPTURE: return <CaptureView />;
       case VIEWS.COOK_MODE: return <CookModeView />;
       case VIEWS.HOUSEHOLD: return <HouseholdView />;
+      case VIEWS.AUTH: return <AuthView />;
+      case VIEWS.JOIN: return <JoinView />;
       default: return <HomeView />;
     }
   };
