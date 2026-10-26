@@ -96,7 +96,7 @@ export async function proposeDish({ constraints, acceptedDishes, rejectedForThis
     }
 
     const raw = cleanJson(text);
-    if (!raw) throw new Error('Gemini returned an empty response.');
+    if (!raw) throw new Error('The AI returned an empty response.');
     const parsed = JSON.parse(raw);
 
     const recipeId = parsed.source === 'library' ? (libraryShortlist?.[parsed.libraryIndex]?.id ?? null) : null;

@@ -144,7 +144,7 @@ export async function extractRecipe({ text, images = [] } = {}) {
     }
 
     const raw = cleanJson(rawText);
-    if (!raw) throw new Error('Gemini returned an empty response — the image or text may be unreadable.');
+    if (!raw) throw new Error('The AI returned an empty response — the image or text may be unreadable.');
     return withValidStepIngredients(JSON.parse(raw));
 }
 
@@ -172,7 +172,7 @@ export async function refineRecipe(currentRecipe, instruction) {
     }
 
     const raw = cleanJson(text);
-    if (!raw) throw new Error('Gemini returned an empty response.');
+    if (!raw) throw new Error('The AI returned an empty response.');
     const parsed = JSON.parse(raw);
     return { recipe: withValidStepIngredients(parsed.recipe), changeSummary: parsed.changeSummary };
 }
@@ -249,13 +249,13 @@ export function describeApiError(err) {
     }
 
     if (status === 'RESOURCE_EXHAUSTED' || code === 429) {
-        return new Error('Gemini rate limit or quota reached — wait a minute and try again.');
+        return new Error('The AI is rate limited or out of quota — wait a minute and try again.');
     }
     if (status === 'INVALID_ARGUMENT' || code === 400) {
-        return new Error(`Gemini rejected the request (${raw.slice(0, 200)}).`);
+        return new Error(`The AI rejected the request (${raw.slice(0, 200)}).`);
     }
     if (code === 401 || code === 403) {
-        return new Error('Gemini API key was rejected — check GEMINI_API_KEY.');
+        return new Error('The AI service rejected its API key — check the provider key set in Netlify.');
     }
     return new Error(raw);
 }
