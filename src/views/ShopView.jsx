@@ -154,11 +154,27 @@ export function ShopView() {
                             <div className="list-ticket">
                                 {catItems.map((item) => {
                                     const checked = checkedKeys.has(item.key);
-                                    // The chevron's presence is itself information: this
-                                    // number is a sum. A chevron revealing "1 for Stew" on
-                                    // a row that already says "1" is a broken promise.
+                                    // Every recipe row can be opened to see which dish it
+                                    // belongs to.
+                                    //
+                                    // This used to be gated on `sources.length > 1`, on the
+                                    // reasoning that a chevron's presence was itself
+                                    // information — "this number is a sum", and a chevron
+                                    // revealing a single source on a row that already showed
+                                    // one number was a broken promise. That held while the
+                                    // list was built from the whole plan document and most
+                                    // rows merged several meals, so most rows had a chevron.
+                                    // Once the list was correctly scoped to the visible week
+                                    // most rows have exactly ONE source, so the breakdown
+                                    // disappeared for the common case — and with it the
+                                    // answer to "which dish is this for?", which is the
+                                    // question the tap actually serves.
+                                    //
+                                    // The quantity label already carries the sum. The
+                                    // chevron carries the attribution, and that is worth
+                                    // having on every row.
                                     const sources = item?.sources ?? [];
-                                    const canExpand = sources.length > 1;
+                                    const canExpand = sources.length > 0;
                                     const expanded = canExpand && expandedKeys.has(item.key);
                                     return (
                                         // Not a <button> — the checkbox and the chevron are
