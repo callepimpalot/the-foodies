@@ -156,6 +156,35 @@ export function textFromOpenRouterResponse(json) {
 }
 
 /**
+ * Should a failed OpenRouter call be retried against Gemini?
+ *
+ * Being configured is not the same as being usable. Measured in production on 2026-10-26:
+ * `OPENROUTER_API_KEY` was present in the Netlify environment but held a value OpenRouter
+ * rejected, so every call took the OpenRouter branch and came back 401. The app was worse
+ * off than before the change — Gemini had merely been rate-limited, and now nothing worked.
+ * A fallback that only fires when the variable is ABSENT does not cover that, which is the
+ * case that actually happened.
+ *
+ * The rule: fall back when the failure is about the *provider*, never when it is about the
+ * *request*. A 400 means the body is wrong and Gemini would reject it just as fast, so
+ * retrying only doubles the latency before the same error.
+ *
+ *   401/403  key missing, wrong or unauthorised   -> fall back
+ *   402      out of credits                       -> fall back
+ *   404      model not routable                   -> fall back
+ *   408/429  timeout or rate limited              -> fall back
+ *   5xx      provider broken                      -> fall back
+ *   400/422  the request itself is bad            -> do NOT fall back
+ *   unknown  (a transport failure)                -> fall back; being available wins
+ */
+export function shouldFallBackToGemini(httpStatus, code) {
+    const status = Number(httpStatus ?? code);
+    if (!Number.isFinite(status) || status === 0) return true; // transport failure
+    if (status >= 500) return true;
+    return new Set([401, 402, 403, 404, 408, 429]).has(status);
+}
+
+/**
  * An OpenRouter error body -> something the app's error handler can actually read.
  *
  * `describeApiError()` in recipeExtraction.js recognises a rate limit by parsing the

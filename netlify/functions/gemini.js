@@ -11,10 +11,10 @@
 //
 // The filename still says "gemini" because it is the path the client already calls and
 // renaming it would be a needless endpoint change. What it actually does now is route to
-// whichever provider is configured, in this order:
+// whichever provider can serve the request, in this order:
 //
-//   1. OPENROUTER_API_KEY  -> OpenRouter     (preferred; see below)
-//   2. GEMINI_API_KEY      -> Gemini direct  (kept as the fallback)
+//   1. OPENROUTER_API_KEY -> OpenRouter      (preferred)
+//   2. GEMINI_API_KEY     -> Gemini direct   (the fallback)
 //
 // Why OpenRouter is preferred: the app was hitting Gemini's free-tier quota ("Gemini rate
 // limit or quota reached") during ordinary use, which makes the Capture tab unusable at
@@ -22,15 +22,24 @@
 // ceiling. It also runs the same model — google/gemini-2.5-flash — so the prompt and the
 // JSON schema, both tuned against Gemini, keep behaving the same way.
 //
-// The fallback is deliberate rather than incidental: this file is deployed by Netlify on
-// merge, and the env var is added by hand in the Netlify UI. Until that happens the app
-// must keep working, so Gemini stays wired up behind the OpenRouter branch instead of
-// being deleted in the same change.
+// Why the fallback fires on FAILURE and not merely on absence — this is the part that was
+// learned the hard way. The first version of this file fell back only when
+// OPENROUTER_API_KEY was missing. On the first production deploy the variable turned out to
+// be *present but holding a value OpenRouter rejected*, so every call took the OpenRouter
+// branch and returned 401 and the app was worse off than before the change. Being
+// configured is not the same as being usable, so the rule is now: if OpenRouter cannot
+// serve the request for reasons that are about OpenRouter rather than about the request,
+// try Gemini. See shouldFallBackToGemini() for the exact status list.
+//
+// Every successful response names the provider that served it, in a `provider` field. The
+// client only reads `text`, so this is additive — and it means the live behaviour can be
+// seen from outside, which it could not be before.
 
 import { GoogleGenAI } from '@google/genai';
 import {
     OPENROUTER_ENDPOINT,
     openRouterFailure,
+    shouldFallBackToGemini,
     textFromOpenRouterResponse,
     toOpenRouterBody,
 } from '../../src/lib/openRouterRequest.js';
@@ -46,6 +55,7 @@ function jsonResponse(status, payload) {
     });
 }
 
+/** Returns { ok, status, payload } rather than a Response, so the caller can fall back. */
 async function viaOpenRouter({ model, contents, config }) {
     let res;
     try {
@@ -62,34 +72,39 @@ async function viaOpenRouter({ model, contents, config }) {
             body: JSON.stringify(toOpenRouterBody({ model, contents, config })),
         });
     } catch (err) {
-        // A transport failure, not a provider rejection. 502 rather than 500: the fault
-        // is upstream, and the distinction is worth keeping in the status.
-        return jsonResponse(502, { error: `Could not reach OpenRouter: ${err?.message ?? err}` });
+        // A transport failure, not a provider rejection. 502: the fault is upstream.
+        return { ok: false, status: 502, code: null,
+                 payload: { error: `Could not reach OpenRouter: ${err?.message ?? err}` } };
     }
 
     let json;
     try {
         json = await res.json();
     } catch {
-        return jsonResponse(502, { error: `OpenRouter returned a non-JSON response (${res.status}).` });
+        return { ok: false, status: 502, code: null,
+                 payload: { error: `OpenRouter returned a non-JSON response (${res.status}).` } };
     }
 
     if (!res.ok || json?.error) {
         // The nested error object goes back as JSON so the app's describeApiError() can
         // still recognise a 429 and say "rate limit" in plain words.
         const failure = openRouterFailure(json, res.status);
-        return jsonResponse(res.status >= 400 ? res.status : 502, { error: failure.text });
+        return { ok: false, status: res.status >= 400 ? res.status : 502, code: failure.code,
+                 payload: { error: failure.text } };
     }
 
-    return jsonResponse(200, { text: textFromOpenRouterResponse(json) });
+    return { ok: true, status: 200,
+             payload: { text: textFromOpenRouterResponse(json), provider: 'openrouter' } };
 }
 
 async function viaGemini({ model, contents, config }) {
     try {
         const response = await gemini.models.generateContent({ model, contents, config });
-        return jsonResponse(200, { text: response.text ?? '' });
+        return { ok: true, status: 200,
+                 payload: { text: response.text ?? '', provider: 'gemini' } };
     } catch (err) {
-        return jsonResponse(500, { error: err?.message ?? String(err) });
+        return { ok: false, status: 500, code: err?.status ?? null,
+                 payload: { error: err?.message ?? String(err) } };
     }
 }
 
@@ -117,7 +132,27 @@ export default async (req) => {
         return jsonResponse(400, { error: 'model and contents are required.' });
     }
 
-    return OPENROUTER_KEY
-        ? viaOpenRouter({ model, contents, config })
-        : viaGemini({ model, contents, config });
+    // OpenRouter not configured: Gemini is the only provider.
+    if (!OPENROUTER_KEY) {
+        const only = await viaGemini({ model, contents, config });
+        return jsonResponse(only.status, only.payload);
+    }
+
+    const primary = await viaOpenRouter({ model, contents, config });
+    if (primary.ok) return jsonResponse(primary.status, primary.payload);
+
+    // The configured provider could not serve it. If the failure is about OpenRouter
+    // rather than about the request, and Gemini is available, use it — a wrong or expired
+    // key should degrade the app, not break it.
+    if (gemini && shouldFallBackToGemini(primary.status, primary.code)) {
+        const fallback = await viaGemini({ model, contents, config });
+        if (fallback.ok) {
+            // Say that a fallback happened, so it is visible rather than silent.
+            return jsonResponse(fallback.status, { ...fallback.payload, fellBack: true });
+        }
+    }
+
+    // Nothing could serve it. Report the ORIGINAL failure: that is the one describing the
+    // provider the app is actually configured to use, and so the one worth acting on.
+    return jsonResponse(primary.status, primary.payload);
 };

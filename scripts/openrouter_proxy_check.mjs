@@ -61,6 +61,7 @@ const {
     toOpenRouterBody,
     textFromOpenRouterResponse,
     openRouterFailure,
+    shouldFallBackToGemini,
 } = await import(pathlib.join(ROOT, 'src/lib/openRouterRequest.js'));
 
 // Imported from the app itself, so the schema under test is the real one rather than a
@@ -184,6 +185,26 @@ function stubFetch() {
         return nextReply;
     };
 }
+
+/** A stub that answers per-URL — needed once a test has to serve two providers. */
+function stubFetchWith(responder) {
+    globalThis.fetch = async (url, opts) => {
+        const u = String(url);
+        calls.push({ url: u, body: opts?.body ? JSON.parse(opts.body) : null, headers: opts?.headers });
+        return responder(u, opts);
+    };
+}
+
+/** The shape @google/genai expects back, so the SDK parses it rather than throwing. */
+function geminiOk(text) {
+    return jsonRes(200, {
+        candidates: [{ content: { parts: [{ text }] }, finishReason: 'STOP' }],
+        usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 5 },
+    });
+}
+
+const isOpenRouter = (u) => u.includes('openrouter.ai');
+const isGemini = (u) => /generativelanguage|googleapis/.test(u);
 
 function jsonRes(status, obj) {
     return new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
@@ -319,6 +340,92 @@ async function loadHandler(env) {
     const r3 = await handler({ method: 'GET', json: async () => ({}) });
     check('GET -> 405', r3.status, 405);
     check('and none of those reached the network', calls.length, 0);
+    globalThis.fetch = realFetch;
+}
+
+/* ------------------------------------------------- 6. when OpenRouter cannot serve it */
+
+console.log('\nThe fallback rule (pure)');
+check('a 401 is provider trouble -> fall back', shouldFallBackToGemini(401, 401), true);
+check('a 403 is provider trouble -> fall back', shouldFallBackToGemini(403, 403), true);
+check('a 402 out of credits -> fall back', shouldFallBackToGemini(402, 402), true);
+check('a 429 -> fall back', shouldFallBackToGemini(429, 429), true);
+check('a 500 -> fall back', shouldFallBackToGemini(500, null), true);
+check('a 503 -> fall back', shouldFallBackToGemini(503, null), true);
+check('a transport failure (no status) -> fall back', shouldFallBackToGemini(null, null), true);
+check('a 400 is a bad REQUEST, not a bad provider -> do NOT fall back',
+    shouldFallBackToGemini(400, 400), false);
+check('a 422 -> do NOT fall back', shouldFallBackToGemini(422, null), false);
+
+console.log('\nThe production failure: OpenRouter set but its key rejected');
+// This is the exact case that shipped and broke Capture: the variable was present (so the
+// "is it configured?" check passed) but its value was rejected. The app must still serve.
+{
+    calls = [];
+    stubFetchWith((u) => (isOpenRouter(u)
+        ? jsonRes(401, { error: { message: 'Missing Authentication header', code: 401 } })
+        : geminiOk('{"title":"from the fallback"}')));
+
+    const handler = await loadHandler({ OPENROUTER_API_KEY: 'bad-key', GEMINI_API_KEY: 'good' });
+    const res = await handler(req({ model: 'gemini-2.5-flash', contents: 'x' }));
+    const body = await res.json();
+
+    check('the user is served anyway', res.status, 200);
+    check('with the fallback provider\'s text', body.text, '{"title":"from the fallback"}');
+    check('and the response says which provider answered', body.provider, 'gemini');
+    check('and flags that a fallback happened rather than hiding it', body.fellBack, true);
+    check('OpenRouter was tried first',
+        calls.filter((c) => isOpenRouter(c.url)).length, 1);
+    check('and Gemini was tried second',
+        calls.filter((c) => isGemini(c.url)).length, 1);
+    globalThis.fetch = realFetch;
+}
+
+console.log('\nA bad REQUEST must not be retried');
+{
+    calls = [];
+    stubFetchWith((u) => (isOpenRouter(u)
+        ? jsonRes(400, { error: { message: 'schema is invalid', code: 400 } })
+        : geminiOk('should not be reached')));
+
+    const handler = await loadHandler({ OPENROUTER_API_KEY: 'or', GEMINI_API_KEY: 'gem' });
+    const res = await handler(req({ model: 'gemini-2.5-flash', contents: 'x' }));
+    check('the 400 is returned as-is', res.status, 400);
+    check('and Gemini was never called', calls.filter((c) => isGemini(c.url)).length, 0);
+    globalThis.fetch = realFetch;
+}
+
+console.log('\nNothing to fall back to');
+{
+    calls = [];
+    stubFetchWith((u) => jsonRes(401, { error: { message: 'Missing Authentication header', code: 401 } }));
+    const handler = await loadHandler({ OPENROUTER_API_KEY: 'bad-key' }); // no Gemini
+    const res = await handler(req({ model: 'gemini-2.5-flash', contents: 'x' }));
+    const body = await res.json();
+    check('the failure is surfaced rather than swallowed', res.status, 401);
+    assert('and the message names the real problem',
+        body.error.includes('Missing Authentication header'), body.error);
+    globalThis.fetch = realFetch;
+}
+
+console.log('\nThe happy path names its provider');
+{
+    calls = [];
+    stubFetchWith(() => jsonRes(200, { choices: [{ message: { content: 'ok' } }] }));
+    const handler = await loadHandler({ OPENROUTER_API_KEY: 'or' });
+    const res = await handler(req({ model: 'gemini-2.5-flash', contents: 'x' }));
+    const body = await res.json();
+    check('provider is openrouter', body.provider, 'openrouter');
+    check('and fellBack is absent on a clean success', body.fellBack, undefined);
+    globalThis.fetch = realFetch;
+}
+{
+    calls = [];
+    stubFetchWith(() => geminiOk('ok-from-gemini'));
+    const handler = await loadHandler({ GEMINI_API_KEY: 'gem' });
+    const res = await handler(req({ model: 'gemini-2.5-flash', contents: 'x' }));
+    const body = await res.json();
+    check('gemini-only config names gemini', body.provider, 'gemini');
     globalThis.fetch = realFetch;
 }
 
