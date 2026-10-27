@@ -35,11 +35,20 @@
 Also settled the same day: the product name stays **Meal Buddy**; the owner is a *permission*, not a
 title; the landing page stays **unrouted** until the owner says otherwise.
 
-**Consequence for Q2 that a reviewer must not miss.** Deleting the imported rows is a destructive
-change to live data, so it is delivered as reviewable SQL that has never been run:
+**Consequence for Q2 that a reviewer must not miss.** Deleting the imported rows was a destructive
+change to live data, so it was delivered as reviewable SQL —
 `supabase/migrations/20260927_archive_seeded_recipes.sql` (archive the rows, then delete, with
 guards) and `supabase/rollback/20260927_restore_seeded_recipes.sql` (undo, deliberately outside
-`supabase/migrations/` so the CLI can never apply it automatically). The Q2-A work below — making
+`supabase/migrations/` so the CLI can never apply it automatically).
+
+**It has been run.** Applied to production on 2026-09-29; the migration's own header is the record
+(`✅ THIS FILE HAS BEEN RUN`, with the rehearsal results and the PR #8 evidence link), and
+`scripts/recipe_deletion_check.mjs` fails if that header's status ever stops matching what happened.
+This paragraph said "reviewable SQL that has never been run" until 2026-09-30 — a statement that had
+been false since the file was applied, in the one brief a reviewer reads before approving the delete.
+The file the sentence named was contradicting it.
+
+The Q2-A work below — making
 the library global and read-only — is then moot for the imported set: there is no global library
 left to make read-only, and `household_id is null` in the `recipes` policies will match nothing.
 Every capture is household-owned from the first day of this feature, which is the simpler world.
@@ -210,7 +219,8 @@ choice rather than a surprise.
 
 > **ANSWERED 2026-09-26 — neither A nor B: the 400 imported rows are DELETED.** The owner's words:
 > *"I actually want the initial 400 removed from the app. I hate those recipes actually... The app
-> will grow with the user!"* It is delivered as reviewable, reversible SQL that has never been run —
+> will grow with the user!"* It was delivered as reviewable, reversible SQL — and it has been run:
+> applied to production 2026-09-29, as the migration's own header records.
 > `supabase/migrations/20260927_archive_seeded_recipes.sql` (archive, then delete, with guards) and
 > `supabase/rollback/20260927_restore_seeded_recipes.sql` (the undo, kept outside
 > `supabase/migrations/` so the CLI can never apply it automatically).
