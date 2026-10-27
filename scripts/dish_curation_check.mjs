@@ -249,7 +249,7 @@ reset();
 reply.body = { text: '' };
 out = await caught(() => proposeDish({ constraints: 'x', libraryShortlist: LIBRARY }));
 check('an empty model response throws', out.threw, true);
-check('...with the empty-response message', out.message, 'Gemini returned an empty response.');
+check('...with the empty-response message', out.message, 'The AI returned an empty response.');
 
 reset();
 reply.body = { text: '```json\n' + JSON.stringify({ source: 'generated', reasoning: 'Fenced.' }) + '\n```' };

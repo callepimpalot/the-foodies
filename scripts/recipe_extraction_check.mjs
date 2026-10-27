@@ -230,7 +230,7 @@ reset();
 reply.body = { text: '' };
 out = await caught(() => extractRecipe({ text: 'x' }));
 check('an empty model response throws', out.threw, true);
-check('...with the unreadable-source message', out.message, 'Gemini returned an empty response — the image or text may be unreadable.');
+check('...with the unreadable-source message', out.message, 'The AI returned an empty response — the image or text may be unreadable.');
 
 reset();
 reply.body = { text: 'not json at all' };
@@ -364,19 +364,19 @@ check('an unreachable function says so', out.message, "Couldn't reach the recipe
 console.log('\ndescribeApiError');
 
 check('a 429 status reads as a quota message',
-    describeApiError({ status: 429 }).message, 'Gemini rate limit or quota reached — wait a minute and try again.');
+    describeApiError({ status: 429 }).message, 'The AI is rate limited or out of quota — wait a minute and try again.');
 check('RESOURCE_EXHAUSTED in a JSON body reads the same',
     describeApiError({ message: JSON.stringify({ error: { code: 429, status: 'RESOURCE_EXHAUSTED' } }) }).message,
-    'Gemini rate limit or quota reached — wait a minute and try again.');
+    'The AI is rate limited or out of quota — wait a minute and try again.');
 check('a numeric 400 with a JSON body names the rejection',
     describeApiError({ message: JSON.stringify({ error: { code: 400, status: 'INVALID_ARGUMENT' } }) }).message,
-    'Gemini rejected the request ({"error":{"code":400,"status":"INVALID_ARGUMENT"}}).');
+    'The AI rejected the request ({"error":{"code":400,"status":"INVALID_ARGUMENT"}}).');
 check('a 400 status alone is enough to name the rejection',
-    describeApiError({ status: 400, message: 'bad request' }).message, 'Gemini rejected the request (bad request).');
+    describeApiError({ status: 400, message: 'bad request' }).message, 'The AI rejected the request (bad request).');
 check('the quoted rejection is truncated to 200 characters',
-    describeApiError({ status: 400, message: 'y'.repeat(300) }).message, `Gemini rejected the request (${'y'.repeat(200)}).`);
-check('a 401 points at the key', describeApiError({ status: 401 }).message, 'Gemini API key was rejected — check GEMINI_API_KEY.');
-check('a 403 points at the key too', describeApiError({ status: 403 }).message, 'Gemini API key was rejected — check GEMINI_API_KEY.');
+    describeApiError({ status: 400, message: 'y'.repeat(300) }).message, `The AI rejected the request (${'y'.repeat(200)}).`);
+check('a 401 points at the key', describeApiError({ status: 401 }).message, 'The AI service rejected its API key — check the provider key set in Netlify.');
+check('a 403 points at the key too', describeApiError({ status: 403 }).message, 'The AI service rejected its API key — check the provider key set in Netlify.');
 check('an unrecognised error passes its message straight through', describeApiError({ message: 'something odd' }).message, 'something odd');
 check('a thrown string is handled', describeApiError('boom').message, 'boom');
 check('something with no message at all is still handled', describeApiError({}).message, '[object Object]');

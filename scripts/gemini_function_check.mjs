@@ -212,7 +212,7 @@ console.log('\nthe success path');
 resetStub();
 const ok = await read(await handler(request('POST', { model: 'gemini-2.5-flash', contents: 'hi' })));
 check('a valid POST returns 200', ok.status, 200);
-check('a valid POST returns { text }', ok.body, { text: 'HELLO' });
+check('a valid POST returns { text } and names the provider', ok.body, { text: 'HELLO', provider: 'gemini' });
 check('the SDK is called exactly once', stub.state.calls.length, 1);
 check('the SDK receives the model unchanged', stub.state.calls[0].model, 'gemini-2.5-flash');
 check('the SDK receives the contents unchanged', stub.state.calls[0].contents, 'hi');
@@ -260,7 +260,7 @@ check('a parts array is forwarded structurally identical', stub.state.calls[0].c
 resetStub();
 stub.state.reply = { text: null };
 const nullText = await read(await handler(request('POST', { model: 'gemini-2.5-flash', contents: 'hi' })));
-check('a null text is returned as an empty string', nullText.body, { text: '' });
+check('a null text is returned as an empty string', nullText.body, { text: '', provider: 'gemini' });
 
 console.log('\nthe error path');
 
@@ -284,7 +284,7 @@ check('a POST without a key returns 500', noKey.status, 500);
 check(
     'a POST without a key names the missing variable',
     noKey.body,
-    { error: 'Gemini is not configured on the server (missing GEMINI_API_KEY).' },
+    { error: 'No AI provider is configured on the server. Set OPENROUTER_API_KEY (preferred) or GEMINI_API_KEY in the Netlify environment.' },
 );
 check('no client is constructed without a key', stub.state.ctorArgs.length, ctorBeforeKeyless);
 
