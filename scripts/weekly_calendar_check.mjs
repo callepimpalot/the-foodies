@@ -191,8 +191,15 @@ function loadJsx(relativePathOrUrl, globals = null) {
         if (typeof spec === 'string' && spec.startsWith('.')) {
             const resolved = resolveSpecifier(baseRequire, spec);
             if (!resolved) throw new Error(`Cannot resolve '${spec}' from ${key}`);
-            if (resolved.endsWith('.jsx')) return loadJsx(pathToFileURL(resolved));
-            return baseRequire(resolved);
+            // Both routes go through the sandbox, and both carry the injected globals down.
+            //
+            // The seven days used to be generated inside WeeklyCalendar.jsx, so injecting
+            // `Date` into THAT module was sufficient. The window now lives in
+            // lib/weekWindow.js, and loading it through plain `require()` handed it the REAL
+            // clock — so every date assertion below silently became a test of "whatever day
+            // it is when you run this", and went red the day after this file was written.
+            // A relative .js module is app code like any other and needs the same globals.
+            return loadJsx(pathToFileURL(resolved), globals);
         }
         return baseRequire(spec);
     };

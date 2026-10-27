@@ -27,6 +27,10 @@ Note: the codebase is **plain JavaScript, not TypeScript** — there is no `tsco
 - Supabase is the source of truth once a table is live — `final_recipes.json` is only the offline fallback (older ingredient shape; reuse `consolidateIngredients.js` `normalizeIngredient()` to handle both shapes)
 - No hardcoded colors, fonts, or spacing — always reference `DESIGN_SYSTEM.md` tokens
 - Netlify env vars (set in Netlify, not committed): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (client) + `GEMINI_API_KEY` (server, for the Gemini proxy function) + `SOCIAL_INGEST_URL` and `SOCIAL_INGEST_TOKEN` (server, for reading social post captions — see `.agent/features/FEATURE_social_link_capture.md`; the social branch is inert until both are set)
+- `OPENROUTER_API_KEY` — the OpenRouter key the AI proxy prefers. When set, model
+  calls go to OpenRouter; when absent, or when OpenRouter cannot serve the request,
+  they fall back to `GEMINI_API_KEY`. Both are server-side Netlify env vars and must
+  never be `VITE_`-prefixed.
 
 ## Current status (Aug 2026)
 The Capture → Plan → Shop → Cook loop is **built and live in production** at https://thefoodi.netlify.app. See `.agent/FEATURES.md` for what shipped and what's next.

@@ -455,7 +455,7 @@ check('a reply wrapped in a markdown fence is still parsed', result?.value?.summ
 reset(() => response({ text: '   ' }));
 result = await caught(() => planWeek({ instruction: 'plan', scopeDates: ['2026-10-12'], currentProposal: [], libraryShortlist: SHORTLIST }));
 check('an empty reply is reported', result?.threw, true);
-check('...with the module\'s own message', result?.message, 'Gemini returned an empty response.');
+check('...with the module\'s own message', result?.message, 'The AI returned an empty response.');
 
 reset(() => response({ text: 'not json at all' }));
 result = await caught(() => planWeek({ instruction: 'plan', scopeDates: ['2026-10-12'], currentProposal: [], libraryShortlist: SHORTLIST }));
@@ -480,11 +480,11 @@ check('...keeping the client\'s user-facing message', result?.message, "Couldn't
 
 reset(() => response({ body: { error: JSON.stringify({ error: { status: 'RESOURCE_EXHAUSTED', code: 429 } }) } }));
 result = await caught(() => planWeek({ instruction: 'plan', scopeDates: ['2026-10-12'], currentProposal: [], libraryShortlist: SHORTLIST }));
-check('a proxy-reported quota error is translated by describeApiError', result?.message, 'Gemini rate limit or quota reached — wait a minute and try again.');
+check('a proxy-reported quota error is translated by describeApiError', result?.message, 'The AI is rate limited or out of quota — wait a minute and try again.');
 
 reset(() => response({ body: { error: '{"error":{"status":"INVALID_ARGUMENT"}}' } }));
 result = await caught(() => planWeek({ instruction: 'plan', scopeDates: ['2026-10-12'], currentProposal: [], libraryShortlist: SHORTLIST }));
-check('an INVALID_ARGUMENT is translated too', String(result?.message ?? '').startsWith('Gemini rejected the request'), true);
+check('an INVALID_ARGUMENT is translated too', String(result?.message ?? '').startsWith('The AI rejected the request'), true);
 
 // ───────────────────────────────────────────────────────────────────────────────────────────────
 console.log('');
