@@ -44,9 +44,9 @@ export function RecipeDaySheet({ date, day, recipes, onSave, onClose }) {
         setRefining(true);
         setError(null);
         try {
-            const { recipe, changeSummary } = await refineRecipe(draft, instruction.trim());
+            const { recipe, changeSummary, warning } = await refineRecipe(draft, instruction.trim(), { history: chatLog });
             setDraft({ ...recipe });
-            setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary }]);
+            setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary, warning: warning ?? null }]);
             setInstruction('');
         } catch (err) {
             console.error('Recipe day refine failed:', err);
@@ -123,6 +123,9 @@ export function RecipeDaySheet({ date, day, recipes, onSave, onClose }) {
                                 <div key={idx} className="flex flex-col gap-[2px]">
                                     <span className="t-body" style={{ fontSize: '13px', color: 'var(--chalk)' }}>"{entry.instruction}"</span>
                                     <span className="t-body" style={{ fontSize: '12px', color: 'var(--grease)', fontStyle: 'italic' }}>{entry.changeSummary}</span>
+                                    {entry.warning && (
+                                        <span className="t-body" style={{ fontSize: '11px', color: 'var(--chalk-dim)' }}>{entry.warning}</span>
+                                    )}
                                 </div>
                             ))}
                         </div>

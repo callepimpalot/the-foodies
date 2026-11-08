@@ -1,6 +1,7 @@
 import { normalizeImage, fileToBase64 } from './imageUtils';
-import { unitSystemInstruction } from './unitPreference';
-import { withValidStepIngredients } from './stepIngredients';
+import { unitSystemInstruction, getUnitSystem } from './unitPreference';
+import { withValidStepIngredients, matchIngredientIndexes } from './stepIngredients';
+import { convertIngredient } from './unitConversion';
 import { geminiGenerateContent } from './geminiClient';
 
 // Matches the real Supabase `recipes` columns (see scripts/import-to-supabase.ts),
@@ -77,32 +78,254 @@ Rules:
 - base_servings: the number of people the recipe serves as written.
 - units: {{UNIT_INSTRUCTION}}`;
 
-const REFINE_SCHEMA = {
+export const REFINE_SCHEMA = {
     type: 'object',
     properties: {
         recipe: RECIPE_SCHEMA,
         changeSummary: { type: 'string' },
+        // A short per-field review — which fields changed and why, which were deliberately left
+        // alone. It exists so a silent no-op ("I applied your change" while changing nothing)
+        // becomes visible instead of being claimed. Optional: a model that omits it is accepted.
+        review: { type: 'array', items: { type: 'string' }, nullable: true },
     },
     required: ['recipe', 'changeSummary'],
 };
 
-const REFINE_PROMPT = `You are helping refine a recipe based on a follow-up request, like sparring
-with a chef before committing to a final version. You'll be given the current recipe as JSON and a
-request describing a change. Apply the request and return the complete updated recipe (not just the
-changed fields) plus a one-sentence summary of what you changed.
+// A chef-EDITOR, not a patcher. The two measured failures this prompt is built to stop are a
+// change that touches only 2 of 11 steps, and a rewrite that is hedged and wordy ("breaking it
+// apart with a wooden spatula if minced, or searing if diced/sliced") instead of sweeping the
+// whole recipe. So it states an explicit propagation checklist, the FIELD CONTRACT the code-side
+// sanitiser enforces anyway, and it tells the model to REWRITE every step rather than edit in
+// place. It deliberately carries NO unit-system instruction — unit conversion is done in code
+// (see unitConversion.js and refineRecipe below), because doing that arithmetic in prose is what
+// destroyed the ingredient rows in the first place.
+export const REFINE_PROMPT = `You are a chef-editor refining a recipe. You are given the current recipe as JSON,
+the conversation so far, and the latest request. Apply the request and return the COMPLETE updated recipe
+(not just the changed fields), a one-sentence change summary, and a short per-field review.
 
-Rules:
-- Apply only what's asked, but adjust anything that logically follows — e.g. scaling servings scales
-  every ingredient quantity proportionally; swapping an ingredient keeps a sensible quantity/unit for
-  the replacement; removing an ingredient also removes or rewrites any step that specifically calls
-  for it.
-- Keep everything else identical to the current recipe unless the request requires changing it.
-- step_ingredients: re-emit it to match the recipe you are RETURNING, not the one you were given —
-  one entry per returned step, indexes pointing into the returned ingredients array. If you add,
-  remove or reorder an ingredient or a step, every index must be recomputed. If you are unsure,
-  omit the field entirely rather than returning stale indexes.
-- changeSummary should be short and human, e.g. "Scaled to 4 servings and swapped carrots for cucumbers."
-- units: {{UNIT_INSTRUCTION}} Apply this even if the request itself isn't about units.`;
+Work as an editor, not a patcher. Before you emit anything, walk this propagation checklist and make the
+recipe agree with itself everywhere the change reaches:
+
+1. INGREDIENT SWAP — when one ingredient replaces another: update EVERY step that names the old
+   ingredient to name the replacement, and update the technique and timing if the replacement cooks
+   differently (a quick-seared chicken breast does not braise like pork mince). Keep a sensible
+   quantity and unit for the replacement.
+2. INGREDIENT REMOVAL — when an ingredient is removed: delete it from the list AND delete or rewrite
+   every step that uses it, so no step ever calls for something that is gone.
+3. SCALING — when the servings change: scale every ingredient quantity by the same factor, scale kcal
+   to the new per-serving value, and set base_servings to the new number.
+4. CHARACTER CHANGE — a change to the dish's character (spicier, lighter, dairy-free, vegetarian, …) is
+   applied consistently everywhere it matters, INCLUDING the title and the description, not only the
+   ingredient list.
+5. DERIVED FIELDS — cook_time_minutes, difficulty and description must follow the change that was made;
+   never leave them stale when the change affects them.
+
+Rewrite the WHOLE \`steps\` array from the recipe you are returning — re-read every step against the new
+ingredient list rather than editing steps in place. A step that is hedged, half-updated, or that still
+names an ingredient the recipe no longer has is a failure.
+
+FIELD CONTRACT (a wrong value here is worse than a missing one — the app repairs or rejects violations):
+- ingredient.name is a SHORT ingredient name ONLY. Never a quantity, never a unit, never an explanation,
+  and at most about 60 characters. "Chicken breast" — never "Chicken breast (about 500g, cook to 74°C
+  because lean meat dries out)".
+- ingredient.quantity is a number or null. NEVER a string.
+- ingredient.unit is a bare unit token of at most about 12 characters. Never digits, never the ingredient
+  name, never a whole sentence. "g", "ml", "tbsp", "cloves".
+- Do NOT convert unit systems and do NOT do unit arithmetic. The app converts units deterministically
+  after you reply. Keep each quantity in the unit it already had unless the request itself changes it.
+- step_ingredients: omit it. The app recomputes the step -> ingredient links from your returned steps.
+
+changeSummary: one short human sentence, e.g. "Swapped pork mince for chicken breast and adjusted step 5."
+review: a short list of which fields you changed and why, and which you deliberately left alone — so a
+  change that quietly did nothing becomes visible, e.g. "steps 5-6: renamed pork -> chicken",
+  "kcal: unchanged (no serving change)".
+Return only the JSON object.`;
+
+// Names longer than this are the model narrating its reasoning into the field rather than naming an
+// ingredient. Measured: one probe returned a ~1,300-character deliberation as an ingredient field.
+export const MAX_INGREDIENT_NAME_LENGTH = 60;
+const MAX_UNIT_LENGTH = 12;
+const QUANTITY_FROM_UNIT_MAX = 40;
+const MEASUREMENT_IN_NAME = /(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|oz|lb|tsp|tbsp|cups?|cloves?|stalks?|pinch(?:es)?)\b/i;
+
+function isBlank(value) {
+    return value == null || (typeof value === 'string' && !value.trim());
+}
+
+function normalizeNameKey(name) {
+    return typeof name === 'string' ? name.trim().toLowerCase().replace(/\s+/g, ' ') : '';
+}
+
+// Cut a narration or a quantity+unit back to a short ingredient name. "Chicken breast, diced or
+// minced (…)" -> "Chicken breast". Returns null when nothing usable is left.
+function cleanName(rawName) {
+    if (typeof rawName !== 'string') return null;
+    let name = rawName.trim();
+    if (!name) return null;
+    if (name.length > MAX_INGREDIENT_NAME_LENGTH || MEASUREMENT_IN_NAME.test(name)) {
+        const leading = name.split(/\s*[,(]|\s+-\s+|\s+or\s+/i)[0].trim();
+        name = leading || name;
+        // drop a leading measurement, e.g. "500 g chicken" -> "chicken"
+        name = name.replace(/^\d+(?:[.,]\d+)?\s*(g|kg|ml|l|oz|lb|tsp|tbsp|cups?|cloves?|stalks?)\b\.?\s*/i, '').trim();
+    }
+    if (!name || name.length > MAX_INGREDIENT_NAME_LENGTH) {
+        name = name.split(/\s+/).slice(0, 4).join(' ').trim();
+    }
+    return name || null;
+}
+
+// A unit is a bare token: at most MAX_UNIT_LENGTH characters, no digits, no spaces. "g  Pork mince
+// 250" -> "g"; "g, diced or minced (…)" -> "g"; "ml" -> "ml"; "cloves" -> "cloves".
+function cleanUnit(rawUnit) {
+    if (isBlank(rawUnit) || typeof rawUnit !== 'string') return null;
+    const token = rawUnit.trim().split(/[\s,]+/)[0].replace(/[^A-Za-z°]/g, '');
+    if (!token) return null;
+    return token.slice(0, MAX_UNIT_LENGTH).toLowerCase();
+}
+
+// A number the model crammed into a unit field. Only recovered from a SHORT unit string, where the
+// reading is unambiguous ("g  Pork mince  250" -> 250). A long unit is narration full of unrelated
+// numbers (74°C, 2-3 breasts, 500g) and is not trusted.
+function quantityFromStuffedUnit(rawUnit) {
+    if (typeof rawUnit !== 'string') return null;
+    const raw = rawUnit.trim();
+    if (!raw || raw.length > QUANTITY_FROM_UNIT_MAX) return null;
+    const match = raw.match(/(\d+(?:[.,]\d+)?)/);
+    if (!match) return null;
+    const n = Number(match[1].replace(',', '.'));
+    return Number.isFinite(n) ? n : null;
+}
+
+// The unit string carries text it should not: digits, more than one word, or the ingredient's own name.
+function unitIsStuffed(rawUnit, name) {
+    if (typeof rawUnit !== 'string') return false;
+    const raw = rawUnit.trim();
+    if (!raw) return false;
+    if (/\d/.test(raw)) return true;
+    if (raw.split(/\s+/).length > 1) return true;
+    const key = normalizeNameKey(name);
+    return !!key && raw.toLowerCase().includes(key);
+}
+
+// Find the input ingredient this refined row corresponds to: by name first (a scale or a reorder
+// keeps names), then by position (a swap changes the name but keeps the slot).
+function findBeforeIngredient(name, index, beforeIngredients) {
+    const key = normalizeNameKey(name);
+    if (key) {
+        const byName = beforeIngredients.find((b) => normalizeNameKey(b?.name) === key);
+        if (byName) return byName;
+    }
+    if (index != null && index < beforeIngredients.length) return beforeIngredients[index];
+    return null;
+}
+
+/**
+ * Sanitise a refined recipe against the recipe it was derived from.
+ *
+ * The refine turn is the one place a model rewrites a whole row, and it is the place two measured
+ * defects live: a rich `{quantity, unit}` pair collapsing to a bare unit, and a name/number crammed
+ * into the unit string. This function repairs both and HARD-REFUSES to let a measurement the input
+ * carried disappear — if the model dropped it, the input's quantity+unit are restored for the
+ * ingredients the model did not deliberately re-measure.
+ *
+ * It also does two things the model must not be trusted with:
+ *   - `step_ingredients` is RECOMPUTED from the RETURNED steps and ingredients via the app's own
+ *     matcher, never copied from the model's index arithmetic.
+ *   - `kcal` is recomputed deterministically when base_servings changes (per-serving).
+ *
+ * Returns { recipe, warning } — warning is a human string when anything had to be repaired, so the
+ * UI can say so, or null.
+ */
+export function sanitiseRefinedRecipe(before, after) {
+    if (!after || typeof after !== 'object') return { recipe: after, warning: null };
+
+    const state = { repaired: false, restored: false, stuffed: false };
+    const beforeIngredients = Array.isArray(before?.ingredients) ? before.ingredients : [];
+    const recipe = { ...after };
+
+    if (Array.isArray(after.ingredients)) {
+        recipe.ingredients = after.ingredients.map((raw, index) => {
+            const source = raw ?? {};
+            const out = {};
+
+            // --- name ---
+            let name = cleanName(source.name);
+            if (name == null) {
+                const fallback = beforeIngredients[index];
+                name = typeof fallback?.name === 'string' ? fallback.name : null;
+                if (name) state.repaired = true;
+            } else if (name !== source.name) {
+                state.repaired = true;
+            }
+            out.name = name;
+
+            // --- unit ---
+            const rawUnit = source.unit;
+            const stuffed = unitIsStuffed(rawUnit, name);
+            if (stuffed) state.stuffed = true;
+            let unit = cleanUnit(rawUnit);
+            if (unit !== null && typeof rawUnit === 'string' && unit !== rawUnit.trim().toLowerCase()) {
+                state.repaired = true;
+            }
+
+            // --- quantity ---
+            let quantity = null;
+            if (typeof source.quantity === 'number' && Number.isFinite(source.quantity)) {
+                quantity = source.quantity;
+            } else if (typeof source.quantity === 'string' && source.quantity.trim()) {
+                const n = Number(source.quantity.replace(',', '.'));
+                quantity = Number.isFinite(n) ? n : null;
+                state.repaired = true;
+            }
+            if (quantity == null && stuffed) {
+                const recovered = quantityFromStuffedUnit(rawUnit);
+                if (recovered != null) { quantity = recovered; state.repaired = true; }
+            }
+
+            // HARD REFUSE: the input carried a measurement and the refined row lost it. Restore the
+            // input's quantity AND unit (they are a pair — a restored number under a half-converted
+            // unit would be a new corruption) unless the model deliberately re-measured.
+            const anchor = findBeforeIngredient(name, index, beforeIngredients);
+            if (quantity == null && typeof anchor?.quantity === 'number' && Number.isFinite(anchor.quantity)) {
+                quantity = anchor.quantity;
+                state.restored = true;
+                const anchorUnit = cleanUnit(anchor.unit);
+                if (anchorUnit) unit = anchorUnit;
+            }
+
+            out.unit = unit;
+            if (quantity != null) out.quantity = quantity;
+            return out;
+        });
+    }
+
+    // --- kcal tracks base_servings, deterministically ---
+    const beforeServings = Number(before?.base_servings);
+    const afterServings = Number(recipe.base_servings);
+    const beforeKcal = before?.kcal;
+    if (
+        Number.isFinite(beforeServings) && beforeServings > 0 &&
+        Number.isFinite(afterServings) && afterServings > 0 &&
+        afterServings !== beforeServings &&
+        typeof beforeKcal === 'number' && Number.isFinite(beforeKcal)
+    ) {
+        const scaled = Math.round(beforeKcal * afterServings / beforeServings);
+        if (scaled !== recipe.kcal) state.repaired = true;
+        recipe.kcal = scaled;
+    }
+
+    // --- step_ingredients is RECOMPUTED from the returned steps, never trusted ---
+    if (Array.isArray(recipe.steps) && Array.isArray(recipe.ingredients)) {
+        recipe.step_ingredients = recipe.steps.map((step) => matchIngredientIndexes(step, recipe.ingredients));
+    }
+
+    const notes = [];
+    if (state.stuffed) notes.push('the model crammed a name/number into a unit field');
+    if (state.restored) notes.push('a measurement the input carried was restored from the input');
+    if (state.repaired) notes.push('a malformed field was repaired');
+    const warning = notes.length ? `Refine result was repaired in code — ${notes.join('; ')}.` : null;
+    return { recipe, warning };
+}
 
 export function cleanJson(text) {
     return (text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
@@ -150,17 +373,33 @@ export async function extractRecipe({ text, images = [] } = {}) {
 
 // Applies one follow-up instruction to an already-extracted recipe draft, e.g. "make it 4 servings"
 // or "swap carrots for cucumbers". Returns the updated recipe plus a short human-readable summary.
-export async function refineRecipe(currentRecipe, instruction) {
+//
+// STATEFUL SPARRING (TASK_11): `options.history` is the accumulated `[{ instruction, changeSummary }]`
+// from earlier turns, so a SECOND instruction ("actually make it less spicy") knows what the first one
+// did. The third argument is optional, so existing two-argument callers keep working unchanged.
+//
+// The model is trusted ONLY for the language of the recipe. Unit conversion, `step_ingredients`, the
+// kcal/servings invariant and the ingredient field contract are all done in code afterwards — see
+// sanitiseRefinedRecipe() and unitConversion.js.
+export async function refineRecipe(currentRecipe, instruction, options = {}) {
     if (!instruction?.trim()) {
         throw new Error('Describe what you want to change.');
     }
 
-    const refinePrompt = REFINE_PROMPT.replace('{{UNIT_INSTRUCTION}}', unitSystemInstruction());
+    const history = Array.isArray(options?.history) ? options.history : [];
+    const conversation = history.length
+        ? '\n\nCONVERSATION SO FAR (instructions you already applied, oldest first — build on these, do not undo them):\n'
+            + history.map((turn, i) => {
+                const summary = turn?.changeSummary ? `\n   You changed: ${turn.changeSummary}` : '';
+                return `${i + 1}. Request: ${turn?.instruction ?? ''}${summary}`;
+            }).join('\n')
+        : '';
+
     let text;
     try {
         text = await geminiGenerateContent({
             model: 'gemini-2.5-flash',
-            contents: `${refinePrompt}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
+            contents: `${REFINE_PROMPT}${conversation}\n\nCURRENT RECIPE:\n${JSON.stringify(currentRecipe)}\n\nREQUEST:\n${instruction.trim()}`,
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: REFINE_SCHEMA,
@@ -174,7 +413,20 @@ export async function refineRecipe(currentRecipe, instruction) {
     const raw = cleanJson(text);
     if (!raw) throw new Error('The AI returned an empty response.');
     const parsed = JSON.parse(raw);
-    return { recipe: withValidStepIngredients(parsed.recipe), changeSummary: parsed.changeSummary };
+
+    // Repair + verify the model's output, THEN convert units — deterministically, in code.
+    const { recipe, warning } = sanitiseRefinedRecipe(currentRecipe, parsed.recipe);
+    if (Array.isArray(recipe?.ingredients)) {
+        const system = getUnitSystem();
+        recipe.ingredients = recipe.ingredients.map((ing) => convertIngredient(ing, system));
+    }
+
+    return {
+        recipe,
+        changeSummary: parsed.changeSummary,
+        review: Array.isArray(parsed.review) ? parsed.review : undefined,
+        warning,
+    };
 }
 
 // URL capture (TASK_08): a fast, free, deterministic path IN FRONT of the Gemini extraction

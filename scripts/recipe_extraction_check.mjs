@@ -67,6 +67,7 @@ registerHooks({
 
 const {
     RECIPE_SCHEMA,
+    REFINE_SCHEMA,
     cleanJson,
     describeApiError,
     extractRecipe,
@@ -301,11 +302,33 @@ const refinePrompt = calls[0].body.contents;
 check('the refine prompt is sent as plain text, not parts', typeof refinePrompt, 'string');
 check('...carrying the current recipe as JSON', refinePrompt.includes('"title":"Original"'), true);
 check('...and the user request, trimmed', refinePrompt.includes('REQUEST:\nmake it 4 servings'), true);
-check('...with the unit instruction substituted too', refinePrompt.includes('{{UNIT_INSTRUCTION}}'), false);
-check('...and the metric instruction present', refinePrompt.includes(UNIT_SYSTEM_INSTRUCTIONS.metric), true);
+check('the refine prompt no longer carries a unit-system instruction (conversion is now in code)', refinePrompt.includes('{{UNIT_INSTRUCTION}}'), false);
+check('...and no unit-instruction text leaks in either', refinePrompt.includes(UNIT_SYSTEM_INSTRUCTIONS.metric), false);
+check('...but it states the holistic propagation checklist', refinePrompt.includes('INGREDIENT SWAP') && refinePrompt.includes('INGREDIENT REMOVAL') && refinePrompt.includes('SCALING'), true);
+check('...and the ingredient field contract', refinePrompt.includes('FIELD CONTRACT') && refinePrompt.includes('at most about 12 characters'), true);
+check('...and it tells the model to rewrite the whole steps array', /Rewrite the WHOLE/.test(refinePrompt), true);
 check('the same schema path is used (JSON response)', calls[0].body.config.responseMimeType, 'application/json');
+check('the refine schema carries the per-field review', REFINE_SCHEMA.properties.review.type, 'array');
 check('the refined recipe is returned', refined.recipe.title, 'Scaled');
 check('the change summary is returned alongside it', refined.changeSummary, 'Scaled to 4 servings.');
+check('a refine with nothing to repair has a null warning', refined.warning, null);
+
+reset();
+reply.body = { text: JSON.stringify({ recipe: modelRecipe({ title: 'Scaled' }), changeSummary: 'ok' }) };
+const withHistory = await refineRecipe(
+    { title: 'Original', base_servings: 2 },
+    'actually make it less spicy',
+    { history: [{ instruction: 'add more chilli', changeSummary: 'Doubled the chilli crisp.' }] }
+);
+check('stateful sparring: the prior turn is carried into the prompt', calls[0].body.contents.includes('CONVERSATION SO FAR'), true);
+check('...with the earlier instruction verbatim', calls[0].body.contents.includes('add more chilli'), true);
+check('...and the earlier change summary', calls[0].body.contents.includes('Doubled the chilli crisp.'), true);
+
+reset();
+reply.body = { text: JSON.stringify({ recipe: modelRecipe({ title: 'Scaled' }), changeSummary: 'ok' }) };
+const twoArg = await refineRecipe({ title: 'Original', base_servings: 2 }, 'no history here');
+check('a two-argument call still works (backward compatible)', twoArg.recipe.title, 'Scaled');
+check('...and simply omits the conversation section', calls[0].body.contents.includes('CONVERSATION SO FAR'), false);
 
 console.log('\nextractRecipeFromUrl — the TASK_08 fast path');
 
