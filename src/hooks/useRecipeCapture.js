@@ -34,7 +34,11 @@ export function useRecipeCapture() {
         setRefining(true);
         setError(null);
         try {
-            const { recipe, changeSummary } = await refineRecipe(draft, instruction);
+            // Pass the accumulated chat log so a SECOND instruction can build on the first
+            // ("actually make it less spicy" after "add more chilli"). Each turn now also carries
+            // the code-side repair warning (if any) and the model's per-field review, so a silently
+            // repaired or no-op change is visible in the UI instead of being claimed as applied.
+            const { recipe, changeSummary, warning, review } = await refineRecipe(draft, instruction, { history: chatLog });
             // Gemini's refine schema doesn't carry source_url (it's app metadata, not something
             // we want an AI model trying to fill in for text/photo captures) — preserve it across
             // the refine turn instead of losing it when the draft gets replaced. Same for
@@ -44,7 +48,7 @@ export function useRecipeCapture() {
                 source_url: draft?.source_url ?? recipe?.source_url,
                 capture_image_url: draft?.capture_image_url ?? null,
             });
-            setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary }]);
+            setChatLog((prev) => [...prev, { instruction: instruction.trim(), changeSummary, warning: warning ?? null, review: review ?? null }]);
         } catch (err) {
             console.error('Recipe refine failed:', err);
             setError(err?.message || "Couldn't apply that change — try rephrasing it.");

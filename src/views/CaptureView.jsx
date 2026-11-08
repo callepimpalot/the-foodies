@@ -475,6 +475,9 @@ function RefineChat({ onRefine, refining, chatLog }) {
                         <div key={idx} className="flex flex-col gap-[2px]">
                             <span className="font-body text-[13px] text-chalk">"{entry.instruction}"</span>
                             <span className="font-head italic text-[12px] text-grease">{entry.changeSummary}</span>
+                            {entry.warning && (
+                                <span className="font-body text-[11px] text-chalkDim">{entry.warning}</span>
+                            )}
                         </div>
                     ))}
                 </div>
